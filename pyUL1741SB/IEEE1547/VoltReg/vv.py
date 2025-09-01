@@ -122,6 +122,23 @@ class VVCurve:
 
 class VV:
     def vv_validate_step(self):
+        '''
+        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage, a new steady
+        state reactive power, Qfinal, and steady-state voltage Vfinal is measured. To obtain a steady-state value,
+        measurements shall be taken at a time period much larger than the open loop response, Tr, setting of the
+        volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state error is
+        1%. In addition, instrumentation filtering may be used to reject any variation in ac test source voltage
+        during steady-state measurement.
+        After each voltage, the open loop response time, Tr, is evaluated. The expected reactive power output,
+        Q(Tr), at one times the open loop response time, is calculated as 90% × (Qfinal – Qinitial) + Qinitial.
+        Qfinal shall meet the test result accuracy requirements specified in 4.2, where Qfinal is the Y parameter and
+        Vfinal is the X parameter.
+        Q(Tr) shall meet the test result accuracy requirements specified in 4.2, where Q(Tr) is the Y parameter and
+        Tr is the X parameter.
+        Where EUT is DER equipment that does not produce power, such as a plant controller, the DER’s
+        commanded power factor or commanded reactive power may be used to verify compliance at the DER
+        design evaluation stage. Because the unit does not produce power, signal injection may be used.
+        '''
         raise NotImplementedError
 
     def vv_traverse_steps(self, env: Env, vv_crv: VVCurve, VL, VH, av):
@@ -229,26 +246,6 @@ class VV:
                     f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
                     '''
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
-
-
-    def vv_eval(self):
-        '''
-        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage, a new steady
-        state reactive power, Qfinal, and steady-state voltage Vfinal is measured. To obtain a steady-state value,
-        measurements shall be taken at a time period much larger than the open loop response, Tr, setting of the
-        volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state error is
-        1%. In addition, instrumentation filtering may be used to reject any variation in ac test source voltage
-        during steady-state measurement.
-        After each voltage, the open loop response time, Tr, is evaluated. The expected reactive power output,
-        Q(Tr), at one times the open loop response time, is calculated as 90% × (Qfinal – Qinitial) + Qinitial.
-        Qfinal shall meet the test result accuracy requirements specified in 4.2, where Qfinal is the Y parameter and
-        Vfinal is the X parameter.
-        Q(Tr) shall meet the test result accuracy requirements specified in 4.2, where Q(Tr) is the Y parameter and
-        Tr is the X parameter.
-        Where EUT is DER equipment that does not produce power, such as a plant controller, the DER’s
-        commanded power factor or commanded reactive power may be used to verify compliance at the DER
-        design evaluation stage. Because the unit does not produce power, signal injection may be used.
-        '''
 
     def vv_vref(self):
         """

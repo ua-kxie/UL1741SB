@@ -1,3 +1,5 @@
+import numpy as np
+
 class VWCurve:
     '''IEEE 1547.1-2020 Tables 31-33'''
     def __init__(self, **kwargs):
@@ -7,6 +9,20 @@ class VWCurve:
         self.P2 = kwargs['P2']  # For DER that can only generate active power
         self.P2_prime = kwargs['P2_prime']  # For DER that can absorb active power
         self.Tr = kwargs['Tr']
+
+    def y_of_x(self, x):
+        return np.interp(
+            x,
+            [self.V1, self.V2],
+            [self.P1, self.P2],
+        )
+
+    def y_of_x_ab(self, x):
+        return np.interp(
+            x,
+            [self.V1, self.V2],
+            [self.P1, self.P2_prime],
+        )
 
     @staticmethod
     def Crv_1A(Prated, Pmin, VN):
@@ -41,7 +57,7 @@ class VWCurve:
             V2=1.1 * VN,
             P2=min(0.2 * Prated, Pmin),  # For generation-only DER
             P2_prime=Prated_prime,  # For absorption-capable DER
-            Tr=90
+            Tr=60  # 1741 amendment - IEEE 1547 stipulates 90, but is outside valid range
         )
 
     @staticmethod
@@ -53,7 +69,7 @@ class VWCurve:
             V2=1.1 * VN,
             P2=min(0.2 * Prated, Pmin),  # For generation-only DER
             P2_prime=Prated_prime,  # For absorption-capable DER
-            Tr=90
+            Tr=60  # 1741 amendment - IEEE 1547 stipulates 90, but is outside valid range
         )
 
     @staticmethod
@@ -80,7 +96,7 @@ class VWCurve:
             Tr=0.5
         )
 
-def vw_traverse_steps(vw_crv: VWCurve, VL, VH, av, grid: gridsim.GridSim):
+def vw_traverse_steps(vw_crv: VWCurve, VL, VH, av):
     """
     """
     '''
