@@ -1,5 +1,6 @@
 from datetime import timedelta
-from src import Eut, Env
+from pyUL1741SB.eut import Eut
+from pyUL1741SB.env import Env
 from typing import Callable
 import math
 

@@ -1,6 +1,6 @@
-from src.UL1741SB import UL1741SB
-from src.Eut import Eut
-from src.Env import Env
+from pyUL1741SB.UL1741SB import UL1741SB
+from pyUL1741SB.eut import Eut
+from pyUL1741SB.env import Env
 
 std = UL1741SB()
 eut = Eut(

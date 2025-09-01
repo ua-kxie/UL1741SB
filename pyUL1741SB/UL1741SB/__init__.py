@@ -1,10 +1,11 @@
-from src.Eut import Eut
-from src.Env import Env
-from src.IEEE1547 import IEEE1547
 from datetime import datetime, timedelta
 from typing import Callable
 import statistics as stats
-from src.IEEE1547.VoltReg.vv import VVCurve
+
+from pyUL1741SB.eut import Eut
+from pyUL1741SB.env import Env
+from pyUL1741SB.IEEE1547 import IEEE1547
+from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547):
     def vv_proc(self, env: Env, eut: Eut):
