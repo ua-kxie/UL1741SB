@@ -14,9 +14,11 @@ class UL1741SB(IEEE1547):
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
         av = 1.5 * eut.mra.static.V
         if eut.Cat == Eut.Category.A:
-            vv_crvs = [VVCurve.Crv_1A(eut.Prated, eut.VN)]
+            vv_crvs = [VVCurve.Crv_1A(eut.Prated, eut.VN)]  # just char1 curve, UL1741 amendment
         elif eut.Cat == Eut.Category.B:
             vv_crvs = [VVCurve.Crv_1B(eut.Prated, eut.VN)]
+        else:
+            raise TypeError(f'unknown category {eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power

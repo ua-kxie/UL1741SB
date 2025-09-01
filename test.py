@@ -8,9 +8,9 @@ eut = Eut(
     Prated=1000,
     Prated_prime=800,
     Srated=1200,
-    Vin_nom=230,
-    Vin_min=210,
-    Vin_max=250,
+    Vin_nom=56,
+    Vin_min=None,
+    Vin_max=None,
     VN=120,
     VL=110,
     VH=130,
@@ -22,5 +22,5 @@ eut = Eut(
     multiphase=False
 )
 env = Env()
-std.cpf_proc(env=env, eut=eut, Vins=[48], targetPFs=[0.9])
+std.cpf_proc(env=env, eut=eut)
 std.vv_proc(env=env, eut=eut)

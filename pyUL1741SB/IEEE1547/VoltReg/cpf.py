@@ -8,13 +8,26 @@ class CPF:
     def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         raise NotImplementedError("IEEE 1547 cpf step validation")
 
-    def cpf_proc(self, env: Env, eut: Eut, Vins, targetPFs):
+    def cpf_proc(self, env: Env, eut: Eut):
         """
         """
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=10)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
         av = 1.5 * eut.mra.static.V
+        '''
+        5.14.3.2 
+        PFmin,inj: Minimum injected power factor, 0.90 for both Category A and B equipment
+        PFmin,ab: Minimum absorbed power factor, 0.97 for Category A, 0.90 for Category B
+        PFmid,inj: A power factor setting chosen to be less than 1 and greater than PFmin,inj
+        PFmid,ab: Apower factor setting chosen to be less than 1 and greater than PFmin,ab
+        '''
+        if eut.Cat == Eut.Category.A:
+            targetPFs = [0.9, -0.97, 0.95, -0.98]  # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
+        elif eut.Cat == Eut.Category.B:
+            targetPFs = [0.9, -0.9, 0.95, -0.95]
+        else:
+            raise TypeError(f'unknown category {eut.Cat}')
         '''
         5.14.2:
         The term av is used throughout these tests and is defined as 150% of the minimum required measurement accuracy
@@ -36,6 +49,7 @@ class CPF:
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
+        Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         for Vin in Vins:
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
@@ -73,11 +87,11 @@ class CPF:
                         return -q
                     else:
                         return q
-                for Vac in [VL + av, VH - av, VL + av]:
+                for k, Vac in {'i': VL + av, 'j': VH - av, 'k': VL + av}.items():
                     env.ac_config(Vac=Vac)
                     self.cpf_validate_step(
                         env=env,
-                        label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}",
+                        label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: {k}",
                         perturb=lambda: env.ac_config(Vac=Vac),
                         olrt=timedelta(seconds=10),
                         y_of_x=y_of_x,
@@ -121,10 +135,18 @@ class CPF:
                 q) Disable constant power factor mode. Power factor should return to unity.
                 r) Verify all reactive/active power control functions are disabled.
                 '''
-                eut.fixed_pf(Ena=False)
-                # do evaluation
-                eut.reactive_power()['Ena'] == False
-                eut.active_power()['Ena'] == False
+                self.cpf_validate_step(
+                    env=env,
+                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, step: q",
+                    perturb=lambda: eut.fixed_pf(Ena=False),
+                    olrt=timedelta(seconds=10),
+                    y_of_x=y_of_x,
+                    yMRA=eut.mra.static.Q,
+                    xMRA=eut.mra.static.P,
+                )
+                vars_ctrl = eut.reactive_power()['Ena']
+                watts_ctrl = eut.active_power()['Ena']
+                env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac} vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
         '''
         s) Repeat steps d) through p) for additional power factor settings: PFmin,ab, PFmid,inj, PFmid,ab.
         t) For an EUT with an input voltage range, repeat steps d) through p) for Vin_min and Vin_max.
