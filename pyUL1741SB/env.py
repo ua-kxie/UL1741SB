@@ -29,3 +29,6 @@ class Env:  # step voltage, power, sleep, etc.
 
     def log(self, **kwargs):
         print(kwargs['msg'])
+
+    def dc_config(self, **kwargs):
+        pass

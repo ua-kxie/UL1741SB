@@ -51,6 +51,7 @@ class CPF:
         """
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         for Vin in Vins:
+            env.dc_config(Vin=Vin)
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """
@@ -93,7 +94,7 @@ class CPF:
                         env=env,
                         label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: {k}",
                         perturb=lambda: env.ac_config(Vac=Vac),
-                        olrt=timedelta(seconds=10),
+                        olrt=olrt,
                         y_of_x=y_of_x,
                         yMRA=eut.mra.static.Q,
                         xMRA=eut.mra.static.P,
@@ -139,7 +140,7 @@ class CPF:
                     env=env,
                     label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, step: q",
                     perturb=lambda: eut.fixed_pf(Ena=False),
-                    olrt=timedelta(seconds=10),
+                    olrt=olrt,
                     y_of_x=y_of_x,
                     yMRA=eut.mra.static.Q,
                     xMRA=eut.mra.static.P,

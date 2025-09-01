@@ -24,3 +24,4 @@ eut = Eut(
 env = Env()
 std.cpf_proc(env=env, eut=eut)
 std.vv_proc(env=env, eut=eut)
+std.crp_proc(env=env, eut=eut)
