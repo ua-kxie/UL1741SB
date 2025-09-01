@@ -72,9 +72,15 @@ class Eut:
         self.mra = self.MRA(self.VN, self.Prated)
 
     def reactive_power(self, **kwargs):
+        if len(kwargs) == 0:
+            # treat as query
+            return {'Ena': False}
         pass
 
     def active_power(self, **kwargs):
+        if len(kwargs) == 0:
+            # treat as query
+            return {'Ena': False}
         pass
 
     def fixed_pf(self, **kwargs):

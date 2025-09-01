@@ -19,7 +19,8 @@ eut = Eut(
     Qrated_abs=500,
     Qrated_inj=-500,
     Comms=[Eut.Comms.SUNS],
-    multiphase=True
+    multiphase=False
 )
 env = Env()
 std.cpf_proc(env=env, eut=eut, Vins=[48], targetPFs=[0.9])
+std.vv_proc(env=env, eut=eut)
