@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Callable
 import statistics as stats
+import logging
 
 from pyUL1741SB.eut import Eut
 from pyUL1741SB.env import Env
@@ -120,10 +121,12 @@ class UL1741SB(IEEE1547):
         # note initial time +
         t_init_post = datetime.now()
         # wait 1x olrt since t_init_pre
+        env.log(msg=f'sleeping {t_init_pre + olrt - datetime.now()}', lvl=logging.DEBUG)
         env.sleep(t_init_pre + olrt - datetime.now())
         # measure y_olrt - this value has to be within 10% of y_ss
         x_olrt, y_olrt = env.meas(*meas_args)
         # wait for steady state - at least 1x olrt since t_init_post
+        env.log(msg=f'sleeping {t_init_post + olrt - datetime.now()}', lvl=logging.DEBUG)
         env.sleep(t_init_post + olrt - datetime.now())
 
         # measure y_ss as the average over the next 3x olrt
@@ -139,6 +142,9 @@ class UL1741SB(IEEE1547):
         x_ss, y_ss = stats.mean(lst_xy_ss[0]), stats.mean(lst_xy_ss[1])
 
         # meas. complete
+        '''
+        init olrt_thresh olrt ss
+        '''
         y_olrt_thresh = y_ss + 0.1 * (y_init - y_ss)
         if min(y_init, y_olrt) <= y_olrt_thresh <= max(y_init, y_olrt):
             # response time is good
