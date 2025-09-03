@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Callable
 import statistics as stats
 import logging
+import numpy as np
 
 from pyUL1741SB.eut import Eut
 from pyUL1741SB.env import Env
@@ -110,7 +111,7 @@ class UL1741SB(IEEE1547):
         env.log(msg=f"{label} steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
 
     def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        env.log(msg="cpf validate step against 1741SB")
+        env.log(msg=f"1741SB {label}")
         meas_args = ('P', 'Q')
         # measure initial
         x_init, y_init = env.meas(*meas_args)
@@ -121,12 +122,10 @@ class UL1741SB(IEEE1547):
         # note initial time +
         t_init_post = datetime.now()
         # wait 1x olrt since t_init_pre
-        env.log(msg=f'sleeping {t_init_pre + olrt - datetime.now()}', lvl=logging.DEBUG)
         env.sleep(t_init_pre + olrt - datetime.now())
         # measure y_olrt - this value has to be within 10% of y_ss
         x_olrt, y_olrt = env.meas(*meas_args)
         # wait for steady state - at least 1x olrt since t_init_post
-        env.log(msg=f'sleeping {t_init_post + olrt - datetime.now()}', lvl=logging.DEBUG)
         env.sleep(t_init_post + olrt - datetime.now())
 
         # measure y_ss as the average over the next 3x olrt
@@ -143,15 +142,16 @@ class UL1741SB(IEEE1547):
 
         # meas. complete
         '''
-        init olrt_thresh olrt ss
+        init olrt_thresh olrt ss - 90% response at 1 olrt
         '''
         y_olrt_thresh = y_ss + 0.1 * (y_init - y_ss)
-        if min(y_init, y_olrt) <= y_olrt_thresh <= max(y_init, y_olrt):
-            # response time is good
-            passfail = 'passed'
+        # interpreted: olrt measurement should also get accuracy allowance
+        y_olrt_thresh = y_olrt_thresh + np.sign(y_init - y_olrt_thresh) * yMRA
+        if y_init < y_ss:
+            passfail = 'passed' if y_olrt_thresh <= y_olrt else 'failed'
         else:
-            passfail = 'failed'
-        env.log(msg=f"{label} response time {passfail} (y_init [{y_init:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_90% [{y_olrt_thresh:.1f}VAR])")
+            passfail = 'passed' if y_olrt_thresh >= y_olrt else 'failed'
+        env.log(msg=f"response time {passfail} (y_init [{y_init:.1f}VAR], y_90% [{y_olrt_thresh:.1f}VAR], y_olrt [{y_olrt:.1f}VAR])")
 
         # ss eval with 1741SB amendment
         y_min = y_of_x(x_ss) - 1.5 * yMRA
@@ -161,7 +161,7 @@ class UL1741SB(IEEE1547):
             passfail = 'passed'
         else:
             passfail = 'failed'
-        env.log(msg=f"{label} steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
+        env.log(msg=f"steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
 
     def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg="cpf validate step against 1741SB")

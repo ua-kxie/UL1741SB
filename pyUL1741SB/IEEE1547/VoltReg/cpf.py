@@ -56,6 +56,16 @@ class CPF:
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """
             for targetPF in targetPFs:
+                def y_of_x(x):
+                    q = x * math.sqrt(1 / targetPF ** 2 - 1)
+                    if targetPF > 0:
+                        return -q
+                    else:
+                        return q
+                '''
+                (c) - set to nominal and wait for steady state
+                '''
+                env.ac_config(Vac=VN)
                 '''
                 d) Adjust the EUT’s available active power to Prated. For an EUT with an input voltage range, set the
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
@@ -73,23 +83,33 @@ class CPF:
                 '''
                 g) Step the EUT’s active power to Pmin.		
                 '''
-                eut.active_power(Ena=True, WMaxPct=Pmin / Prated)
+                self.cpf_validate_step(
+                    env=env,
+                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: g",
+                    perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
+                    olrt=olrt,
+                    y_of_x=y_of_x,
+                    yMRA=eut.mra.static.Q,
+                    xMRA=eut.mra.static.P,
+                )
                 '''
-                h) Step the EUT’s available active power to Prated. - literally does nothing since it is already set to Prated in step d)
+                h) Step the EUT’s available active power to Prated. - interpreted as stepping the EUT's active power
                 '''
+                self.cpf_validate_step(
+                    env=env,
+                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: h",
+                    perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
+                    olrt=olrt,
+                    y_of_x=y_of_x,
+                    yMRA=eut.mra.static.Q,
+                    xMRA=eut.mra.static.P,
+                )
                 '''
                 i) Step the ac test source voltage to (VL + av)		
                 j) Step the ac test source voltage to (VH - av).		
                 k) Step the ac test source voltage to (VL + av).		
                 '''
-                def y_of_x(x):
-                    q = x * math.sqrt(1 / targetPF ** 2 - 1)
-                    if targetPF > 0:
-                        return -q
-                    else:
-                        return q
                 for k, Vac in {'i': VL + av, 'j': VH - av, 'k': VL + av}.items():
-                    env.ac_config(Vac=Vac)
                     self.cpf_validate_step(
                         env=env,
                         label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: {k}",
