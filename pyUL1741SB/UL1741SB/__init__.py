@@ -73,6 +73,7 @@ class UL1741SB(IEEE1547):
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg="vv validate step against 1741SB")
         meas_args = ('V', 'Q')
+        self.meas_4olrt(env, perturb, olrt, meas_args)
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -
@@ -105,6 +106,21 @@ class UL1741SB(IEEE1547):
 
         # ss eval with 1741SB amendment
         self.ss_eval_4p2(env, label, y_of_x, x_ss, y_ss, xMRA, yMRA)
+
+    def meas_4olrt(self, env: Env, perturb: Callable, olrt: timedelta, meas_args: tuple):
+        # determine tMRA, and measure at that interval?
+        vals = []
+        vals.append(env.meas('time', *meas_args))
+        t_init = vals[0][0]
+        perturb()
+        vals.append(env.meas('time', *meas_args))
+        i = 0
+        t_step = 1
+        while not env.elapsed_since(olrt * 4, t_init):
+            i += 1
+            env.sleep(t_init + timedelta(i * t_step) - env.time_now())
+            vals.append(env.meas('time', *meas_args))
+        return 0
 
     def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg=f"1741SB {label}")
