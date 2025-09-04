@@ -156,6 +156,7 @@ class CPF:
                 q) Disable constant power factor mode. Power factor should return to unity.
                 r) Verify all reactive/active power control functions are disabled.
                 '''
+                targetPF = 1
                 self.cpf_validate_step(
                     env=env,
                     label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, step: q",
