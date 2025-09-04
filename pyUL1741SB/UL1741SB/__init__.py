@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Callable
 import statistics as stats
 import logging
@@ -10,6 +10,17 @@ from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547):
+    def olrt_resp_range(self, env, label, y_init, y_olrt, y_ss, yMRA):
+        y_olrt_targ = y_ss + 0.1 * (y_init - y_ss)
+        y_olrt_min = y_olrt_targ - 1.5 * yMRA
+        y_olrt_max = y_olrt_targ + 1.5 * yMRA
+        if y_olrt_min <= y_olrt <= y_olrt_max:
+            # response time is good
+            passfail = 'passed'
+        else:
+            passfail = 'failed'
+        env.log(msg=f"{label} response time {passfail} (y_olrt_min [{y_olrt_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_olrt_max [{y_olrt_max:.1f}VAR])")
+
     def vv_proc(self, env: Env, eut: Eut):
         """
         """
@@ -65,21 +76,21 @@ class UL1741SB(IEEE1547):
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -
-        t_init_pre = datetime.now()
+        t_init_pre = env.time_now()
         # step
         perturb()
         # note initial time +
-        t_init_post = datetime.now()
+        t_init_post = env.time_now()
         # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - datetime.now())
+        env.sleep(t_init_pre + olrt - env.time_now())
         # measure y_olrt - this value has to be 90% within 1.5 MRA
         x_olrt, y_olrt = env.meas(*meas_args)
         # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - datetime.now())
+        env.sleep(t_init_post + olrt - env.time_now())
 
         # measure y_ss as the average over the next 3x olrt
         lst_xy_ss = []
-        t_ss_init = datetime.now()
+        t_ss_init = env.time_now()
         x, y = env.meas(*meas_args)
         lst_xy_ss.append((x, y))
         while not env.elapsed_since(olrt * 3, t_ss_init):
@@ -90,25 +101,10 @@ class UL1741SB(IEEE1547):
         x_ss, y_ss = stats.mean(lst_xy_ss[0]), stats.mean(lst_xy_ss[1])
 
         # meas. complete
-        y_olrt_targ = y_ss + 0.1 * (y_init - y_ss)
-        y_olrt_min = y_olrt_targ - 1.5 * yMRA
-        y_olrt_max = y_olrt_targ + 1.5 * yMRA
-        if y_olrt_min <= y_olrt <= y_olrt_max:
-            # response time is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        env.log(msg=f"{label} response time {passfail} (y_olrt_min [{y_olrt_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_olrt_max [{y_olrt_max:.1f}VAR])")
+        self.olrt_resp_range(env, label, y_init, y_olrt, y_ss, yMRA)
 
         # ss eval with 1741SB amendment
-        y_min = y_of_x(x_ss) - 1.5 * yMRA
-        y_max = y_of_x(x_ss) + 1.5 * yMRA
-        if y_min <= y_ss <= y_max:
-            # steady state value is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        env.log(msg=f"{label} steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
+        self.ss_eval_4p2(env, label, y_of_x, x_ss, y_ss, xMRA, yMRA)
 
     def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg=f"1741SB {label}")
@@ -116,21 +112,21 @@ class UL1741SB(IEEE1547):
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -
-        t_init_pre = datetime.now()
+        t_init_pre = env.time_now()
         # step
         perturb()
         # note initial time +
-        t_init_post = datetime.now()
+        t_init_post = env.time_now()
         # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - datetime.now())
+        env.sleep(t_init_pre + olrt - env.time_now())
         # measure y_olrt - this value has to be within 10% of y_ss
         x_olrt, y_olrt = env.meas(*meas_args)
         # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - datetime.now())
+        env.sleep(t_init_post + olrt - env.time_now())
 
         # measure y_ss as the average over the next 3x olrt
         lst_xy_ss = []
-        t_ss_init = datetime.now()
+        t_ss_init = env.time_now()
         x, y = env.meas(*meas_args)
         lst_xy_ss.append((x, y))
         while not env.elapsed_since(olrt * 3, t_ss_init):
@@ -145,12 +141,17 @@ class UL1741SB(IEEE1547):
         init olrt_thresh olrt ss - 90% response at 1 olrt
         '''
         y_olrt_thresh = y_ss + 0.1 * (y_init - y_ss)
-        # interpreted: olrt measurement should also get accuracy allowance
-        y_olrt_thresh = y_olrt_thresh + np.sign(y_init - y_olrt_thresh) * yMRA
-        if y_init < y_ss:
-            passfail = 'passed' if y_olrt_thresh <= y_olrt else 'failed'
+        # # interpreted: olrt measurement should also get accuracy allowance
+        # y_olrt_thresh = y_olrt_thresh + np.sign(y_init - y_olrt_thresh) * yMRA
+        # if y_init < y_ss:
+        #     passfail = 'passed' if y_olrt_thresh <= y_olrt else 'failed'
+        # else:
+        #     passfail = 'passed' if y_olrt_thresh >= y_olrt else 'failed'
+        if min(y_init, y_olrt) <= y_olrt_thresh <= max(y_init, y_olrt):
+            # response time is good
+            passfail = 'passed'
         else:
-            passfail = 'passed' if y_olrt_thresh >= y_olrt else 'failed'
+            passfail = 'failed'
         env.log(msg=f"response time {passfail} (y_init [{y_init:.1f}VAR], y_90% [{y_olrt_thresh:.1f}VAR], y_olrt [{y_olrt:.1f}VAR])")
 
         # ss eval with 1741SB amendment
@@ -169,21 +170,21 @@ class UL1741SB(IEEE1547):
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -
-        t_init_pre = datetime.now()
+        t_init_pre = env.time_now()
         # step
         perturb()
         # note initial time +
-        t_init_post = datetime.now()
+        t_init_post = env.time_now()
         # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - datetime.now())
+        env.sleep(t_init_pre + olrt - env.time_now())
         # measure y_olrt - this value has to be within 10% of y_ss
         x_olrt, y_olrt = env.meas(*meas_args)
         # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - datetime.now())
+        env.sleep(t_init_post + olrt - env.time_now())
 
         # measure y_ss as the average over the next 3x olrt
         lst_xy_ss = []
-        t_ss_init = datetime.now()
+        t_ss_init = env.time_now()
         x, y = env.meas(*meas_args)
         lst_xy_ss.append((x, y))
         while not env.elapsed_since(olrt * 3, t_ss_init):

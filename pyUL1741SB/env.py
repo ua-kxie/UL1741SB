@@ -10,7 +10,7 @@ class Env:  # step voltage, power, sleep, etc.
             yield i == 0
 
     def time_now(self):
-        datetime.now()
+        return datetime.now()
 
     def sleep(self, td: timedelta):
         pass

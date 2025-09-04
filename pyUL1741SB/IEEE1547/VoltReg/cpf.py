@@ -85,7 +85,7 @@ class CPF:
                 '''
                 self.cpf_validate_step(
                     env=env,
-                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: g",
+                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Pmin}, Step: g",
                     perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
                     olrt=olrt,
                     y_of_x=y_of_x,
@@ -97,7 +97,7 @@ class CPF:
                 '''
                 self.cpf_validate_step(
                     env=env,
-                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: h",
+                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Prated}, Step: h",
                     perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
                     olrt=olrt,
                     y_of_x=y_of_x,
