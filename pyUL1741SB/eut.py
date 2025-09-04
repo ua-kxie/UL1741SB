@@ -1,6 +1,13 @@
 import enum
 
 class Eut:
+    class AOPCat(enum.Enum):
+        """
+        abnormal performance category
+        """
+        I = 1
+        II = 2
+        III = 3
     class Category(enum.Enum):
         A = 1
         B = 2
@@ -70,6 +77,11 @@ class Eut:
         self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.mra = self.MRA(self.VN, self.Prated)
+        # self.fL = kwargs['fL']
+        # self.fN = kwargs['fN']
+        # self.fH = kwargs['fH']
+        # self.delta_Psmall = kwargs['delta_Psmall']
+        # self.delta_Plarge = kwargs['delta_Plarge']
 
     def reactive_power(self, **kwargs):
         if len(kwargs) == 0:
