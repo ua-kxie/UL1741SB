@@ -217,14 +217,14 @@ class VoltDist:
                         '''
                         pass
 
-    def ov_rthr_proc(self):
+    def ovrt_proc(self):
         """"""
         '''
         
         '''
         pass
 
-    def uv_rthr_proc(self):
+    def uvrt_proc(self):
         """"""
         '''
 
