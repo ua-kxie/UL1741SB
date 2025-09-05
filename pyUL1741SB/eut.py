@@ -1,5 +1,6 @@
 import enum
-from pyUL1741SB.IEEE1547.VoltDistResp import ShallTripTable
+from pyUL1741SB.IEEE1547.VoltDistResp import VoltShallTripTable
+from pyUL1741SB.IEEE1547.FreqDistResp import FreqShallTripTable
 
 class Eut:
     class AOPCat(enum.Enum):
@@ -58,18 +59,30 @@ class Eut:
             self.dynamic = self.Dynamic(v_nominal)
     def __init__(self, **kwargs):
         # general params
-        if type(kwargs['Cat']) is self.Category:
-            self.Cat = kwargs['Cat']
+        k, t = 'Cat', self.Category
+        if isinstance(kwargs[k], t):
+            self.Cat = kwargs[k]
         else:
-            raise TypeError("'Cat' must be of type Category.")
-        if type(kwargs['aopCat']) is self.AOPCat:
-            self.aopCat = kwargs['aopCat']
+            raise TypeError(f"{k} must be of type {t.__name__}.")
+
+        k, t = 'aopCat', self.AOPCat
+        if isinstance(kwargs[k], t):
+            self.aopCat = kwargs[k]
         else:
-            raise TypeError("'AOPCat' must be of type AOPCat.")
-        if type(kwargs['shalltrip_tbl']) is ShallTripTable:
-            self.shalltrip_tbl = kwargs['shalltrip_tbl']
+            raise TypeError(f"{k} must be of type {t.__name__}.")
+
+        k, t = 'voltshalltrip_tbl', VoltShallTripTable
+        if isinstance(kwargs[k], t):
+            self.voltshalltrip_tbl = kwargs[k]
         else:
-            raise TypeError("'shalltrip_tbl' must be of type 'ShallTripTable'.")
+            raise TypeError(f"{k} must be of type {t.__name__}.")
+
+        k, t = 'freqshalltrip_tbl', FreqShallTripTable
+        if isinstance(kwargs[k], t):
+            self.freqshalltrip_tbl = kwargs[k]
+        else:
+            raise TypeError(f"{k} must be of type {t.__name__}.")
+
         self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.mra = self.MRA(self.VN, self.Prated)

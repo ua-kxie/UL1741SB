@@ -6,7 +6,7 @@ from pyUL1741SB.eut import Eut
 from pyUL1741SB.env import Env
 import numpy as np
 
-class ShallTripValue:
+class VoltShallTripValue:
     def __init__(self, volt_pu, cts, volt_pu_min=None, volt_pu_max=None, cts_min=None, cts_max=None):
         self.__volt_pu = volt_pu
         self.__cts = cts
@@ -17,10 +17,10 @@ class ShallTripValue:
 
     @property
     def volt_pu(self):
-        return self.volt_pu
+        return self.__volt_pu
     @volt_pu.setter
     def volt_pu(self, value):
-        self.volt_pu = np.clip(value, self.__volt_pu_min, self.__volt_pu_max)
+        self.__volt_pu = np.clip(value, self.__volt_pu_min, self.__volt_pu_max)
 
     @property
     def cts(self):
@@ -42,8 +42,8 @@ class ShallTripValue:
     def cts_max(self):
         return self.__cts_max
 
-class ShallTripTable:
-    def __init__(self, ov2: ShallTripValue, ov1: ShallTripValue, uv1: ShallTripValue, uv2: ShallTripValue):
+class VoltShallTripTable:
+    def __init__(self, ov2: VoltShallTripValue, ov1: VoltShallTripValue, uv1: VoltShallTripValue, uv2: VoltShallTripValue):
         self.OV2 = ov2
         self.OV1 = ov1
         self.UV1 = uv1
@@ -51,36 +51,39 @@ class ShallTripTable:
 
     @staticmethod
     def AOPCatI():
-        return ShallTripTable(
-            ShallTripValue(1.20, 0.16),  # OV2: fixed values
-            ShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            ShallTripValue(0.70, 2.0, 0.0, 0.88, 2.0, 21.0),  # UV1
-            ShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
+        '''
+        IEEE 1547-2018 Table 11
+        '''
+        return VoltShallTripTable(
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
+            VoltShallTripValue(0.70, 2.0, 0.0, 0.88, 2.0, 21.0),  # UV1
+            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
     def AOPCatII():
-        return ShallTripTable(
-            ShallTripValue(1.20, 0.16),  # OV2: fixed values
-            ShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            ShallTripValue(0.70, 10.0, 0.0, 0.88, 2.0, 21.0),  # UV1 (different default time)
-            ShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
+        '''
+        IEEE 1547-2018 Table 12
+        '''
+        return VoltShallTripTable(
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
+            VoltShallTripValue(0.70, 10.0, 0.0, 0.88, 2.0, 21.0),  # UV1 (different default time)
+            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
     def AOPCatIII():
-        return ShallTripTable(
-            ShallTripValue(1.20, 0.16),  # OV2: fixed values
-            ShallTripValue(1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
-            ShallTripValue(0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
-            ShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
+        '''
+        IEEE 1547-2018 Table 13
+        '''
+        return VoltShallTripTable(
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
+            VoltShallTripValue(0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
+            VoltShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
         )
-
-dct_shalltrips = {
-    Eut.AOPCat.I: ShallTripTable.AOPCatI,
-    Eut.AOPCat.II: ShallTripTable.AOPCatII,
-    Eut.AOPCat.III: ShallTripTable.AOPCatIII,
-}
 
 class VoltDist:
     def ov_trip_proc(self, env: Env, eut: Eut):
@@ -88,7 +91,7 @@ class VoltDist:
         multiphase = eut.multiphase
         if multiphase:
             raise NotImplementedError
-        shalltrip_tbl = eut.shalltrip_tbl
+        shalltrip_tbl = eut.voltshalltrip_tbl
         VN = eut.VN
         vMRA = eut.mra.static.V
         '''
