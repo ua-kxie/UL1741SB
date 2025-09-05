@@ -127,3 +127,85 @@ class FreqDist:
         '''
         pass
 
+"""HFRT"""
+'''
+a) Connect the EUT to a load bank according to manufacturer’s instructions.
+b) Set or verify that the EUT is programmed using default settings.
+c) Set the frequency droop function and droop values to make the active power change with respect to
+frequency as small as possible.
+d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
+'''
+'''
+VFO CAPABLE:
+e) Operate the EUT at nominal frequency ± 0.6 Hz35 into a load bank load capable of absorbing 100%
+to 125% of the power rating of the EUT.
+
+VFO INCAPABLE:
+e) Operate the ac test source at nominal frequency ± 0.1 Hz.
+'''
+'''
+f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
+convenient power factor. Record the output current of the EUT at the nominal frequency condition.
+'''
+'''
+VFO CAPABLE:
+g) Adjust the EUT frequency from PN to PU where PU is greater than or equal to 61.8 Hz. The EUT
+shall be held at this frequency or period th, which shall be not less than 299 s.
+NOTE—The ROCOF used during steps f) and g) may be used to demonstrate the ROCOF ride though
+capability of the EUT.
+h) Decrease the frequency of the EUT to the nominal frequency ± 0.6 Hz.
+
+VFO INCAPABLE:
+g) Adjust the source frequency from PN to PU where fU is greater than or equal to 61.8 Hz. The source
+shall be held at this frequency for period th, which shall be not less than 299 s.
+NOTE—The ROCOF used during steps f) and g) may be used to demonstrate the ROCOF ride though
+capability of the EUT.
+h) Decrease the frequency of the ac test source to the nominal frequency ± 0.1 Hz.
+'''
+'''
+i) Repeat steps f) and g) twice for a total of three tests.
+j) During all frequency transitions in steps f) through h), the ROCOF shall be greater than or equal to
+the ROCOF limit in Table 21 of IEEE Std 1547-2018 and shall be within the demonstrated ROCOF
+capability of the EUT.
+'''
+
+"""LFRT"""
+'''
+a) Connect the EUT to a load bank according to manufacturer’s instructions.
+b) Set or verify that the EUT is programmed using default settings.
+c) Set the frequency droop function and droop values to make the active power change with respect to
+frequency as small as possible.
+d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
+'''
+'''
+VFO CAPABLE:
+e) Operate the EUT at nominal frequency ± 0.6 Hz into a load bank load capable of absorbing 100%
+to 125% of the power rating of the EUT.
+
+VFO INCAPABLE:
+e) Operate the ac test source at nominal frequency ± 0.1 Hz.
+'''
+'''
+f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
+convenient power factor. Record the output current of the EUT at the nominal frequency condition.
+'''
+'''
+VFO CAPABLE:
+g) Adjust the frequency of the EUT from PN to PU where PU is less than or equal to 57 Hz. The EUT
+shall be held at this frequency for period th, which shall be not less than 299 s.
+NOTE—The ROCOF used during steps f) and g) may be used to demonstrate the ROCOF ride though
+capability of the EUT.
+h) Increase the frequency of the EUT to the nominal frequency ± 0.6 Hz.
+
+VFO INCAPABLE:
+g) Adjust the frequency of the ac test source from PN to PU where PU is less than or equal to 57 Hz.
+The source shall be held at this frequency for period th, which shall be not less than 299 s.
+NOTE—The ROCOF used during steps f) and g) may be used to demonstrate the ROCOF ride though
+capability of the EUT.
+h) Increase the frequency of the ac test source to the nominal frequency ± 0.1 Hz.
+'''
+'''
+i) Repeat steps f) and g) twice for a total of three tests. During all frequency transitions in steps f)
+through h) the absolute ROCOF shall be greater than or equal to the ROCOF limit in Table 21 of
+IEEE Std 1547-2018 and shall be within the demonstrated ROCOF capability of the EUT.
+'''
