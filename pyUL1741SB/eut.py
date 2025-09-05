@@ -1,4 +1,5 @@
 import enum
+from pyUL1741SB.IEEE1547.VoltDistResp import ShallTripTable
 
 class Eut:
     class AOPCat(enum.Enum):
@@ -56,13 +57,26 @@ class Eut:
             self.static = self.Static(v_nominal, s_rated)
             self.dynamic = self.Dynamic(v_nominal)
     def __init__(self, **kwargs):
+        # general params
         if type(kwargs['Cat']) is self.Category:
             self.Cat = kwargs['Cat']
         else:
             raise TypeError("'Cat' must be of type Category.")
+        if type(kwargs['aopCat']) is self.AOPCat:
+            self.aopCat = kwargs['aopCat']
+        else:
+            raise TypeError("'AOPCat' must be of type AOPCat.")
+        if type(kwargs['shalltrip_tbl']) is ShallTripTable:
+            self.shalltrip_tbl = kwargs['shalltrip_tbl']
+        else:
+            raise TypeError("'shalltrip_tbl' must be of type 'ShallTripTable'.")
+        self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
+        self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
+        self.mra = self.MRA(self.VN, self.Prated)
         self.Prated = kwargs['Prated']  # output power rating (W)
         self.Prated_prime = kwargs['Prated_prime']  # for EUTs that can sink power, output power rating while sinking power (W)
         self.Srated = kwargs['Srated']  # apparent power rating (VA)
+        # Volt Reg params
         self.Vin_nom = kwargs['Vin_nom']  # for an EUT with an electrical input, nominal input voltage (V)
         self.Vin_min = kwargs['Vin_min']  # for an EUT with an electrical input, minimum input voltage (V)
         self.Vin_max = kwargs['Vin_max']  # for an EUT with an electrical input, maximum input voltage (V)
@@ -74,14 +88,12 @@ class Eut:
         self.Qrated_abs = kwargs['Qrated_abs']  # maximum absorbed reactive power (var)
         self.Qrated_inj = kwargs['Qrated_inj']  # minimum injected reactive power (var)
         self.Qrated_inj = kwargs['Qrated_inj']  # minimum injected reactive power (var)
-        self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
-        self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
-        self.mra = self.MRA(self.VN, self.Prated)
-        # self.fL = kwargs['fL']
-        # self.fN = kwargs['fN']
-        # self.fH = kwargs['fH']
-        # self.delta_Psmall = kwargs['delta_Psmall']
-        # self.delta_Plarge = kwargs['delta_Plarge']
+        # Freq Reg params
+        self.fL = kwargs['fL']
+        self.fN = kwargs['fN']
+        self.fH = kwargs['fH']
+        self.delta_Psmall = kwargs['delta_Psmall']
+        self.delta_Plarge = kwargs['delta_Plarge']
 
     def reactive_power(self, **kwargs):
         if len(kwargs) == 0:
