@@ -1,22 +1,30 @@
 from datetime import timedelta, datetime
+import random
 
 class Env:  # step voltage, power, sleep, etc.
     def __init__(self):
-        pass
+        self.time = datetime.now()
 
     def elapsed_since(self, interval: timedelta, start: datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
-        for i in range(10-1, -1, -1):
-            yield i == 0
+        return self.time - start >= interval
 
     def time_now(self):
-        return datetime.now()
+        return self.time
 
     def sleep(self, td: timedelta):
-        pass
+        self.time += td + timedelta(seconds=0.001)  # add a little to simulate extra time taken to run code
 
     def meas(self, *args):
-        return (1,) * len(args)
+        self.time += timedelta(seconds=random.random() * 0.001)  # add a little to simulate extra time taken to run code
+        ret = []
+        for arg in args:
+            # ensure that the time variable is returned
+            if arg.lower() == 'time':
+                ret.append(self.time)
+            else:
+                ret.append(random.random(),)
+        return ret
 
     def ac_config(self, **kwargs):
         pass

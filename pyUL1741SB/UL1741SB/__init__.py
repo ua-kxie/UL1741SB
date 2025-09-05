@@ -73,7 +73,7 @@ class UL1741SB(IEEE1547):
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg="vv validate step against 1741SB")
         meas_args = ('V', 'Q')
-        self.meas_4olrt(env, perturb, olrt, meas_args)
+        self.meas_for(env, perturb, olrt, meas_args)
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -
@@ -107,69 +107,51 @@ class UL1741SB(IEEE1547):
         # ss eval with 1741SB amendment
         self.ss_eval_4p2(env, label, y_of_x, x_ss, y_ss, xMRA, yMRA)
 
-    def meas_4olrt(self, env: Env, perturb: Callable, olrt: timedelta, meas_args: tuple):
-        # determine tMRA, and measure at that interval?
-        vals = []
-        vals.append(env.meas('time', *meas_args))
-        t_init = vals[0][0]
-        perturb()
-        vals.append(env.meas('time', *meas_args))
-        i = 0
-        t_step = 1
-        while not env.elapsed_since(olrt * 4, t_init):
-            i += 1
-            env.sleep(t_init + timedelta(i * t_step) - env.time_now())
-            vals.append(env.meas('time', *meas_args))
-        return 0
-
     def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+        """
+        :param env:
+        :param label:
+        :param perturb:
+        :param olrt:
+        :param y_of_x:
+        :param yMRA:
+        :param xMRA:
+        :return:
+        """
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
         env.log(msg=f"1741SB {label}")
-        meas_args = ('P', 'Q')
-        # measure initial
-        x_init, y_init = env.meas(*meas_args)
-        # note initial time -
-        t_init_pre = env.time_now()
-        # step
-        perturb()
-        # note initial time +
-        t_init_post = env.time_now()
-        # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - env.time_now())
-        # measure y_olrt - this value has to be within 10% of y_ss
-        x_olrt, y_olrt = env.meas(*meas_args)
-        # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - env.time_now())
+        xarg, yarg = 'P', 'Q'
+        meas_args = (xarg, yarg)
+        df_meas = self.meas_for(env, perturb, olrt, 4*olrt, meas_args)
 
-        # measure y_ss as the average over the next 3x olrt
-        lst_xy_ss = []
-        t_ss_init = env.time_now()
-        x, y = env.meas(*meas_args)
-        lst_xy_ss.append((x, y))
-        while not env.elapsed_since(olrt * 3, t_ss_init):
-            env.sleep(timedelta(seconds=1))
-            x, y = env.meas(*meas_args)
-            lst_xy_ss.append((x, y))
-        lst_xy_ss = list(zip(*lst_xy_ss))
-        x_ss, y_ss = stats.mean(lst_xy_ss[0]), stats.mean(lst_xy_ss[1])
-
-        # meas. complete
+        # get y_init
+        y_init = df_meas.loc[df_meas.index[0], yarg]
+        # determine y_ss by average after olrt
+        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
         '''
-        init olrt_thresh olrt ss - 90% response at 1 olrt
+        [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
+         - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
         '''
-        y_olrt_thresh = y_ss + 0.1 * (y_init - y_ss)
-        # # interpreted: olrt measurement should also get accuracy allowance
-        # y_olrt_thresh = y_olrt_thresh + np.sign(y_init - y_olrt_thresh) * yMRA
-        # if y_init < y_ss:
-        #     passfail = 'passed' if y_olrt_thresh <= y_olrt else 'failed'
-        # else:
-        #     passfail = 'passed' if y_olrt_thresh >= y_olrt else 'failed'
-        if min(y_init, y_olrt) <= y_olrt_thresh <= max(y_init, y_olrt):
-            # response time is good
-            passfail = 'passed'
+        y_thresh = (y_ss - y_init) * 0.9 + y_init
+        if y_ss > y_init:
+            passfail = (df_meas.loc[:df_meas.index[1] + olrt, yarg] >= y_thresh).any()
         else:
-            passfail = 'failed'
-        env.log(msg=f"response time {passfail} (y_init [{y_init:.1f}VAR], y_90% [{y_olrt_thresh:.1f}VAR], y_olrt [{y_olrt:.1f}VAR])")
+            passfail = (df_meas.loc[:df_meas.index[1] + olrt, yarg] <= y_thresh).any()
+        passfail = 'passed' if passfail else 'failed'
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        env.log(msg=f"response time {passfail} (y_init [{y_init:.1f}VAR], y_90% [{y_thresh:.1f}VAR], y_olrt [{y_olrt:.1f}VAR])")
 
+        '''
+        Qfinal shall meet the test result accuracy
+        requirements specified in 4.2 where Qfinal is the Y parameter and Pfinal is the X parameter. The relationship
+        between active and reactive power for constant power factor is given by the following equation: [...]
+        SB amendment: Qfinal shall be within 150% of the MRA for VArs of the Q value calculated using the following 
+        equation and entering Pfinal and the PF setting under test: [...]
+         - validate as written
+        '''
         # ss eval with 1741SB amendment
         y_min = y_of_x(x_ss) - 1.5 * yMRA
         y_max = y_of_x(x_ss) + 1.5 * yMRA
