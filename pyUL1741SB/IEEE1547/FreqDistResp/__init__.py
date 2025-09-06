@@ -1,3 +1,7 @@
+"""
+IEEE 1547.1-2020 5.5
+"""
+
 import numpy as np
 
 from pyUL1741SB.eut import Eut

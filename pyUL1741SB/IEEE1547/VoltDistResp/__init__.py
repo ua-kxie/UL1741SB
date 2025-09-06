@@ -85,6 +85,35 @@ class VoltShallTripTable:
             VoltShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
         )
 
+class LVRTSeq:
+    def AOPCatI(self):
+        raise NotImplementedError
+    def AOPCatII(self):
+        raise NotImplementedError
+    def AOPCatIII(self):
+        # 0.88-1.00 for 5s
+        # 0.00-0.05 for 1s
+        # 0.00-0.50 for 9s
+        # 0.50-0.70 for 10s
+
+        # 0.88-1.00 for 5s
+        # 0.00-0.05 for 1s
+        # 0.00-0.50 for 9s
+        # 0.50-0.70 for 10s
+
+        # 0.88-1.00 for 5s
+        # 0.00-0.05 for 1s
+        # 0.00-0.50 for 9s
+        # 0.50-0.70 for 10s
+        # 0.88-1.00 for 120s
+
+        # required if
+        # 0.88-1.00 for 5s
+        # 0.00-0.05 for 1s
+        # 0.52-0.70 for 19s
+        # 0.88-1.00 for 120s
+        pass
+
 class VoltDist:
     def ov_trip_proc(self, env: Env, eut: Eut):
         """"""
@@ -217,16 +246,39 @@ class VoltDist:
                         '''
                         pass
 
-    def ovrt_proc(self):
+    def ovrt_proc(self, env: Env, eut: Eut):
         """"""
+        multiphase = eut.multiphase
+        if multiphase:
+            raise NotImplementedError
         '''
         
         '''
         pass
 
-    def uvrt_proc(self):
+    def uvrt_proc(self, env: Env, eut: Eut):
         """"""
+        multiphase = eut.multiphase
+        if multiphase:
+            raise NotImplementedError
         '''
-
+        The settings for magnitude and duration of undervoltage tripping functions shall be
+        disabled or set so as not to influence the outcome of the test. 
         '''
-        pass
+        '''
+        The voltage-reactive power control mode of the EUT shall be set to the default settings specified in Table 8 
+        of IEEE Std 1547-2018 for the applicable performance category, and enabled. 
+        '''
+        '''
+        If the EUT provides a voltage-active power control mode, that mode shall be disabled. 
+        '''
+        '''
+        The frequency-active power control mode of the EUT shall be set to the default settings.
+        '''
+        '''
+        The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
+        power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
+        '''
+        for PF in [1.0, 0.9]:
+            for pwr_pct in [1.0, 0.25]:
+                raise NotImplementedError

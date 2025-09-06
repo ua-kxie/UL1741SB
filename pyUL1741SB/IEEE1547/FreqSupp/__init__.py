@@ -1,3 +1,7 @@
+"""
+IEEE 1547.1-2020 5.15
+"""
+
 '''
 The manufacturer shall state the following parameters of the EUT for this test:
 Prated – Output power rating (W)
