@@ -138,16 +138,16 @@ class VoltDist:
             d) Set the trip time setting to the minimum.
             '''
             '''
-            i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
+            j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
-            trip_mags = [trip_region.volt_pu_min, trip_region.volt_pu_max]
-            for trip_mag in trip_mags:
-                trip_mag = max(trip_mag, VN + 2 * vMRA)
+            trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
+            for trip_time in trip_times:
                 '''
-                j) Set the trip time setting to the maximum and repeat steps e) through i).
+                i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
                 '''
-                trip_times = [trip_region.cts_min, trip_region.cts_max]
-                for trip_time in trip_times:
+                trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
+                for trip_mag in trip_mags:
+                    trip_mag = max(trip_mag, VN + 2 * vMRA)
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
@@ -157,48 +157,43 @@ class VoltDist:
                     '''
                     for _ in range(5):
                         '''
-                        e) Record applicable settings.
-                        For single-phase units, adjust the applicable voltage to parameter starting point Pb, as defined in
-                        A.3, to a value greater than or equal to the setpoint value determined in step c) minus 200% of
-                        the MRA. The source shall be held at this voltage for a period th.
-                        At the end of this period, initiate a step of the voltage to a level less than or equal to the setpoint
-                        value plus 200% of the MRA using the procedure specified in A.3. For multiphase units,
-                        adjust voltage on one phase using the values above. Verify that remaining phases are held at
-                        nominal ±0.02 p.u.
-                        f) Record all voltage magnitudes when the unit trips.
+                        e), f)
                         '''
-                        pass
+                        self.ov_trip_validate(env, trip_time, trip_mag, tMRA, vMRA)
 
-    def ov_trip_validate(self, env:Env, t_set, v_init, v_set, tMRA, vMRA):
+    def ov_trip_validate(self, env:Env, th, vov, tMRA, vMRA):
         """"""
         '''
+        e) Record applicable settings.
         For single-phase units, adjust the applicable voltage to parameter starting point Pb, as defined in
         A.3, to a value greater than or equal to the setpoint value determined in step c) minus 200% of
-        the MRA. The source shall be held at this voltage for a period th. 
-        The variable th is at 100% of the trip time setting plus 200% MRA
+        the MRA. The source shall be held at this voltage for a period th.
         At the end of this period, initiate a step of the voltage to a level less than or equal to the setpoint
         value plus 200% of the MRA using the procedure specified in A.3. For multiphase units,
         adjust voltage on one phase using the values above. Verify that remaining phases are held at
         nominal ±0.02 p.u.
-        Record all voltage magnitudes when the unit trips.
-        
-        5.4.3.4 Criteria
-        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within the
-        respective clearing times for each undervoltage tripping range specified in IEEE Std 1547. The evaluated
-        ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
-        ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
+        f) Record all voltage magnitudes when the unit trips.
+
+        5.4.2.4 Criteria
+        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within
+        respective clearing times for each overvoltage range specified in IEEE Std 1547. The evaluated ranges of
+        adjustment for tripping magnitude and duration shall be greater than or equal to the allowable ranges of
+        adjustment for each overvoltage tripping range specified in IEEE Std 1547.
         '''
-        env.ac_config(Vac=v_init + 2 * vMRA)
-        env.sleep(t_set + 2 * tMRA)
-        env.ac_config(Vac=v_set + 2 * vMRA)
-        # don't wait forever for trip, incase it doesn't
-        # trip can be determined by current meas (?)
+        env.ac_config(Vac=vov - 2 * vMRA)
+        env.sleep(th + 2 * tMRA)
+        env.ac_config(Vac=vov + 2 * vMRA)
+        # wait until trip, up to the trip time setting
+        raise NotImplementedError
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""
         multiphase = eut.multiphase
         if multiphase:
             raise NotImplementedError
+        shalltrip_tbl = eut.voltshalltrip_tbl
+        VN = eut.VN
+        vMRA = eut.mra.static.V
         """"""
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
@@ -213,18 +208,21 @@ class VoltDist:
         adjustable, set the EUT to the maximum undervoltage setting but no greater than the nominal
         voltage minus twice the minimum required accuracy for voltage.
         '''
-        for trip_region in trip_regions:
+        for trip_region in [shalltrip_tbl.UV2, shalltrip_tbl.UV1]:
             '''
             d) Set the trip time setting to the minimum.
             '''
             '''
             j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
+            trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
             for trip_time in trip_times:
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at minimum of the range.
                 '''
+                trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
                 for trip_mag in trip_mags:
+                    trip_mag = min(trip_mag, VN - 2 * vMRA)
                     '''
                     h) For multiphase units, repeat steps d) through g) for the applicable voltage on each phase or phase
                     pair individually, and on all phases simultaneously.
@@ -244,7 +242,33 @@ class VoltDist:
                         ±0.02 p.u.
                         f) Record all voltage magnitudes when the unit trips.
                         '''
+                        self.uv_trip_validate(env, th, vov, tMRA, vMRA)
                         pass
+
+    def uv_trip_validate(self, env: Env, th, vov, tMRA, vMRA):
+        """"""
+        '''
+        e) Record applicable settings.
+        For single-phase units, adjust the applicable voltage to parameter starting point Pb, as defined in
+        A.3, to a value less than or equal to the setpoint value determined in step c) plus 200% of the
+        MRA. The source shall be held at this voltage for a period th.
+        At the end of this period, initiate a step of the voltage to a level greater than or equal to the setpoint
+        value minus 200% of the MRA using the procedure specified in A.3. For multiphase units, adjust
+        voltage on one phase using the values above. Verify that remaining phases are held at nominal
+        ±0.02 p.u.
+        f) Record all voltage magnitudes when the unit trips.
+
+        5.4.3.4 Criteria
+        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within the
+        respective clearing times for each undervoltage tripping range specified in IEEE Std 1547. The evaluated
+        ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
+        ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
+        '''
+        env.ac_config(Vac=vov + 2 * vMRA)
+        env.sleep(th + 2 * tMRA)
+        env.ac_config(Vac=vov - 2 * vMRA)
+        # wait until trip, up to the trip time setting
+        raise NotImplementedError
 
     def ovrt_proc(self, env: Env, eut: Eut):
         """"""

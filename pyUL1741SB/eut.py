@@ -46,7 +46,7 @@ class Eut:
                 self.F = 0.01
                 self.P = 0.05 * s_rated
                 self.Q = 0.05 * s_rated
-                self.T = 0.01
+                self.T = 0.01  # 1 % of measured duration
 
         class Dynamic:
             def __init__(self, v_nominal):
