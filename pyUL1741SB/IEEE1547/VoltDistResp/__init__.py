@@ -1,97 +1,13 @@
 '''
 5.4 Test for response to voltage disturbances
 '''
-from enum import Enum
-
-import numpy as np
 import pandas as pd
 import enum
 
-from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
-from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
-from pyUL1741SB.eut import Eut
-from pyUL1741SB.env import Env
+from pyUL1741SB import Eut, Env
 
-class VoltShallTripValue:
-    def __init__(self, volt_pu, cts, volt_pu_min=None, volt_pu_max=None, cts_min=None, cts_max=None):
-        self.__volt_pu = volt_pu
-        self.__cts = cts
-        self.__volt_pu_min = volt_pu if volt_pu_min is None else volt_pu_min
-        self.__volt_pu_max = volt_pu if volt_pu_max is None else volt_pu_max
-        self.__cts_min = cts if cts_min is None else cts_min
-        self.__cts_max = cts if cts_max is None else cts_max
-
-    @property
-    def volt_pu(self):
-        return self.__volt_pu
-    @volt_pu.setter
-    def volt_pu(self, value):
-        self.__volt_pu = np.clip(value, self.__volt_pu_min, self.__volt_pu_max)
-
-    @property
-    def cts(self):
-        return self.__cts
-    @cts.setter
-    def cts(self, value):
-        self.__cts = np.clip(value, self.__cts_min, self.__cts_max)
-
-    @property
-    def volt_pu_min(self):
-        return self.__volt_pu_min
-    @property
-    def volt_pu_max(self):
-        return self.__volt_pu_max
-    @property
-    def cts_min(self):
-        return self.__cts_min
-    @property
-    def cts_max(self):
-        return self.__cts_max
-
-class VoltShallTripTable:
-    def __init__(self, ov2: VoltShallTripValue, ov1: VoltShallTripValue, uv1: VoltShallTripValue, uv2: VoltShallTripValue):
-        self.OV2 = ov2
-        self.OV1 = ov1
-        self.UV1 = uv1
-        self.UV2 = uv2
-
-    @staticmethod
-    def AOPCatI():
-        '''
-        IEEE 1547-2018 Table 11
-        '''
-        return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70, 2.0, 0.0, 0.88, 2.0, 21.0),  # UV1
-            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
-        )
-
-    @staticmethod
-    def AOPCatII():
-        '''
-        IEEE 1547-2018 Table 12
-        '''
-        return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70, 10.0, 0.0, 0.88, 2.0, 21.0),  # UV1 (different default time)
-            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
-        )
-
-    @staticmethod
-    def AOPCatIII():
-        '''
-        IEEE 1547-2018 Table 13
-        '''
-        return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
-            VoltShallTripValue(0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
-            VoltShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
-        )
 
 class OpMode(enum.Enum):
     ContOp = 1

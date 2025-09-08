@@ -1,7 +1,7 @@
 import numpy as np
 from datetime import timedelta
-from pyUL1741SB.env import Env
-from pyUL1741SB.eut import Eut
+
+from pyUL1741SB import Eut, Env
 
 class WVCurve:
     '''IEEE 1547.1-2020 Tables 28-30'''

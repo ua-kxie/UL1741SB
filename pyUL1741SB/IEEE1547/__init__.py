@@ -7,8 +7,8 @@ from datetime import timedelta
 import pandas as pd
 
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
-from pyUL1741SB.eut import Eut
-from pyUL1741SB.env import Env
+from pyUL1741SB import Eut, Env
+
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class IEEE1547(VoltReg):

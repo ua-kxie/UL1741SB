@@ -2,8 +2,8 @@
 IEEE 1547.1-2020 5.6
 """
 
-from pyUL1741SB.eut import Eut
-from pyUL1741SB.env import Env
+from pyUL1741SB import Eut, Env
+
 
 """
 IEEE 1547.1-2020

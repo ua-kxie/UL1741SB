@@ -4,8 +4,8 @@ import statistics as stats
 import logging
 import numpy as np
 
-from pyUL1741SB.eut import Eut
-from pyUL1741SB.env import Env
+from pyUL1741SB import Eut, Env
+
 from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
@@ -73,7 +73,7 @@ class UL1741SB(IEEE1547):
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         env.log(msg="vv validate step against 1741SB")
         meas_args = ('V', 'Q')
-        self.meas_for(env, perturb, olrt, meas_args)
+        self.meas_for(env, perturb, olrt, 4*olrt, meas_args)
         # measure initial
         x_init, y_init = env.meas(*meas_args)
         # note initial time -

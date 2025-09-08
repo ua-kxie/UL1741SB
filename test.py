@@ -1,10 +1,13 @@
 from pyUL1741SB.UL1741SB import UL1741SB
-from pyUL1741SB.eut import Eut
-from pyUL1741SB.env import Env
+from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 
 std = UL1741SB()
 eut = Eut(
     Cat=Eut.Category.A,
+    aopCat=Eut.AOPCat.III,
+    voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(),
+    freqshalltrip_tbl=FreqShallTripTable.MaxRange(),
+    vfo=True,
     Prated=1000,
     Prated_prime=800,
     Srated=1200,
@@ -19,7 +22,12 @@ eut = Eut(
     Qrated_abs=500,
     Qrated_inj=-500,
     Comms=[Eut.Comms.SUNS],
-    multiphase=False
+    multiphase=False,
+    fL=59.0,  # minimum frequency in continuous operating region (Hz)
+    fN=60.0,  # nominal frequency (Hz)
+    fH=61.0,  # maximum frequency in continuous operating region (Hz)
+    delta_Psmall=0.1,  # small power change threshold (p.u.)
+    delta_Plarge=0.5   # large power change threshold (p.u.)
 )
 env = Env()
 std.cpf_proc(env=env, eut=eut)

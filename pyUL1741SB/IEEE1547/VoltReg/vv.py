@@ -1,5 +1,5 @@
-from pyUL1741SB.env import Env
-from pyUL1741SB.eut import Eut
+
+from pyUL1741SB import Eut, Env
 import numpy as np
 
 class VVCurve:

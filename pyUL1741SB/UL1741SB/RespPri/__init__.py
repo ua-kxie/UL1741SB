@@ -3,8 +3,8 @@ IEEE 1547.1-2020 5.16
 """
 import pandas as pd
 
-from pyUL1741SB.env import Env
-from pyUL1741SB.eut import Eut
+
+from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
