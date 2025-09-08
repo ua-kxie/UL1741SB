@@ -82,7 +82,7 @@ class Eut:
             self.freqshalltrip_tbl = kwargs[k]
         else:
             raise TypeError(f"{k} must be of type {t.__name__}.")
-
+        self.vfo = kwargs['VFO']  # variable frequency output capable (see frt tests)
         self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.mra = self.MRA(self.VN, self.Prated)
