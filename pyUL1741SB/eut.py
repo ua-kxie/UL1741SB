@@ -115,6 +115,12 @@ class FreqShallTripValue:
     @property
     def cts_max(self):
         return self.__cts_max
+    @property
+    def hertz_min(self):
+        return self.__hertz_min
+    @property
+    def hertz_max(self):
+        return self.__hertz_max
 
 class FreqShallTripTable:
     def __init__(self, of2: FreqShallTripValue, of1: FreqShallTripValue, uf1: FreqShallTripValue, uf2: FreqShallTripValue):

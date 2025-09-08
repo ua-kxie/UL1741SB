@@ -3,6 +3,7 @@
 '''
 import pandas as pd
 import enum
+from datetime import timedelta
 
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
@@ -120,6 +121,7 @@ class VoltDist:
                         '''
                         e), f)
                         '''
+                        tMRA = 0.5  # TODO
                         self.ov_trip_validate(env, trip_time, trip_mag, tMRA, vMRA)
 
     def ov_trip_validate(self, env:Env, th, vov, tMRA, vMRA):
@@ -142,10 +144,10 @@ class VoltDist:
         adjustment for each overvoltage tripping range specified in IEEE Std 1547.
         '''
         env.ac_config(Vac=vov - 2 * vMRA)
-        env.sleep(th + 2 * tMRA)
+        env.sleep(timedelta(th + 2 * tMRA))
         env.ac_config(Vac=vov + 2 * vMRA)
         # wait until trip, up to the trip time setting
-        raise NotImplementedError
+        # TODO
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""
@@ -203,8 +205,9 @@ class VoltDist:
                         ±0.02 p.u.
                         f) Record all voltage magnitudes when the unit trips.
                         '''
-                        self.uv_trip_validate(env, th, vov, tMRA, vMRA)
-                        pass
+                        # TODO
+                        tMRA = 0.1
+                        self.uv_trip_validate(env, trip_time, trip_mag, tMRA, vMRA)
 
     def uv_trip_validate(self, env: Env, th, vov, tMRA, vMRA):
         """"""
@@ -226,10 +229,10 @@ class VoltDist:
         ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
         '''
         env.ac_config(Vac=vov + 2 * vMRA)
-        env.sleep(th + 2 * tMRA)
+        env.sleep(timedelta(th + 2 * tMRA))
         env.ac_config(Vac=vov - 2 * vMRA)
         # wait until trip, up to the trip time setting
-        raise NotImplementedError
+        # TODO
 
     def ovrt_proc(self, env: Env, eut: Eut):
         """"""
@@ -310,11 +313,11 @@ class VoltDist:
         the ac test source. Following the momentary cessation event, the EUT shall comply with the
         Restore Output requirements of 6.4.2.7 of IEEE Std 1547-2018.
         '''
-        for row in df_set.iterrows():
+        for _, row in df_set.iterrows():
             vpu = (row[self.Vminkey] + row[self.Vmaxkey]) / 2
             dur = row[self.Durkey]
             opmd = row[self.OpMdkey]
             env.ac_config(Vac=vpu*eut.VN)
             # wait dur duration
             # eut behavior match opmd
-            raise NotImplementedError
+            # TODO

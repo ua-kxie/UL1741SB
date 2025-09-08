@@ -8,7 +8,7 @@ class FreqDist:
     def of_trip_proc(self, env: Env, eut: Eut):
         '''
         '''
-        shalltrip_tbl = eut.voltshalltrip_tbl
+        shalltrip_tbl = eut.freqshalltrip_tbl
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source or signal injection generator parameters to the nominal operating conditions
@@ -62,6 +62,76 @@ class FreqDist:
         h) At the end of this period, increase the frequency to PU and hold for a period not less than 1.5 times
         the clearing time setting.
         i) Record the frequency at which the unit trips and the clearing time.
+        
+        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within the
+        respective clearing times for each underfrequency tripping range specified in IEEE Std 1547. The evaluated
+        ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
+        ranges of adjustment for each underfrequency tripping range specified in IEEE Std 1547.
+        '''
+        pass
+
+    def uf_trip_proc(self, env: Env, eut: Eut):
+        '''
+        '''
+        shalltrip_tbl = eut.freqshalltrip_tbl
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the
+        manufacturer.
+        b) Set all programmable ac power source or signal injection generator parameters to the nominal
+        operating conditions for the EUT.
+        '''
+        '''
+        m) Repeat steps c) through l) for each underfrequency operating region.
+        '''
+        for op_region in [shalltrip_tbl.UF2, shalltrip_tbl.UF1]:
+            '''
+            c) Disable or program the relevant settings for all other active and reactive power control
+            functions of the EUT to not influence the test results for the operating region being evaluated.
+            Set the frequency droop function to the widest deadband setting and maximum droop setting
+            to make the active power change with respect to frequency as small as possible.
+            '''
+            '''
+            l) Set (or verify) the EUT parameters to the [minimum] maximum underfrequency trip duration setting
+            within the range of adjustment specified by the manufacturer and repeat steps e) through k).
+            '''
+            for trip_time in [op_region.cts_min, op_region.cts_max]:
+                '''
+                k) Set (or verify) EUT parameters at the [minimum] maximum of the underfrequency trip magnitude setting
+                within the range of adjustment specified by the manufacturer and repeat steps e) through j).
+                '''
+                for trip_mag in [op_region.hertz_min, op_region.hertz_max]:
+                    '''
+                    j) Repeat steps d) through i) four times for a total of five tests.
+                    '''
+                    for _ in range(5):
+                        '''
+                        d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
+                        the range of adjustment specified by the manufacturer.
+                        e) Set (or verify) EUT parameters to the minimum underfrequency trip duration setting within
+                        the range of adjustment specified by the manufacturer.
+                        f) Record applicable settings of the ac test source or signal injection generator and the EUT.
+                        g) Adjust the source frequency from PN to PB. The source shall be held at this frequency for
+                        period th.34
+                        h) At the end of this period, decrease the frequency to PU and hold for a duration not less than
+                        1.5 times the clearing time setting.
+                        i) Record the frequency at which the unit trips and the clearing time.
+                        '''
+                        self.of_trip_validate()
+
+    def uf_trip_validate(self):
+        """"""
+        '''
+        f) Record applicable settings of the ac test source or signal injection generator and the EUT.
+        g) Adjust the source frequency from PN to PB. The source shall be held at this frequency for
+        period th.34
+        h) At the end of this period, decrease the frequency to PU and hold for a duration not less than
+        1.5 times the clearing time setting.
+        i) Record the frequency at which the unit trips and the clearing time.
+        
+        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within the
+        respective clearing times for each underfrequency tripping range specified in IEEE Std 1547. The evaluated
+        ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
+        ranges of adjustment for each underfrequency tripping range specified in IEEE Std 1547.
         '''
         pass
 

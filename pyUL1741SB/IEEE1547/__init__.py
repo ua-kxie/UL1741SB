@@ -7,11 +7,13 @@ from datetime import timedelta
 import pandas as pd
 
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
-from pyUL1741SB import Eut, Env
+from pyUL1741SB.IEEE1547.FreqDistResp import FreqDist
+from pyUL1741SB.IEEE1547.VoltDistResp import VoltDist
+from pyUL1741SB import Eut, Env, FreqShallTripTable
 
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
-class IEEE1547(VoltReg):
+class IEEE1547(VoltReg, FreqDist, VoltDist):
     def ss_eval_4p2(self, env, label, y_of_x, x_ss, y_ss, xMRA, yMRA):
         """"""
         '''
