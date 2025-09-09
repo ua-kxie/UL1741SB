@@ -2,11 +2,11 @@ import enum
 import numpy as np
 
 class VoltShallTripValue:
-    def __init__(self, volt_pu, cts, volt_pu_min=None, volt_pu_max=None, cts_min=None, cts_max=None):
-        self.__volt_pu = volt_pu
+    def __init__(self, volt, cts, volt_min=None, volt_max=None, cts_min=None, cts_max=None):
+        self.__volt_pu = volt
         self.__cts = cts
-        self.__volt_pu_min = volt_pu if volt_pu_min is None else volt_pu_min
-        self.__volt_pu_max = volt_pu if volt_pu_max is None else volt_pu_max
+        self.__volt_min = volt if volt_min is None else volt_min
+        self.__volt_max = volt if volt_max is None else volt_max
         self.__cts_min = cts if cts_min is None else cts_min
         self.__cts_max = cts if cts_max is None else cts_max
 
@@ -15,7 +15,7 @@ class VoltShallTripValue:
         return self.__volt_pu
     @volt_pu.setter
     def volt_pu(self, value):
-        self.__volt_pu = np.clip(value, self.__volt_pu_min, self.__volt_pu_max)
+        self.__volt_pu = np.clip(value, self.__volt_min, self.__volt_max)
 
     @property
     def cts(self):
@@ -26,10 +26,10 @@ class VoltShallTripValue:
 
     @property
     def volt_pu_min(self):
-        return self.__volt_pu_min
+        return self.__volt_min
     @property
     def volt_pu_max(self):
-        return self.__volt_pu_max
+        return self.__volt_max
     @property
     def cts_min(self):
         return self.__cts_min
@@ -45,39 +45,39 @@ class VoltShallTripTable:
         self.UV2 = uv2
 
     @staticmethod
-    def AOPCatI():
+    def AOPCatI(VN: float):
         '''
         IEEE 1547-2018 Table 11
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70, 2.0, 0.0, 0.88, 2.0, 21.0),  # UV1
-            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
+            VoltShallTripValue(1.20 * VN, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10 * VN, 2.0, 1.10 * VN, 1.20 * VN, 1.0, 13.0),  # OV1
+            VoltShallTripValue(0.70 * VN, 2.0, 0.0 * VN, 0.88 * VN, 2.0, 21.0),  # UV1
+            VoltShallTripValue(0.45 * VN, 0.16, 0.0 * VN, 0.50 * VN, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
-    def AOPCatII():
+    def AOPCatII(VN: float):
         '''
         IEEE 1547-2018 Table 12
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70, 10.0, 0.0, 0.88, 2.0, 21.0),  # UV1 (different default time)
-            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
+            VoltShallTripValue(VN * 1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(VN * 1.10, 2.0, VN * 1.10, VN * 1.20, 1.0, 13.0),  # OV1
+            VoltShallTripValue(VN * 0.70, 10.0, VN * 0.0, VN * 0.88, 2.0, 21.0),  # UV1 (different default time)
+            VoltShallTripValue(VN * 0.45, 0.16, VN * 0.0, VN * 0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
-    def AOPCatIII():
+    def AOPCatIII(VN: float):
         '''
         IEEE 1547-2018 Table 13
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
-            VoltShallTripValue(0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
-            VoltShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
+            VoltShallTripValue(VN * 1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(VN * 1.10, 13.0, VN*1.10, VN*1.20, 1.0, 13.0),  # OV1 (different default time)
+            VoltShallTripValue(VN * 0.88, 21.0, VN*0.0, VN*0.88, 21.0, 50.0),  # UV1 (different values)
+            VoltShallTripValue(VN * 0.50, 2.0, VN*0.0, VN*0.50, 2.0, 21.0)    # UV2 (different values)
         )
 
 class FreqShallTripValue:

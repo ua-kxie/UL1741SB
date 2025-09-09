@@ -143,11 +143,12 @@ class VoltDist:
         adjustment for tripping magnitude and duration shall be greater than or equal to the allowable ranges of
         adjustment for each overvoltage tripping range specified in IEEE Std 1547.
         '''
+        env.log(msg=f'vov: {vov:.2f}')
         env.ac_config(Vac=vov - 2 * vMRA)
-        env.sleep(timedelta(th + 2 * tMRA))
+        env.sleep(timedelta(seconds=th + 2 * tMRA))
         env.ac_config(Vac=vov + 2 * vMRA)
-        env.sleep(timedelta(th + 2 * tMRA))
-        # TODO wait until trip, up to the trip time setting
+        env.sleep(timedelta(seconds=th + 2 * tMRA))
+        # TODO tip within wait time, pass. else fail
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""
