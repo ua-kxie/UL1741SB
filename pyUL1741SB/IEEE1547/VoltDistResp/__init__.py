@@ -146,8 +146,8 @@ class VoltDist:
         env.ac_config(Vac=vov - 2 * vMRA)
         env.sleep(timedelta(th + 2 * tMRA))
         env.ac_config(Vac=vov + 2 * vMRA)
-        # wait until trip, up to the trip time setting
-        # TODO
+        env.sleep(timedelta(th + 2 * tMRA))
+        # TODO wait until trip, up to the trip time setting
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""
@@ -231,8 +231,8 @@ class VoltDist:
         env.ac_config(Vac=vov + 2 * vMRA)
         env.sleep(timedelta(th + 2 * tMRA))
         env.ac_config(Vac=vov - 2 * vMRA)
-        # wait until trip, up to the trip time setting
-        # TODO
+        env.sleep(timedelta(th + 2 * tMRA))
+        # TODO wait until trip, up to the trip time setting
 
     def ovrt_proc(self, env: Env, eut: Eut):
         """"""

@@ -142,6 +142,18 @@ class FreqShallTripTable:
             FreqShallTripValue(56.5, 0.16, 50, 57, 0.16, 1e3),
         )
 
+"""
+IEEE 1547-2018 Table 21 
+Rate of Change of Frequency (ROCOF) Ride-Through Requirements
+for DER of Abnormal Operating Performance Categories I, II, and III
+
++-----------+-----------+-----------+
+| Category I| Category II| Category III|
++-----------+-----------+-----------+
+|  0.5 Hz/s |  2.0 Hz/s |  3.0 Hz/s |
++-----------+-----------+-----------+
+"""
+
 class Eut:
     class AOPCat(enum.Enum):
         """
@@ -228,6 +240,7 @@ class Eut:
         self.Prated = kwargs['Prated']  # output power rating (W)
         self.Prated_prime = kwargs['Prated_prime']  # for EUTs that can sink power, output power rating while sinking power (W)
         self.Srated = kwargs['Srated']  # apparent power rating (VA)
+        self.rocof = kwargs['rocof']
         # Volt Reg params
         self.Vin_nom = kwargs['Vin_nom']  # for an EUT with an electrical input, nominal input voltage (V)
         self.Vin_min = kwargs['Vin_min']  # for an EUT with an electrical input, minimum input voltage (V)
