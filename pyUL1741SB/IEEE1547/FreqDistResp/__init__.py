@@ -1,7 +1,7 @@
 """
 IEEE 1547.1-2020 5.5
 """
-
+from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
 class FreqDist:
@@ -9,6 +9,7 @@ class FreqDist:
         '''
         '''
         shalltrip_tbl = eut.freqshalltrip_tbl
+        env.ac_config(rocof=eut.rocof)
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source or signal injection generator parameters to the nominal operating conditions
@@ -51,9 +52,22 @@ class FreqDist:
                         the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        self.of_trip_validate()
+                        '''
+                        IEEE 1547.1-2020 A.4 Rate limited step function:
+                        The scaling factors A and B needs to be chosen so that PU is at least 110% (90% for under value tests) of PT. Exception: For
+                        frequency tests, the scaling factor A needs to be chosen so that PU is at least 101% (99% for under value tests) of PT.
 
-    def of_trip_validate(self):
+                        The hold time, th, shall be greater than or equal to100% of the trip time setting plus 200%
+                        the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
+                        IEEE Std 1547-2018 for steady-state conditions.
+                        '''
+                        th = trip_time + 2 * eut.mra.static.T  # tMRA for this time scale
+                        PN = eut.fN
+                        PB = trip_mag - 2 * eut.mra.static.F  # published source?
+                        PU = trip_mag * 1.01
+                        self.of_trip_validate(env, eut, PN, PB, th, PU)
+
+    def of_trip_validate(self, env: Env, eut: Eut, PN, PB, th, PU):
         """"""
         '''
         f) Record applicable settings of the ac power source or signal injection generator and the EUT.
@@ -68,7 +82,12 @@ class FreqDist:
         ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
         ranges of adjustment for each underfrequency tripping range specified in IEEE Std 1547.
         '''
-        pass
+        env.ac_config(freq=PN)
+        env.ac_config(freq=PB)
+        env.sleep(th + (PB - PN) / eut.rocof)
+        env.ac_config(freq=PU)
+        clrt = 1  # TODO Clearing time setting?
+        env.sleep(timedelta(1.5 * clrt))
 
     def uf_trip_proc(self, env: Env, eut: Eut):
         '''
