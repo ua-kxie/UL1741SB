@@ -59,9 +59,9 @@ class CPF:
                 def y_of_x(x):
                     q = x * math.sqrt(1 / targetPF ** 2 - 1)
                     if targetPF > 0:
-                        return -q
-                    else:
                         return q
+                    else:
+                        return -q
                 '''
                 (c) - set to nominal and wait for steady state
                 '''
