@@ -4,13 +4,29 @@ from pyUL1741SB import Eut, Env
 from typing import Callable
 
 class CRP:
-    def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+    def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta,
+                          y_of_x: Callable[[float], float], yMRA, xMRA
+                          ):
         raise NotImplementedError("IEEE 1547 crp step validation")
 
-    def crp_proc(self, env: Env, eut: Eut):
+    def crp_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
         env.log(msg="cpf proc against 1547")
+        def validate(env: Env, label: str, perturbation, olrt, y_of_x):
+            if pre_cbk is not None:
+                pre_cbk(label)
+            self.crp_validate_step(
+                env=env,
+                label=label,
+                perturb=perturbation,
+                olrt=olrt,
+                y_of_x=y_of_x,
+                yMRA=eut.mra.static.Q,
+                xMRA=eut.mra.static.P,
+            )
+            if post_cbk is not None:
+                post_cbk(label)
         olrt = timedelta(seconds=10)
         eut.Qrated_inj
         Qsets = [eut.Qrated_inj, eut.Qrated_abs, 0.5 * eut.Qrated_inj, 0.5 * eut.Qrated_abs]
@@ -64,14 +80,12 @@ class CRP:
                     'l': lambda: env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():
-                    self.crp_validate_step(
+                    validate(
                         env=env,
                         label=f"cpf Qset: {Q}, Vin: {Vin}, Step: {k}",
-                        perturb=perturbation,
+                        perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
-                        yMRA=eut.mra.static.Q,
-                        xMRA=eut.mra.static.P,
                     )
                 if multiphase:
                     raise NotImplementedError
@@ -86,14 +100,12 @@ class CRP:
                 r) Disable constant reactive power mode. Reactive power should return to zero.
                 s) Verify all reactive/active power control functions are disabled.
                 '''
-                self.crp_validate_step(
+                validate(
                     env=env,
                     label=f"cpf Qset: {Q}, Vin: {Vin}, Step: r",
-                    perturb=lambda: eut.reactive_power(Ena=False),
+                    perturbation=lambda: eut.reactive_power(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
-                    yMRA=eut.mra.static.Q,
-                    xMRA=eut.mra.static.P,
                 )
                 vars_ctrl = eut.reactive_power()['Ena']
                 watts_ctrl = eut.active_power()['Ena']

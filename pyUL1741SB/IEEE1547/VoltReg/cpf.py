@@ -5,10 +5,12 @@ from typing import Callable
 import math
 
 class CPF:
-    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta,
+                          y_of_x: Callable[[float], float], yMRA, xMRA
+                          ):
         raise NotImplementedError("IEEE 1547 cpf step validation")
 
-    def cpf_proc(self, env: Env, eut: Eut):
+    def cpf_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
         env.log(msg="cpf proc against 1547")
