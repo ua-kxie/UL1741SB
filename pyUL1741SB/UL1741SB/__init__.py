@@ -10,17 +10,6 @@ from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547):
-    def olrt_resp_range(self, env, label, y_init, y_olrt, y_ss, yMRA):
-        y_olrt_targ = y_ss + 0.1 * (y_init - y_ss)
-        y_olrt_min = y_olrt_targ - 1.5 * yMRA
-        y_olrt_max = y_olrt_targ + 1.5 * yMRA
-        if y_olrt_min <= y_olrt <= y_olrt_max:
-            # response time is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        env.log(msg=f"{label} response time {passfail} (y_olrt_min [{y_olrt_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_olrt_max [{y_olrt_max:.1f}VAR])")
-
     def vv_proc(self, env: Env, eut: Eut):
         """
         """
@@ -71,43 +60,46 @@ class UL1741SB(IEEE1547):
                         )
 
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        env.log(msg="vv validate step against 1741SB")
-        meas_args = ('V', 'Q')
-        self.meas_for(env, perturb, olrt, 4*olrt, meas_args)
-        # measure initial
-        x_init, y_init = env.meas(*meas_args)
-        # note initial time -
-        t_init_pre = env.time_now()
-        # step
-        perturb()
-        # note initial time +
-        t_init_post = env.time_now()
-        # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - env.time_now())
-        # measure y_olrt - this value has to be 90% within 1.5 MRA
-        x_olrt, y_olrt = env.meas(*meas_args)
-        # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - env.time_now())
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
+        env.log(msg=f"1741SB {label}")
+        xarg, yarg = 'P', 'Q'
+        meas_args = (xarg, yarg)
+        df_meas = self.meas_for(env, perturb, olrt, 4 * olrt, meas_args)
 
-        # measure y_ss as the average over the next 3x olrt
-        lst_xy_ss = []
-        t_ss_init = env.time_now()
-        x, y = env.meas(*meas_args)
-        lst_xy_ss.append((x, y))
-        while not env.elapsed_since(olrt * 3, t_ss_init):
-            env.sleep(timedelta(seconds=1))
-            x, y = env.meas(*meas_args)
-            lst_xy_ss.append((x, y))
-        lst_xy_ss = list(zip(*lst_xy_ss))
-        x_ss, y_ss = stats.mean(lst_xy_ss[0]), stats.mean(lst_xy_ss[1])
+        # get y_init
+        y_init = df_meas.loc[df_meas.index[0], yarg]
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        # determine y_ss by average after olrt
+        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        '''
+        [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
+        '''
+        y_init = 0.9 * (y_ss - y_init)
+        y_min, y_max = y_init - 1.5 * yMRA, y_init + 1.5 * yMRA
+        if y_min <= y_olrt <= y_max:
+            # steady state value is good
+            passfail = 'passed'
+        else:
+            passfail = 'failed'
+        env.log(msg=f"response time {passfail} (y_min [{y_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_max [{y_max:.1f}VAR])")
 
-        # meas. complete
-        self.olrt_resp_range(env, label, y_init, y_olrt, y_ss, yMRA)
-
+        '''
+        shall meet 4.2
+        '''
         # ss eval with 1741SB amendment
-        self.ss_eval_4p2(env, label, y_of_x, x_ss, y_ss, xMRA, yMRA)
+        y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        if y_min <= y_ss <= y_max:
+            # steady state value is good
+            passfail = 'passed'
+        else:
+            passfail = 'failed'
+        env.log(msg=f"steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
 
-    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+    def cpf_crp_validate_common(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         """
         :param env:
         :param label:
@@ -134,6 +126,8 @@ class UL1741SB(IEEE1547):
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
          - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
+         
+         Q shall reach Qini + 0.9 * (Qfin - Qini) in a time of 10s or less
         '''
         y_thresh = (y_ss - y_init) * 0.9 + y_init
         if y_ss > y_init:
@@ -150,7 +144,9 @@ class UL1741SB(IEEE1547):
         between active and reactive power for constant power factor is given by the following equation: [...]
         SB amendment: Qfinal shall be within 150% of the MRA for VArs of the Q value calculated using the following 
         equation and entering Pfinal and the PF setting under test: [...]
-         - validate as written
+        
+        crp:
+        Qfin shall equal Qset +/- 1.5 * qMRA
         '''
         # ss eval with 1741SB amendment
         y_min = y_of_x(x_ss) - 1.5 * yMRA
@@ -163,50 +159,7 @@ class UL1741SB(IEEE1547):
         env.log(msg=f"steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
 
     def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        env.log(msg="cpf validate step against 1741SB")
-        meas_args = ('P', 'Q')
-        # measure initial
-        x_init, y_init = env.meas(*meas_args)
-        # note initial time -
-        t_init_pre = env.time_now()
-        # step
-        perturb()
-        # note initial time +
-        t_init_post = env.time_now()
-        # wait 1x olrt since t_init_pre
-        env.sleep(t_init_pre + olrt - env.time_now())
-        # measure y_olrt - this value has to be within 10% of y_ss
-        x_olrt, y_olrt = env.meas(*meas_args)
-        # wait for steady state - at least 1x olrt since t_init_post
-        env.sleep(t_init_post + olrt - env.time_now())
+        self.cpf_crp_validate_common(env, label, perturb, olrt, y_of_x, yMRA, xMRA)
 
-        # measure y_ss as the average over the next 3x olrt
-        lst_xy_ss = []
-        t_ss_init = env.time_now()
-        x, y = env.meas(*meas_args)
-        lst_xy_ss.append((x, y))
-        while not env.elapsed_since(olrt * 3, t_ss_init):
-            env.sleep(timedelta(seconds=1))
-            x, y = env.meas(*meas_args)
-            lst_xy_ss.append((x, y))
-        lst_xy_ss = list(zip(*lst_xy_ss))
-        x_ss, y_ss = stats.mean(lst_xy_ss[0]), stats.mean(lst_xy_ss[1])
-
-        # meas. complete
-        y_olrt_thresh = y_ss + 0.1 * (y_init - y_ss)
-        if min(y_init, y_olrt) <= y_olrt_thresh <= max(y_init, y_olrt):
-            # response time is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        env.log(msg=f"{label} response time {passfail} (y_init [{y_init:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_90% [{y_olrt_thresh:.1f}VAR])")
-
-        # ss eval with 1741SB amendment
-        y_min = y_of_x(x_ss) - 1.5 * yMRA
-        y_max = y_of_x(x_ss) + 1.5 * yMRA
-        if y_min <= y_ss <= y_max:
-            # steady state value is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        env.log(msg=f"{label} steady state {passfail} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])")
+    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+        self.cpf_crp_validate_common(env, label, perturb, olrt, y_of_x, yMRA, xMRA)

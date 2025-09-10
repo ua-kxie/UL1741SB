@@ -1,4 +1,5 @@
-
+from datetime import timedelta
+from typing import Callable
 from pyUL1741SB import Eut, Env
 import numpy as np
 
@@ -121,7 +122,7 @@ class VVCurve:
         )
 
 class VV:
-    def vv_validate_step(self):
+    def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         '''
         Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage, a new steady
         state reactive power, Qfinal, and steady-state voltage Vfinal is measured. To obtain a steady-state value,
