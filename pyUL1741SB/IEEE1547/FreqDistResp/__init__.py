@@ -61,7 +61,7 @@ class FreqDist:
                         the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
                         IEEE Std 1547-2018 for steady-state conditions.
                         '''
-                        th = trip_time + 2 * eut.mra.static.T  # tMRA for this time scale
+                        th = trip_time + 2 * eut.mra.static.T(trip_time)
                         PN = eut.fN
                         PB = trip_mag - 2 * eut.mra.static.F  # published source?
                         PU = trip_mag * 1.01
@@ -84,7 +84,7 @@ class FreqDist:
         '''
         env.ac_config(freq=PN)
         env.ac_config(freq=PB)
-        env.sleep(th + (PB - PN) / eut.rocof)
+        env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof))
         env.ac_config(freq=PU)
         clrt = 1  # TODO Clearing time setting?
         env.sleep(timedelta(1.5 * clrt))
@@ -135,7 +135,7 @@ class FreqDist:
                         1.5 times the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        self.of_trip_validate()
+                        self.uf_trip_validate()
 
     def uf_trip_validate(self):
         """"""

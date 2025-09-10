@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 import random
-
+Prated = 5e3
 class Env:  # step voltage, power, sleep, etc.
     def __init__(self):
         self.time = datetime.now()
@@ -22,8 +22,10 @@ class Env:  # step voltage, power, sleep, etc.
             # ensure that the time variable is returned
             if arg.lower() == 'time':
                 ret.append(self.time)
+            elif arg == 'P':
+                ret.append(random.random() * Prated)
             else:
-                ret.append(random.random(),)
+                ret.append(random.random())
         return ret
 
     def ac_config(self, **kwargs):

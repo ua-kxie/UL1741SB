@@ -104,6 +104,7 @@ class VoltDist:
             '''
             trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
             for trip_time in trip_times:
+                tMRA = eut.mra.static.T(trip_time)
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
                 '''
@@ -121,10 +122,9 @@ class VoltDist:
                         '''
                         e), f)
                         '''
-                        tMRA = 0.5  # TODO
-                        self.ov_trip_validate(env, trip_time, trip_mag, tMRA, vMRA)
+                        self.ov_trip_validate(env, eut, trip_time, trip_mag, tMRA, vMRA)
 
-    def ov_trip_validate(self, env:Env, th, vov, tMRA, vMRA):
+    def ov_trip_validate(self, env: Env, eut: Eut, th, vov, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -142,13 +142,34 @@ class VoltDist:
         respective clearing times for each overvoltage range specified in IEEE Std 1547. The evaluated ranges of
         adjustment for tripping magnitude and duration shall be greater than or equal to the allowable ranges of
         adjustment for each overvoltage tripping range specified in IEEE Std 1547.
+        
+        A.3 Notes:
+        (a) Where the parameter under test is voltage, the rise times shall be as fast as possible and
+        shall not exceed 2 cycles.
+        (b) The hold time, th, shall be greater than or equal to 100% of the trip time setting plus 200%
+        the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
+        IEEE Std 1547-2018 for steady-state conditions.
+        (c) The clearing time shall be measured from the time t0 to tc.
         '''
-        env.log(msg=f'vov: {vov:.2f}')
         env.ac_config(Vac=vov - 2 * vMRA)
+        # TODO check voltage has reached setpoint before sleeping for th
         env.sleep(timedelta(seconds=th + 2 * tMRA))
+        # TODO verify grid is still energized, measure the time before stepping voltage for trip
         env.ac_config(Vac=vov + 2 * vMRA)
-        env.sleep(timedelta(seconds=th + 2 * tMRA))
-        # TODO tip within wait time, pass. else fail
+        # TODO continuously monitor power until th elapsed or de-energized
+        # TODO if de-energized, verify fault state over comms to determine pass/fail
+
+        # TODO reset the inverter for next test
+        # set VDC, (Vg) to 0
+        env.ac_config(Vac=eut.VN)
+        env.dc_config(Vdc=0)
+        # wait 1 second
+        env.sleep(timedelta(seconds=1))
+        # set VDC to nominal
+        env.dc_config(Vdc=eut.Vin_nom)
+        env.log(msg='waiting for re-energizatio...')
+        while env.meas('P')[0] < eut.Prated * 0.5:
+            env.sleep(timedelta(seconds=1))
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""
