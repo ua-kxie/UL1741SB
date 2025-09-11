@@ -36,7 +36,7 @@ def post_cbk(label):
     print(f'post: {label}')
 env = Env()
 std.crp_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
-std.cpf_proc(env=env, eut=eut)
+std.cpf_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
 std.vv_proc(env=env, eut=eut)
 std.of_trip_proc(env=env, eut=eut)
 std.uf_trip_proc(env=env, eut=eut)

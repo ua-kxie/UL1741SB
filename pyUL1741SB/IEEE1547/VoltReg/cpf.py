@@ -13,6 +13,20 @@ class CPF:
     def cpf_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
+        def validate(env: Env, label: str, perturbation, olrt, y_of_x):
+            if pre_cbk is not None:
+                pre_cbk(label)
+            self.cpf_validate_step(
+                env=env,
+                label=label,
+                perturb=perturbation,
+                olrt=olrt,
+                y_of_x=y_of_x,
+                yMRA=eut.mra.static.Q,
+                xMRA=eut.mra.static.P,
+            )
+            if post_cbk is not None:
+                post_cbk(label)
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=10)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
@@ -85,26 +99,22 @@ class CPF:
                 '''
                 g) Step the EUT’s active power to Pmin.		
                 '''
-                self.cpf_validate_step(
+                validate(
                     env=env,
                     label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Pmin}, Step: g",
-                    perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
+                    perturbation=lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
                     olrt=olrt,
                     y_of_x=y_of_x,
-                    yMRA=eut.mra.static.Q,
-                    xMRA=eut.mra.static.P,
                 )
                 '''
                 h) Step the EUT’s available active power to Prated. - interpreted as stepping the EUT's active power
                 '''
-                self.cpf_validate_step(
+                validate(
                     env=env,
                     label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Prated}, Step: h",
-                    perturb=lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
+                    perturbation=lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
                     olrt=olrt,
                     y_of_x=y_of_x,
-                    yMRA=eut.mra.static.Q,
-                    xMRA=eut.mra.static.P,
                 )
                 '''
                 i) Step the ac test source voltage to (VL + av)		
@@ -112,14 +122,12 @@ class CPF:
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 for k, Vac in {'i': VL + av, 'j': VH - av, 'k': VL + av}.items():
-                    self.cpf_validate_step(
+                    validate(
                         env=env,
                         label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: {k}",
-                        perturb=lambda: env.ac_config(Vac=Vac),
+                        perturbation=lambda: env.ac_config(Vac=Vac),
                         olrt=olrt,
                         y_of_x=y_of_x,
-                        yMRA=eut.mra.static.Q,
-                        xMRA=eut.mra.static.P,
                     )
                 '''
                 l) For multiphase units, step the ac test source voltage to VN.		
@@ -159,14 +167,12 @@ class CPF:
                 r) Verify all reactive/active power control functions are disabled.
                 '''
                 targetPF = 1
-                self.cpf_validate_step(
+                validate(
                     env=env,
                     label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, step: q",
-                    perturb=lambda: eut.fixed_pf(Ena=False),
+                    perturbation=lambda: eut.fixed_pf(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
-                    yMRA=eut.mra.static.Q,
-                    xMRA=eut.mra.static.P,
                 )
                 vars_ctrl = eut.reactive_power()['Ena']
                 watts_ctrl = eut.active_power()['Ena']
