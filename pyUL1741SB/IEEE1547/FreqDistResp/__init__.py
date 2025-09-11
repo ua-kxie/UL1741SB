@@ -86,8 +86,19 @@ class FreqDist:
         env.ac_config(freq=PB)
         env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof))
         env.ac_config(freq=PU)
-        clrt = 1  # TODO Clearing time setting?
-        env.sleep(timedelta(1.5 * clrt))
+        env.sleep(timedelta(1.5 * th))
+
+        # TODO reset the inverter for next test
+        # set VDC, (Vg) to 0
+        env.ac_config(Vac=eut.VN)
+        env.dc_config(Vdc=0)
+        # wait 1 second
+        env.sleep(timedelta(seconds=1))
+        # set VDC to nominal
+        env.dc_config(Vdc=eut.Vin_nom)
+        env.log(msg='waiting for re-energization...')
+        while env.meas('P')[0] < eut.Prated * 0.5:
+            env.sleep(timedelta(seconds=1))
 
     def uf_trip_proc(self, env: Env, eut: Eut):
         '''

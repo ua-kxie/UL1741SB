@@ -167,7 +167,7 @@ class VoltDist:
         env.sleep(timedelta(seconds=1))
         # set VDC to nominal
         env.dc_config(Vdc=eut.Vin_nom)
-        env.log(msg='waiting for re-energizatio...')
+        env.log(msg='waiting for re-energization...')
         while env.meas('P')[0] < eut.Prated * 0.5:
             env.sleep(timedelta(seconds=1))
 
