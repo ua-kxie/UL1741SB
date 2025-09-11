@@ -13,12 +13,13 @@ class CRP:
         """
         """
         env.log(msg="cpf proc against 1547")
-        def validate(env: Env, label: str, perturbation, olrt, y_of_x):
+        def validate(env: Env, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
-                pre_cbk(label)
+                pre_cbk(**dct_label)
+            slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.crp_validate_step(
                 env=env,
-                label=label,
+                label=slabel,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
@@ -26,9 +27,8 @@ class CRP:
                 xMRA=eut.mra.static.P,
             )
             if post_cbk is not None:
-                post_cbk(label)
+                post_cbk(**dct_label)
         olrt = timedelta(seconds=10)
-        eut.Qrated_inj
         Qsets = [eut.Qrated_inj, eut.Qrated_abs, 0.5 * eut.Qrated_inj, 0.5 * eut.Qrated_abs]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = eut.Pmin, eut.Prated, eut.multiphase
@@ -82,7 +82,7 @@ class CRP:
                 for k, perturbation in dct_steps.items():
                     validate(
                         env=env,
-                        label=f"cpf Qset: {Q}, Vin: {Vin}, Step: {k}",
+                        dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
@@ -102,7 +102,7 @@ class CRP:
                 '''
                 validate(
                     env=env,
-                    label=f"cpf Qset: {Q}, Vin: {Vin}, Step: r",
+                    dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturbation=lambda: eut.reactive_power(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,

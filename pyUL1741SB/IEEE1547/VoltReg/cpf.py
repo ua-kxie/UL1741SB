@@ -13,12 +13,13 @@ class CPF:
     def cpf_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
-        def validate(env: Env, label: str, perturbation, olrt, y_of_x):
+        def validate(env: Env, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
-                pre_cbk(label)
+                pre_cbk(**dct_label)
+            slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.cpf_validate_step(
                 env=env,
-                label=label,
+                label=slabel,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
@@ -26,7 +27,7 @@ class CPF:
                 xMRA=eut.mra.static.P,
             )
             if post_cbk is not None:
-                post_cbk(label)
+                post_cbk(**dct_label)
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=10)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
@@ -98,58 +99,47 @@ class CPF:
                 env.sleep(2 * olrt)
                 '''
                 g) Step the EUT’s active power to Pmin.		
-                '''
-                validate(
-                    env=env,
-                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Pmin}, Step: g",
-                    perturbation=lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
-                    olrt=olrt,
-                    y_of_x=y_of_x,
-                )
-                '''
                 h) Step the EUT’s available active power to Prated. - interpreted as stepping the EUT's active power
-                '''
-                validate(
-                    env=env,
-                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Power: {Prated}, Step: h",
-                    perturbation=lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
-                    olrt=olrt,
-                    y_of_x=y_of_x,
-                )
-                '''
                 i) Step the ac test source voltage to (VL + av)		
                 j) Step the ac test source voltage to (VH - av).		
                 k) Step the ac test source voltage to (VL + av).		
                 '''
-                for k, Vac in {'i': VL + av, 'j': VH - av, 'k': VL + av}.items():
+                dct_steps = {
+                    'g': lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
+                    'h': lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
+                    'i': lambda: env.ac_config(Vac=VL + av),
+                    'j': lambda: env.ac_config(Vac=VL - av),
+                    'k': lambda: env.ac_config(Vac=VL + av),
+                }
+                for k, perturbation in dct_steps.items():
                     validate(
                         env=env,
-                        label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, Step: {k}",
-                        perturbation=lambda: env.ac_config(Vac=Vac),
+                        dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'{k}'},
+                        perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
                     )
-                '''
-                l) For multiphase units, step the ac test source voltage to VN.		
-                m) For multiphase units, step the ac test source voltage to Case A from Table 24.		
-                n) For multiphase units, step the ac test source voltage to VN.		
-                o) For multiphase units, step the ac test source voltage to Case B from Table 24.		
-                p) For multiphase units, step the ac test source voltage to VN		
-                '''
-                '''
-                                                        Table 24 - Imbalanced Voltage Test Cases
-                        +-----------------------------------------------------+-----------------------------------------------+
-                        | Phase A (p.u.)  | Phase B (p.u.)  | Phase C (p.u.)  | In order to keep V0 magnitude                 |
-                        |                 |                 |                 | and angle at 0. These parameter can be used.  |
-                        +-----------------+-----------------+-----------------+-----------------------------------------------+
-                        |       Mag       |       Mag       |       Mag       | Mag   | Ang  | Mag   | Ang   | Mag   | Ang    |
-                +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
-                |Case A |     >= 1.07     |     <= 0.91     |     <= 0.91     | 1.08  | 0.0  | 0.91  |-126.59| 0.91  | 126.59 |
-                +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
-                |Case B |     <= 0.91     |     >= 1.07     |     >= 1.07     | 0.9   | 0.0  | 1.08  |-114.5 | 1.08  | 114.5  |
-                +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
-                '''
                 if multiphase:
+                    '''
+                    l) For multiphase units, step the ac test source voltage to VN.		
+                    m) For multiphase units, step the ac test source voltage to Case A from Table 24.		
+                    n) For multiphase units, step the ac test source voltage to VN.		
+                    o) For multiphase units, step the ac test source voltage to Case B from Table 24.		
+                    p) For multiphase units, step the ac test source voltage to VN		
+                    '''
+                    '''
+                                                            Table 24 - Imbalanced Voltage Test Cases
+                            +-----------------------------------------------------+-----------------------------------------------+
+                            | Phase A (p.u.)  | Phase B (p.u.)  | Phase C (p.u.)  | In order to keep V0 magnitude                 |
+                            |                 |                 |                 | and angle at 0. These parameter can be used.  |
+                            +-----------------+-----------------+-----------------+-----------------------------------------------+
+                            |       Mag       |       Mag       |       Mag       | Mag   | Ang  | Mag   | Ang   | Mag   | Ang    |
+                    +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
+                    |Case A |     >= 1.07     |     <= 0.91     |     <= 0.91     | 1.08  | 0.0  | 0.91  |-126.59| 0.91  | 126.59 |
+                    +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
+                    |Case B |     <= 0.91     |     >= 1.07     |     >= 1.07     | 0.9   | 0.0  | 1.08  |-114.5 | 1.08  | 114.5  |
+                    +-------+-----------------+-----------------+-----------------+-------+------+-------+-------+-------+--------+
+                    '''
                     raise NotImplementedError
                     for grid_config in [
                         lambda: env.ac_config(Vac=VN),
@@ -169,14 +159,14 @@ class CPF:
                 targetPF = 1
                 validate(
                     env=env,
-                    label=f"cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac}, step: q",
+                    dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'q'},
                     perturbation=lambda: eut.fixed_pf(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
                 )
                 vars_ctrl = eut.reactive_power()['Ena']
                 watts_ctrl = eut.active_power()['Ena']
-                env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, Vac: {Vac} vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
+                env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
         '''
         s) Repeat steps d) through p) for additional power factor settings: PFmin,ab, PFmid,inj, PFmid,ab.
         t) For an EUT with an input voltage range, repeat steps d) through p) for Vin_min and Vin_max.

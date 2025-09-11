@@ -30,10 +30,10 @@ eut = Eut(
     delta_Psmall=0.1,  # small power change threshold (p.u.)
     delta_Plarge=0.5   # large power change threshold (p.u.)
 )
-def pre_cbk(label):
-    print(f'pre: {label}')
-def post_cbk(label):
-    print(f'post: {label}')
+def pre_cbk(**kwargs):
+    print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
+def post_cbk(**kwargs):
+    print(f"post: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
 env = Env()
 std.crp_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
 std.cpf_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)

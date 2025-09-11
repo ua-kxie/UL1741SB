@@ -7,9 +7,10 @@ import numpy as np
 from pyUL1741SB import Eut, Env
 
 from pyUL1741SB.IEEE1547 import IEEE1547
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
-class UL1741SB(IEEE1547):
+class UL1741SB(IEEE1547, IEEE1547Common):
     def vv_proc(self, env: Env, eut: Eut):
         """
         """

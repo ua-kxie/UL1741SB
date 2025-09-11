@@ -5,6 +5,7 @@ import pandas as pd
 import enum
 from datetime import timedelta
 
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
 from pyUL1741SB import Eut, Env
@@ -72,12 +73,12 @@ class LVRTSeq:
         })
         return LVRTSeq(df_dset1, df_dset2, df_dset3, df_dset4)
 
-class VoltDist:
+class VoltDist(IEEE1547Common):
     Vminkey = 'Vmin'
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
     OpMdkey = 'OpMd'
-    def ov_trip_proc(self, env: Env, eut: Eut):
+    def ov_trip_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """"""
         multiphase = eut.multiphase
         if multiphase:
@@ -118,11 +119,17 @@ class VoltDist:
                     h) For multiphase units, repeat steps e) through g) for the applicable voltage on each phase or phase
                     pair individually, and all phases simultaneously.
                     '''
-                    for _ in range(5):
+                    for iter in range(5):
                         '''
                         e), f)
                         '''
+                        dct_label = {'region': trip_region, 'time': trip_time, 'mag': trip_mag, 'iter': iter}
+                        if pre_cbk is not None:
+                            pre_cbk(**dct_label)
                         self.ov_trip_validate(env, eut, trip_time, trip_mag, tMRA, vMRA)
+                        if post_cbk is not None:
+                            post_cbk(**dct_label)
+                        self.trip_rst(env, eut)
 
     def ov_trip_validate(self, env: Env, eut: Eut, th, vov, tMRA, vMRA):
         """"""
@@ -158,18 +165,7 @@ class VoltDist:
         env.ac_config(Vac=vov + 2 * vMRA)
         # TODO continuously monitor power until th elapsed or de-energized
         # TODO if de-energized, verify fault state over comms to determine pass/fail
-
-        # TODO reset the inverter for next test
-        # set VDC, (Vg) to 0
-        env.ac_config(Vac=eut.VN)
-        env.dc_config(Vdc=0)
-        # wait 1 second
-        env.sleep(timedelta(seconds=1))
-        # set VDC to nominal
-        env.dc_config(Vdc=eut.Vin_nom)
-        env.log(msg='waiting for re-energization...')
-        while env.meas('P')[0] < eut.Prated * 0.5:
-            env.sleep(timedelta(seconds=1))
+        env.sleep(timedelta(seconds=th + 2 * tMRA))
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""

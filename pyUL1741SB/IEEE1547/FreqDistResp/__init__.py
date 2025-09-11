@@ -4,8 +4,10 @@ IEEE 1547.1-2020 5.5
 from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
-class FreqDist:
-    def of_trip_proc(self, env: Env, eut: Eut):
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
+
+class FreqDist(IEEE1547Common):
+    def of_trip_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         '''
         '''
         shalltrip_tbl = eut.freqshalltrip_tbl
@@ -38,7 +40,7 @@ class FreqDist:
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    for _ in range(5):
+                    for iter in range(5):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
                         range of adjustment specified by the manufacturer.
@@ -65,7 +67,13 @@ class FreqDist:
                         PN = eut.fN
                         PB = trip_mag - 2 * eut.mra.static.F  # published source?
                         PU = trip_mag * 1.01
+                        dct_label = {'region': op_region, 'time': trip_time, 'mag': trip_mag, 'iter': iter}
+                        if pre_cbk is not None:
+                            pre_cbk(**dct_label)
                         self.of_trip_validate(env, eut, PN, PB, th, PU)
+                        if post_cbk is not None:
+                            post_cbk(**dct_label)
+                        self.trip_rst(env, eut)
 
     def of_trip_validate(self, env: Env, eut: Eut, PN, PB, th, PU):
         """"""
@@ -87,18 +95,6 @@ class FreqDist:
         env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof))
         env.ac_config(freq=PU)
         env.sleep(timedelta(1.5 * th))
-
-        # TODO reset the inverter for next test
-        # set VDC, (Vg) to 0
-        env.ac_config(Vac=eut.VN)
-        env.dc_config(Vdc=0)
-        # wait 1 second
-        env.sleep(timedelta(seconds=1))
-        # set VDC to nominal
-        env.dc_config(Vdc=eut.Vin_nom)
-        env.log(msg='waiting for re-energization...')
-        while env.meas('P')[0] < eut.Prated * 0.5:
-            env.sleep(timedelta(seconds=1))
 
     def uf_trip_proc(self, env: Env, eut: Eut):
         '''
