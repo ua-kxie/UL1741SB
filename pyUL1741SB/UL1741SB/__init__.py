@@ -11,7 +11,7 @@ from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
-    def vv_proc(self, env: Env, eut: Eut):
+    def vv_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
@@ -50,15 +50,21 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     '''
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
+                        dct_label = {'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
+                        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+                        if pre_cbk is not None:
+                            pre_cbk(**dct_label)
                         self.vv_validate_step(
                             env,
-                            label=f'vv vref: {vref:.0f} pwr: {pwr:.0f} crv{vv_crv.name} step {stepname}',
+                            label=slabel,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
                             y_of_x=vv_crv.y_of_x,
                             yMRA=eut.mra.static.Q,
                             xMRA=eut.mra.static.V,
                         )
+                        if post_cbk is not None:
+                            post_cbk(**dct_label)
 
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
         """"""
@@ -66,9 +72,9 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         IEEE 1547.1-2020 5.14.3.3
         '''
         env.log(msg=f"1741SB {label}")
-        xarg, yarg = 'P', 'Q'
+        xarg, yarg = 'V', 'Q'
         meas_args = (xarg, yarg)
-        df_meas = self.meas_for(env, perturb, olrt, 4 * olrt, meas_args)
+        df_meas = self.meas_perturb(env, perturb, olrt, 4 * olrt, meas_args)
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -115,9 +121,9 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         IEEE 1547.1-2020 5.14.3.3
         '''
         env.log(msg=f"1741SB {label}")
-        xarg, yarg = 'V', 'Q'
+        xarg, yarg = 'P', 'Q'
         meas_args = (xarg, yarg)
-        df_meas = self.meas_for(env, perturb, olrt, 4*olrt, meas_args)
+        df_meas = self.meas_perturb(env, perturb, olrt, 4 * olrt, meas_args)
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]

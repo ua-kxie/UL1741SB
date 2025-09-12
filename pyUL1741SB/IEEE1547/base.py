@@ -14,7 +14,7 @@ class IEEE1547Common:
         y_max = max(y_of_x(x_ss - 1.5 * xMRA), y_of_x(x_ss + 1.5 * xMRA)) + 1.5 * yMRA
         return y_min, y_max
 
-    def meas_for(self, env: Env, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
+    def meas_perturb(self, env: Env, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
         # tMRA is 1% of measured duration
         # the smallest measured duration is olrt (90% resp at olrt)
         # t_step = tMRA * olrt
