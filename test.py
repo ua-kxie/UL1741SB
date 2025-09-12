@@ -30,6 +30,7 @@ eut = Eut(
     delta_Psmall=0.1,  # small power change threshold (p.u.)
     delta_Plarge=0.5   # large power change threshold (p.u.)
 )
+
 def pre_cbk(**kwargs):
     print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
 def post_cbk(**kwargs):

@@ -65,3 +65,11 @@ class Env:  # step voltage, power, sleep, etc.
 
     def dc_config(self, **kwargs):
         pass
+
+    def validate(self, is_valid: bool, msg: str):
+        if is_valid:
+            # steady state value is good
+            passfail = 'passed'
+        else:
+            passfail = 'failed'
+        print(passfail + ' ' + msg)
