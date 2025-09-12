@@ -79,8 +79,8 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
-        y_init = 0.9 * (y_ss - y_init)
-        y_min, y_max = y_init - 1.5 * yMRA, y_init + 1.5 * yMRA
+        y_thresh = y_init + 0.9 * (y_ss - y_init)
+        y_min, y_max = y_thresh - 1.5 * yMRA, y_thresh + 1.5 * yMRA
         if y_min <= y_olrt <= y_max:
             # steady state value is good
             passfail = 'passed'
@@ -115,7 +115,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         IEEE 1547.1-2020 5.14.3.3
         '''
         env.log(msg=f"1741SB {label}")
-        xarg, yarg = 'P', 'Q'
+        xarg, yarg = 'V', 'Q'
         meas_args = (xarg, yarg)
         df_meas = self.meas_for(env, perturb, olrt, 4*olrt, meas_args)
 
@@ -130,7 +130,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
          
          Q shall reach Qini + 0.9 * (Qfin - Qini) in a time of 10s or less
         '''
-        y_thresh = (y_ss - y_init) * 0.9 + y_init
+        y_thresh = y_init + (y_ss - y_init) * 0.9
         if y_ss > y_init:
             passfail = (df_meas.loc[:df_meas.index[1] + olrt, yarg] >= y_thresh).any()
         else:

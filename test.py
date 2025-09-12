@@ -3,7 +3,7 @@ from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 
 std = UL1741SB()
 eut = Eut(
-    Cat=Eut.Category.A,
+    Cat=Eut.Category.B,
     aopCat=Eut.AOPCat.III,
     voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(240),
     freqshalltrip_tbl=FreqShallTripTable.MaxRange(),

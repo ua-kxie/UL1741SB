@@ -108,7 +108,7 @@ class CPF:
                     'g': lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
                     'h': lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
                     'i': lambda: env.ac_config(Vac=VL + av),
-                    'j': lambda: env.ac_config(Vac=VL - av),
+                    'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():

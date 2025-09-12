@@ -76,7 +76,7 @@ class CRP:
                     'h': lambda: eut.active_power(Ena=True, W=min(0.05*Prated, Pmin)),
                     'i': lambda: eut.active_power(Ena=True, W=Prated),
                     'j': lambda: env.ac_config(Vac=VL + av),
-                    'k': lambda: env.ac_config(Vac=VL - av),
+                    'k': lambda: env.ac_config(Vac=VH - av),
                     'l': lambda: env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():

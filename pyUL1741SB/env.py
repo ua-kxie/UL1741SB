@@ -1,4 +1,6 @@
 from datetime import timedelta, datetime
+import pandas as pd
+import numpy as np
 import random
 Prated = 5e3
 class Env:  # step voltage, power, sleep, etc.
@@ -15,18 +17,42 @@ class Env:  # step voltage, power, sleep, etc.
     def sleep(self, td: timedelta):
         self.time += td + timedelta(seconds=0.001)  # add a little to simulate extra time taken to run code
 
-    def meas(self, *args):
-        self.time += timedelta(seconds=random.random() * 0.001)  # add a little to simulate extra time taken to run code
-        ret = []
+    def meas_single(self, *args) -> pd.DataFrame:
+        self.time += timedelta(seconds=random.random() * 0.001)
+
+        data = {}
         for arg in args:
-            # ensure that the time variable is returned
-            if arg.lower() == 'time':
-                ret.append(self.time)
-            elif arg == 'P':
-                ret.append(random.random() * Prated)
-            else:
-                ret.append(random.random())
-        return ret
+            data[arg] = random.random()
+
+        # Create DataFrame with time as the index
+        df = pd.DataFrame(data, index=[self.time])
+        if 'P' in df.columns:
+            df['P'] = df['P'] * Prated  # Assuming Prated is an instance variable
+        return df
+
+    def meas_for(self, dur: timedelta, tres: timedelta, *args) -> pd.DataFrame:
+        self.time += dur
+        self.time += timedelta(seconds=random.random() * 0.001)  # add a little to simulate extra time taken to run code
+        # Calculate number of periods based on duration and time resolution
+        num_periods = int(dur.total_seconds() / tres.total_seconds())
+
+        # Generate timestamp index starting from current time
+        index = pd.date_range(
+            start=self.time,
+            periods=num_periods,
+            freq=pd.Timedelta(tres)
+        )
+
+        # Create DataFrame with random data for each specified column
+        data = {}
+        for column_name in args:
+            # Generate random data (you can modify the distribution as needed)
+            data[column_name] = np.random.randn(num_periods)
+
+        df = pd.DataFrame(data, index=index)
+        if 'P' in df.columns:
+            df['P'] = df['P'] * Prated
+        return df
 
     def ac_config(self, **kwargs):
         pass

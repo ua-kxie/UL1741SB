@@ -18,19 +18,11 @@ class IEEE1547Common:
         # tMRA is 1% of measured duration
         # the smallest measured duration is olrt (90% resp at olrt)
         # t_step = tMRA * olrt
-        vals = []
-        vals.append(env.meas('time', *meas_args))
-        t_init = vals[0][0]
+        t_step = olrt.total_seconds() * 0.01  # TODO
+        init = env.meas_single(*meas_args)
         perturb()
-        vals.append(env.meas('time', *meas_args))
-        i = 0
-        t_step = olrt.total_seconds() * 0.01
-        while not env.elapsed_since(interval, t_init):
-            i += 1
-            env.sleep(t_init + timedelta(seconds=i * t_step) - env.time_now())
-            vals.append(env.meas('time', *meas_args))
-        df = pd.DataFrame(data=vals, columns=['time'] + list(meas_args))
-        df = df.set_index('time')
+        resp = env.meas_for(4*olrt, timedelta(seconds=t_step), *meas_args)
+        df = pd.concat([init, resp])
         return df
 
     def trip_rst(self, env: Env, eut: Eut):
@@ -43,5 +35,5 @@ class IEEE1547Common:
         # set VDC to nominal
         env.dc_config(Vdc=eut.Vin_nom)
         env.log(msg='waiting for re-energization...')
-        while env.meas('P')[0] < eut.Prated * 0.5:
+        while env.meas_single('P').iloc[0, 0] < eut.Prated * 0.5:
             env.sleep(timedelta(seconds=1))
