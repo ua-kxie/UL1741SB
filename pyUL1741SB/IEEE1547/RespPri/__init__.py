@@ -134,11 +134,11 @@ class RespPri:
 
         def crp_cfg():
             # disable vvcrv
-            eut.reactive_power(Ena=True, eut.Qrated_inj)
+            eut.reactive_power(Ena=True, Q=eut.Qrated_inj)
 
         def cpf_cfg():
             eut.reactive_power(Ena=False)
-            eut.fixed_pf(Ena=True, PFmaxinj)
+            eut.fixed_pf(Ena=True, PF=eut.PFmaxinj)
 
         def wv_cfg():
             eut.fixed_pf(Ena=False)

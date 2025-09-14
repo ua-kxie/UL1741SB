@@ -10,7 +10,7 @@ class EpriEut(Eut):
     def __init__(self, **kwargs):
         self.der = der.DER()
         self.der.der_file.NP_PHASE = "SINGLE"
-        self.der.update_der_input(f=60)
+        self.der.update_der_input(v_pu=1, f=60)
         super().__init__(
             Cat=Eut.Category.B,
             aopCat=Eut.AOPCat.III,
@@ -53,6 +53,22 @@ class EpriEut(Eut):
                     self.der.der_file.CONST_PF = v
             else:
                 raise NotImplementedError
+    def active_power(self, **kwargs):
+        for k, v in kwargs.items():
+            if k == 'Ena':
+                self.der.der_file.AP_LIMIT_ENABLE = v
+            elif k == 'pu':
+                self.der.der_file.AP_LIMIT = v
+            else:
+                raise NotImplementedError
+    def reactive_power(self, **kwargs):
+        for k, v in kwargs.items():
+            if k == 'Ena':
+                self.der.der_file.CONST_Q_MODE_ENABLE = v
+            elif k == 'Q':
+                self.der.der_file.CONST_Q = v / self.der.der_file.NP_Q_MAX_INJ
+            else:
+                raise NotImplementedError
 
 eut = EpriEut()
 
@@ -62,6 +78,9 @@ class EpriEnv(Env):
         super().__init__()
         self.time = dt.datetime.fromtimestamp(0)
         self.eut = eut
+        self.cpf_results = pd.DataFrame()
+        self.crp_results = pd.DataFrame()
+        self.vv_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -76,10 +95,11 @@ class EpriEnv(Env):
         self.eut.der.run()
 
     def meas(self, *args):
-        data = {}
-        data['P'] = self.eut.der.der_output.p_out_w
-        data['Q'] = self.eut.der.der_output.q_out_var
-        data['V'] = self.eut.der.der_output.v_out_mag_v
+        data = {
+            'P': self.eut.der.der_output.p_out_w,
+            'Q': self.eut.der.der_output.q_out_var,
+            'V': self.eut.der.der_output.v_a_out_pu
+                }
         data1 = {}
         for arg in args:
             data1[arg] = data[arg]
@@ -128,13 +148,19 @@ class EpriEnv(Env):
             else:
                 raise NotImplementedError
 
-    def validate(self, is_valid: bool, msg: str):
-        if is_valid:
-            # steady state value is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        print(passfail + ' ' + msg)
+    def validate(self, is_valid: bool, dct_label: dict, msg: str):
+        df_row = pd.DataFrame([dct_label])
+        proc = dct_label.pop('proc')
+        if proc == 'cpf':
+            self.cpf_results = pd.concat([self.cpf_results, df_row])
+        elif proc == 'crp':
+            self.crp_results = pd.concat([self.crp_results, df_row])
+        elif proc == 'vv':
+            self.vv_results = pd.concat([self.vv_results, df_row])
 env = EpriEnv(eut)
 
-std.cpf_proc(env=env, eut=eut)
+# std.cpf_proc(env=env, eut=eut)
+std.crp_proc(env=env, eut=eut)
+# std.vv_proc(env=env, eut=eut)
+
+print(env.cpf_results)

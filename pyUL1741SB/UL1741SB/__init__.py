@@ -50,14 +50,13 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     '''
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
-                        dct_label = {'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
-                        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
                         if pre_cbk is not None:
                             pre_cbk(**dct_label)
                         self.vv_validate_step(
                             env,
                             eut,
-                            label=slabel,
+                            dct_label=dct_label,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
                             y_of_x=vv_crv.y_of_x,
@@ -65,14 +64,15 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                         if post_cbk is not None:
                             post_cbk(**dct_label)
 
-    def vv_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def vv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
         xMRA = eut.mra.static.V
         yMRA = eut.mra.static.Q
-        env.log(msg=f"1741SB {label}")
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'V', 'Q'
         meas_args = (xarg, yarg)
         df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
@@ -91,6 +91,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         valid = y_min <= y_olrt <= y_max
         env.validate(
             is_valid=valid,
+            dct_label={**dct_label, 'criteria': 'olrt', 'valid': valid},
             msg=f"response time {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_max [{y_max:.1f}VAR])"
         )
 
@@ -102,37 +103,44 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         valid = y_min <= y_ss <= y_max
         env.validate(
             is_valid=valid,
+            dct_label={**dct_label, 'criteria': 'ss', 'valid': valid},
             msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
         )
 
-    def cpf_crp_validate_common(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def cpf_crp_validate_common(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
-        env.log(msg=f"1741SB {label}")
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
         yMRA = eut.mra.static.Q
         xarg, yarg = 'P', 'Q'
         meas_args = (xarg, yarg)
         df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
 
-        # get y_init
-        y_init = df_meas.loc[df_meas.index[0], yarg]
         # determine y_ss by average after olrt
         x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
         y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
+
+        # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
+        y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
+        y_init = max(y_init, key=lambda x: abs(x - y_ss))
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
          - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
          
          Q shall reach Qini + 0.9 * (Qfin - Qini) in a time of 10s or less
         '''
-        y_thresh = y_init + (y_ss - y_init) * 0.9
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
-        valid = y_olrt > y_thresh
+        # interpret as require y within 10% of y_ss after olrt, or 1.5*MRA, whichever is greater
+        # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
+        y_thresh = max(abs(y_ss - y_init) * 0.1, 1.5 * yMRA)
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
+        valid = (df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss < y_thresh).all()
         env.validate(
             is_valid=valid,
-            msg=f"response time {'passed' if valid else 'failed'} (y_init [{y_init:.1f}VAR], y_90% [{y_thresh:.1f}VAR], y_olrt [{y_olrt:.1f}VAR])"
+            dct_label={**dct_label, 'criteria': 'olrt', 'valid': valid},
+            msg=f"response time {'passed' if valid else 'failed'} (y_init [{y_init:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_ss [{y_ss:.1f}VAR])"
         )
 
         '''
@@ -151,11 +159,12 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         valid = y_min <= y_ss <= y_max
         env.validate(
             is_valid=valid,
+            dct_label={**dct_label, 'criteria': 'ss', 'valid': valid},
             msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
         )
 
-    def crp_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        self.cpf_crp_validate_common(env, eut, label, perturb, olrt, y_of_x)
+    def crp_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_validate_common(env, eut, dct_label, perturb, olrt, y_of_x)
 
-    def cpf_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        self.cpf_crp_validate_common(env, eut, label, perturb, olrt, y_of_x)
+    def cpf_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_validate_common(env, eut, dct_label, perturb, olrt, y_of_x)

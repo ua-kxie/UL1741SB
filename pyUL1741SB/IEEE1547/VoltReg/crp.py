@@ -4,8 +4,8 @@ from pyUL1741SB import Eut, Env
 from typing import Callable
 
 class CRP:
-    def crp_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta,
-                          y_of_x: Callable[[float], float], yMRA, xMRA
+    def crp_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+                          y_of_x: Callable[[float], float]
                           ):
         raise NotImplementedError("IEEE 1547 crp step validation")
 
@@ -16,11 +16,10 @@ class CRP:
         def validate(env: Env, eut:Eut, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
                 pre_cbk(**dct_label)
-            slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.crp_validate_step(
                 env=env,
                 eut=eut,
-                label=slabel,
+                dct_label=dct_label,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
@@ -59,7 +58,7 @@ class CRP:
                 f) Verify constant var mode is reported as active and that the reactive power setting is reported as
                 Qmax,inj.
                 '''
-                eut.active_power(Ena=True, W=Prated)
+                eut.active_power(Ena=True, pu=1)
                 env.dc_config(Vin=Vin)
                 eut.reactive_power(Ena=True, Q=Q)
                 '''
@@ -71,9 +70,9 @@ class CRP:
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(Ena=True, W=min(0.2*Prated, Pmin)),
-                    'h': lambda: eut.active_power(Ena=True, W=min(0.05*Prated, Pmin)),
-                    'i': lambda: eut.active_power(Ena=True, W=Prated),
+                    'g': lambda: eut.active_power(Ena=True, pu=min(0.2, Pmin/Prated)),
+                    'h': lambda: eut.active_power(Ena=True, pu=min(0.05, Pmin/Prated)),
+                    'i': lambda: eut.active_power(Ena=True, pu=1),
                     'j': lambda: env.ac_config(Vac=VL + av),
                     'k': lambda: env.ac_config(Vac=VH - av),
                     'l': lambda: env.ac_config(Vac=VL + av),
@@ -82,7 +81,7 @@ class CRP:
                     validate(
                         env=env,
                         eut=eut,
-                        dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': 'crp', 'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
@@ -103,11 +102,12 @@ class CRP:
                 validate(
                     env=env,
                     eut=eut,
-                    dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
+                    dct_label={'proc': 'crp', 'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturbation=lambda: eut.reactive_power(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
                 )
-                vars_ctrl = eut.reactive_power()['Ena']
-                watts_ctrl = eut.active_power()['Ena']
-                env.log(msg=f"cpf Qset: {Q}, Vin: {Vin}, Step: s; vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}")
+                # step r TODO
+                # vars_ctrl = eut.reactive_power()['Ena']
+                # watts_ctrl = eut.active_power()['Ena']
+                # env.log(msg=f"crp Qset: {Q}, Vin: {Vin}, Step: s; vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}")

@@ -17,13 +17,12 @@ class IEEE1547Common:
     def meas_perturb(self, env: Env, eut:Eut, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
         # tMRA is 1% of measured duration
         # the smallest measured duration is olrt (90% resp at olrt)
-        # t_step = tMRA * olrt
         t_step = eut.mra.static.T(olrt.total_seconds())
-        # init = env.meas_single(*meas_args)
+        init = env.meas_single(*meas_args)
         perturb()
-        resp = env.meas_for(4*olrt, timedelta(seconds=t_step), *meas_args)
-        # df = pd.concat([init, resp])
-        return resp
+        resp = env.meas_for(interval, timedelta(seconds=t_step), *meas_args)
+        df = pd.concat([init, resp])
+        return df
 
     def trip_rst(self, env: Env, eut: Eut):
         # TODO reset the inverter for next test

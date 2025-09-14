@@ -5,8 +5,8 @@ from typing import Callable
 import math
 
 class CPF:
-    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta,
-                          y_of_x: Callable[[float], float], yMRA, xMRA
+    def cpf_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+                          y_of_x: Callable[[float], float]
                           ):
         raise NotImplementedError("IEEE 1547 cpf step validation")
 
@@ -16,11 +16,10 @@ class CPF:
         def validate(env: Env, eut: Eut, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
                 pre_cbk(**dct_label)
-            slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.cpf_validate_step(
                 env=env,
                 eut=eut,
-                label=slabel,
+                dct_label=dct_label,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
@@ -104,8 +103,8 @@ class CPF:
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(Ena=True, WMaxPct=100 * Pmin / Prated),
-                    'h': lambda: eut.active_power(Ena=True, WMaxPct=100 * Prated / Prated),
+                    'g': lambda: eut.active_power(Ena=True, pu=Pmin / Prated),
+                    'h': lambda: eut.active_power(Ena=True, pu=Prated / Prated),
                     'i': lambda: env.ac_config(Vac=VL + av),
                     'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),
@@ -114,7 +113,7 @@ class CPF:
                     validate(
                         env=env,
                         eut=eut,
-                        dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
@@ -160,14 +159,15 @@ class CPF:
                 validate(
                     env=env,
                     eut=eut,
-                    dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'q'},
+                    dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'q'},
                     perturbation=lambda: eut.fixed_pf(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
                 )
-                vars_ctrl = eut.reactive_power()['Ena']
-                watts_ctrl = eut.active_power()['Ena']
-                env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
+                # step r: TODO
+                # vars_ctrl = eut.reactive_power()['Ena']
+                # watts_ctrl = eut.active_power()['Ena']
+                # env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
         '''
         s) Repeat steps d) through p) for additional power factor settings: PFmin,ab, PFmid,inj, PFmid,ab.
         t) For an EUT with an input voltage range, repeat steps d) through p) for Vin_min and Vin_max.
