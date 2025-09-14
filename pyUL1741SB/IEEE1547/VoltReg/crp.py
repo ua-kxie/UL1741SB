@@ -45,8 +45,6 @@ class CRP:
             '''
             u) For an EUT with an input voltage range, repeat steps d) through t) for Vin_min and Vin_max
             '''
-            def y_of_x(x):
-                return Q
             for Vin in Vins:
                 '''
                 v) Steps d) through s) may be repeated to test additional protocols methods.
@@ -70,7 +68,7 @@ class CRP:
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(Ena=True, pu=min(0.2, Pmin/Prated)),
+                    'g': lambda: eut.active_power(Ena=True, pu=min(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
                     'h': lambda: eut.active_power(Ena=True, pu=min(0.05, Pmin/Prated)),
                     'i': lambda: eut.active_power(Ena=True, pu=1),
                     'j': lambda: env.ac_config(Vac=VL + av),
@@ -84,7 +82,7 @@ class CRP:
                         dct_label={'proc': 'crp', 'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
-                        y_of_x=y_of_x,
+                        y_of_x=lambda x: Q,
                     )
                 if multiphase:
                     raise NotImplementedError
@@ -102,10 +100,10 @@ class CRP:
                 validate(
                     env=env,
                     eut=eut,
-                    dct_label={'proc': 'crp', 'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
+                    dct_label={'proc': 'crp', 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturbation=lambda: eut.reactive_power(Ena=False),
                     olrt=olrt,
-                    y_of_x=y_of_x,
+                    y_of_x=lambda x: 0,
                 )
                 # step r TODO
                 # vars_ctrl = eut.reactive_power()['Ena']

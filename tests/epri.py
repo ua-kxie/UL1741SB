@@ -10,7 +10,7 @@ class EpriEut(Eut):
     def __init__(self, **kwargs):
         self.der = der.DER()
         self.der.der_file.NP_PHASE = "SINGLE"
-        self.der.update_der_input(v_pu=1, f=60)
+        self.der.update_der_input(v_pu=1, f=60, p_dc_pu=1.2)
         super().__init__(
             Cat=Eut.Category.B,
             aopCat=Eut.AOPCat.III,
@@ -66,7 +66,7 @@ class EpriEut(Eut):
             if k == 'Ena':
                 self.der.der_file.CONST_Q_MODE_ENABLE = v
             elif k == 'Q':
-                self.der.der_file.CONST_Q = v / self.der.der_file.NP_Q_MAX_INJ
+                self.der.der_file.CONST_Q = v / self.der.der_file.NP_P_MAX
             else:
                 raise NotImplementedError
 
@@ -148,7 +148,7 @@ class EpriEnv(Env):
             else:
                 raise NotImplementedError
 
-    def validate(self, is_valid: bool, dct_label: dict, msg: str):
+    def validate(self, dct_label: dict):
         df_row = pd.DataFrame([dct_label])
         proc = dct_label.pop('proc')
         if proc == 'cpf':
@@ -163,4 +163,4 @@ env = EpriEnv(eut)
 std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)
 
-print(env.cpf_results)
+print(env.crp_results)

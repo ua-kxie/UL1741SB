@@ -136,12 +136,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
         y_thresh = max(abs(y_ss - y_init) * 0.1, 1.5 * yMRA)
         y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
-        valid = (df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss < y_thresh).all()
-        env.validate(
-            is_valid=valid,
-            dct_label={**dct_label, 'criteria': 'olrt', 'valid': valid},
-            msg=f"response time {'passed' if valid else 'failed'} (y_init [{y_init:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_ss [{y_ss:.1f}VAR])"
-        )
+        olrt_valid = (df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss < y_thresh).all()
 
         '''
         Qfinal shall meet the test result accuracy
@@ -154,14 +149,20 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         Qfin shall equal Qset +/- 1.5 * qMRA
         '''
         # ss eval with 1741SB amendment
-        y_min = y_of_x(x_ss) - 1.5 * yMRA
-        y_max = y_of_x(x_ss) + 1.5 * yMRA
-        valid = y_min <= y_ss <= y_max
-        env.validate(
-            is_valid=valid,
-            dct_label={**dct_label, 'criteria': 'ss', 'valid': valid},
-            msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
-        )
+        y_targ = y_of_x(x_ss)
+        y_min = y_targ - 1.5 * yMRA
+        y_max = y_targ + 1.5 * yMRA
+        ss_valid = y_min <= y_ss <= y_max
+        env.validate(dct_label={
+            **dct_label,
+            'y_init': y_init,
+            'y_thresh': y_thresh,
+            'y_olrt': y_olrt,
+            'y_ss': y_ss,
+            'y_target': y_targ,
+            'olrt_valid': olrt_valid,
+            'ss_valid': ss_valid
+        })
 
     def crp_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         self.cpf_crp_validate_common(env, eut, dct_label, perturb, olrt, y_of_x)
