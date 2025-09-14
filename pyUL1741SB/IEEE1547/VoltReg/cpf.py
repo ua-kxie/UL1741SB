@@ -13,18 +13,17 @@ class CPF:
     def cpf_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         """
         """
-        def validate(env: Env, dct_label: dict, perturbation, olrt, y_of_x):
+        def validate(env: Env, eut: Eut, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
                 pre_cbk(**dct_label)
             slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.cpf_validate_step(
                 env=env,
+                eut=eut,
                 label=slabel,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
-                yMRA=eut.mra.static.Q,
-                xMRA=eut.mra.static.P,
             )
             if post_cbk is not None:
                 post_cbk(**dct_label)
@@ -114,6 +113,7 @@ class CPF:
                 for k, perturbation in dct_steps.items():
                     validate(
                         env=env,
+                        eut=eut,
                         dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
@@ -159,6 +159,7 @@ class CPF:
                 targetPF = 1
                 validate(
                     env=env,
+                    eut=eut,
                     dct_label={'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'q'},
                     perturbation=lambda: eut.fixed_pf(Ena=False),
                     olrt=olrt,

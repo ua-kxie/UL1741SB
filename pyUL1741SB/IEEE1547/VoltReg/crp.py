@@ -4,7 +4,7 @@ from pyUL1741SB import Eut, Env
 from typing import Callable
 
 class CRP:
-    def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta,
+    def crp_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta,
                           y_of_x: Callable[[float], float], yMRA, xMRA
                           ):
         raise NotImplementedError("IEEE 1547 crp step validation")
@@ -13,18 +13,17 @@ class CRP:
         """
         """
         env.log(msg="cpf proc against 1547")
-        def validate(env: Env, dct_label: dict, perturbation, olrt, y_of_x):
+        def validate(env: Env, eut:Eut, dct_label: dict, perturbation, olrt, y_of_x):
             if pre_cbk is not None:
                 pre_cbk(**dct_label)
             slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
             self.crp_validate_step(
                 env=env,
+                eut=eut,
                 label=slabel,
                 perturb=perturbation,
                 olrt=olrt,
                 y_of_x=y_of_x,
-                yMRA=eut.mra.static.Q,
-                xMRA=eut.mra.static.P,
             )
             if post_cbk is not None:
                 post_cbk(**dct_label)
@@ -82,6 +81,7 @@ class CRP:
                 for k, perturbation in dct_steps.items():
                     validate(
                         env=env,
+                        eut=eut,
                         dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
@@ -102,6 +102,7 @@ class CRP:
                 '''
                 validate(
                     env=env,
+                    eut=eut,
                     dct_label={'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturbation=lambda: eut.reactive_power(Ena=False),
                     olrt=olrt,

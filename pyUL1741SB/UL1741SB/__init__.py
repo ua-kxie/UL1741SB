@@ -56,25 +56,26 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                             pre_cbk(**dct_label)
                         self.vv_validate_step(
                             env,
+                            eut,
                             label=slabel,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
                             y_of_x=vv_crv.y_of_x,
-                            yMRA=eut.mra.static.Q,
-                            xMRA=eut.mra.static.V,
                         )
                         if post_cbk is not None:
                             post_cbk(**dct_label)
 
-    def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
+    def vv_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
+        xMRA = eut.mra.static.V
+        yMRA = eut.mra.static.Q
         env.log(msg=f"1741SB {label}")
         xarg, yarg = 'V', 'Q'
         meas_args = (xarg, yarg)
-        df_meas = self.meas_perturb(env, perturb, olrt, 4 * olrt, meas_args)
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -104,30 +105,22 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
         )
 
-    def cpf_crp_validate_common(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        """
-        :param env:
-        :param label:
-        :param perturb:
-        :param olrt:
-        :param y_of_x:
-        :param yMRA:
-        :param xMRA:
-        :return:
-        """
+    def cpf_crp_validate_common(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
         env.log(msg=f"1741SB {label}")
+        yMRA = eut.mra.static.Q
         xarg, yarg = 'P', 'Q'
         meas_args = (xarg, yarg)
-        df_meas = self.meas_perturb(env, perturb, olrt, 4 * olrt, meas_args)
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
         # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
          - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
@@ -161,8 +154,8 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
         )
 
-    def crp_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        self.cpf_crp_validate_common(env, label, perturb, olrt, y_of_x, yMRA, xMRA)
+    def crp_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_validate_common(env, eut, label, perturb, olrt, y_of_x)
 
-    def cpf_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float], yMRA, xMRA):
-        self.cpf_crp_validate_common(env, label, perturb, olrt, y_of_x, yMRA, xMRA)
+    def cpf_validate_step(self, env: Env, eut: Eut, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_validate_common(env, eut, label, perturb, olrt, y_of_x)

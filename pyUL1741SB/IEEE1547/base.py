@@ -14,16 +14,16 @@ class IEEE1547Common:
         y_max = max(y_of_x(x_ss - 1.5 * xMRA), y_of_x(x_ss + 1.5 * xMRA)) + 1.5 * yMRA
         return y_min, y_max
 
-    def meas_perturb(self, env: Env, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
+    def meas_perturb(self, env: Env, eut:Eut, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
         # tMRA is 1% of measured duration
         # the smallest measured duration is olrt (90% resp at olrt)
         # t_step = tMRA * olrt
-        t_step = olrt.total_seconds() * 0.01  # TODO
-        init = env.meas_single(*meas_args)
+        t_step = eut.mra.static.T(olrt.total_seconds())
+        # init = env.meas_single(*meas_args)
         perturb()
         resp = env.meas_for(4*olrt, timedelta(seconds=t_step), *meas_args)
-        df = pd.concat([init, resp])
-        return df
+        # df = pd.concat([init, resp])
+        return resp
 
     def trip_rst(self, env: Env, eut: Eut):
         # TODO reset the inverter for next test
