@@ -31,6 +31,9 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
+        eut.active_power(Ena=False)
+        eut.reactive_power(Ena=False)
+        eut.fixed_pf(Ena=False)
         '''
         ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
         '''
@@ -48,6 +51,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     be turned off. Turn off the autonomously adjusting reference voltage.
                     f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
                     '''
+                    eut.vv(Ena=True, crv=vv_crv)
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
@@ -88,24 +92,26 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         '''
         y_thresh = y_init + 0.9 * (y_ss - y_init)
         y_min, y_max = y_thresh - 1.5 * yMRA, y_thresh + 1.5 * yMRA
-        valid = y_min <= y_olrt <= y_max
-        env.validate(
-            is_valid=valid,
-            dct_label={**dct_label, 'criteria': 'olrt', 'valid': valid},
-            msg=f"response time {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_olrt [{y_olrt:.1f}VAR], y_max [{y_max:.1f}VAR])"
-        )
+        olrt_valid = y_min <= y_olrt <= y_max
 
         '''
         shall meet 4.2
         '''
         # ss eval with 1741SB amendment
+        y_targ = y_of_x(x_ss)
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
-        valid = y_min <= y_ss <= y_max
-        env.validate(
-            is_valid=valid,
-            dct_label={**dct_label, 'criteria': 'ss', 'valid': valid},
-            msg=f"steady state {'passed' if valid else 'failed'} (y_min [{y_min:.1f}VAR], y_ss [{y_ss:.1f}VAR], y_max [{y_max:.1f}VAR])"
-        )
+        ss_valid = y_min <= y_ss <= y_max
+        env.validate(dct_label={
+            **dct_label,
+            'y_init': y_init,
+            'y_olrt': y_olrt,
+            'y_ss': y_ss,
+            'y_olrt_thresh': y_thresh,
+            'y_ss_target': y_targ,
+            'olrt_valid': olrt_valid,
+            'ss_valid': ss_valid,
+            'data': df_meas
+        })
 
     def cpf_crp_validate_common(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
@@ -136,7 +142,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
         y_thresh = max(abs(y_ss - y_init) * 0.1, 1.5 * yMRA)
         y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
-        olrt_valid = (df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss < y_thresh).all()
+        olrt_valid = (abs(df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss) < y_thresh).all()
 
         '''
         Qfinal shall meet the test result accuracy
@@ -156,12 +162,13 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
-            'y_thresh': y_thresh,
             'y_olrt': y_olrt,
             'y_ss': y_ss,
-            'y_target': y_targ,
+            'y_olrt_thresh': y_thresh,
+            'y_ss_target': y_targ,
             'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid
+            'ss_valid': ss_valid,
+            'data': df_meas
         })
 
     def crp_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):

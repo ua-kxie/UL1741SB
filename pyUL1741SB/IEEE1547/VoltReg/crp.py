@@ -68,8 +68,8 @@ class CRP:
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(Ena=True, pu=min(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
-                    'h': lambda: eut.active_power(Ena=True, pu=min(0.05, Pmin/Prated)),
+                    'g': lambda: eut.active_power(Ena=True, pu=max(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
+                    'h': lambda: eut.active_power(Ena=True, pu=max(0.05, Pmin/Prated)),
                     'i': lambda: eut.active_power(Ena=True, pu=1),
                     'j': lambda: env.ac_config(Vac=VL + av),
                     'k': lambda: env.ac_config(Vac=VH - av),

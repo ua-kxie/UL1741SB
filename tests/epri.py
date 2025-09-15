@@ -3,6 +3,7 @@ import pandas as pd
 import datetime as dt
 from pyUL1741SB.UL1741SB import UL1741SB
 from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
+from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 std = UL1741SB()
 
@@ -10,7 +11,8 @@ class EpriEut(Eut):
     def __init__(self, **kwargs):
         self.der = der.DER()
         self.der.der_file.NP_PHASE = "SINGLE"
-        self.der.update_der_input(v_pu=1, f=60, p_dc_pu=1.2)
+        self.der.update_der_input(v_pu=1, f=60, p_dc_pu=1.0)
+        self.der.run()
         super().__init__(
             Cat=Eut.Category.B,
             aopCat=Eut.AOPCat.III,
@@ -66,9 +68,21 @@ class EpriEut(Eut):
             if k == 'Ena':
                 self.der.der_file.CONST_Q_MODE_ENABLE = v
             elif k == 'Q':
-                self.der.der_file.CONST_Q = v / self.der.der_file.NP_P_MAX
+                self.der.der_file.CONST_Q = v / self.der.der_file.NP_VA_MAX
             else:
                 raise NotImplementedError
+    def vv(self, Ena, crv:VVCurve=None):
+        self.der.der_file.QV_MODE_ENABLE = Ena
+        if crv is not None:
+            self.der.der_file.QV_CURVE_Q1 = crv.Q1 / self.der.der_file.NP_VA_MAX
+            self.der.der_file.QV_CURVE_Q2 = crv.Q2 / self.der.der_file.NP_VA_MAX
+            self.der.der_file.QV_CURVE_Q3 = crv.Q3 / self.der.der_file.NP_VA_MAX
+            self.der.der_file.QV_CURVE_Q4 = crv.Q4 / self.der.der_file.NP_VA_MAX
+            self.der.der_file.QV_CURVE_V1 = crv.V1 / self.der.der_file.NP_AC_V_NOM
+            self.der.der_file.QV_CURVE_V2 = crv.V2 / self.der.der_file.NP_AC_V_NOM
+            self.der.der_file.QV_CURVE_V3 = crv.V3 / self.der.der_file.NP_AC_V_NOM
+            self.der.der_file.QV_CURVE_V4 = crv.V4 / self.der.der_file.NP_AC_V_NOM
+            self.der.der_file.QV_OLRT = crv.Tr
 
 eut = EpriEut()
 
@@ -94,22 +108,18 @@ class EpriEnv(Env):
         der.DER.t_s = td.total_seconds()
         self.eut.der.run()
 
-    def meas(self, *args):
+    def meas(self):
         data = {
+            'time': self.time,
             'P': self.eut.der.der_output.p_out_w,
             'Q': self.eut.der.der_output.q_out_var,
-            'V': self.eut.der.der_output.v_a_out_pu
-                }
-        data1 = {}
-        for arg in args:
-            data1[arg] = data[arg]
-
-        # Create DataFrame with time as the index
-        df = pd.DataFrame(data1, index=[self.time])
-        return df
+            'V': self.eut.der.der_input.v_meas_pu * self.eut.der.der_file.NP_AC_V_NOM
+        }
+        return data
 
     def meas_single(self, *args) -> pd.DataFrame:
-        df = self.meas(*args)
+        dct = self.meas()
+        df = pd.DataFrame([dct]).set_index('time').loc[:, [*args]]
         self.time += dt.timedelta(seconds=0.01)
         return df
 
@@ -119,17 +129,16 @@ class EpriEnv(Env):
         der.DER.t_s = tres.total_seconds()
 
         while self.time - start < dur:
-            dfs.append(self.meas(*args))
+            dfs.append(self.meas())
             self.eut.der.run()
             self.time += tres
-
-        df = pd.concat(dfs)
+        df = pd.DataFrame(dfs).set_index('time').loc[:, [*args]]
         return df
 
     def ac_config(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Vac':
-                self.eut.der.update_der_input(v=v)
+                self.eut.der.update_der_input(v_pu=v/self.eut.der.der_file.NP_AC_V_NOM)
             else:
                 raise NotImplementedError
 
@@ -160,7 +169,7 @@ class EpriEnv(Env):
 env = EpriEnv(eut)
 
 # std.cpf_proc(env=env, eut=eut)
-std.crp_proc(env=env, eut=eut)
-# std.vv_proc(env=env, eut=eut)
+# std.crp_proc(env=env, eut=eut)
+std.vv_proc(env=env, eut=eut)
 
 print(env.crp_results)
