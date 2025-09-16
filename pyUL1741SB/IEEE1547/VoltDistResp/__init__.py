@@ -304,8 +304,8 @@ class VoltDist(IEEE1547Common):
         '''
         PF = 1.0  # 0.9-1.0
         eut.fixed_pf(PF=PF)
-        for pwr_pct in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            eut.active_power(WLimPct=pwr_pct*100)
+        for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
+            eut.active_power(pu=pwr_pu)
             cond = True
             for df_set in lvrt_seq.df_dsets[:-1]:  # iterate over necessary sets
                 self.uvrt_validate(env, eut, df_set)

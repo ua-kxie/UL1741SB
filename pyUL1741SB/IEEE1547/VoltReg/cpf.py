@@ -104,7 +104,7 @@ class CPF:
                 '''
                 dct_steps = {
                     'g': lambda: eut.active_power(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: eut.active_power(Ena=True, pu=Prated / Prated),
+                    'h': lambda: eut.active_power(Ena=True, pu=1.0),
                     'i': lambda: env.ac_config(Vac=VL + av),
                     'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),

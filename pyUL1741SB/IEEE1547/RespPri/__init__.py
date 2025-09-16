@@ -94,7 +94,7 @@ class RespPri:
         voltage to Vin_nom.
         '''
         env.dc_config(Vin=eut.VN)
-        eut.active_power(WlimPct=100)
+        eut.active_power(pu=1)
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and
         enable frequency-watt and volt-watt parameters. For volt-watt, set P2 = 0.2Prated.
@@ -156,7 +156,7 @@ class RespPri:
             i) Allow the EUT to reach steady state.
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
-            eut.active_power(WlimPct=50)
+            eut.active_power(pu=0.5)
             '''
             n) Repeat steps k) through m) for the rest of the steps in Table 38 or Table 39, depending on the
             EUT’s normal operating performance category.

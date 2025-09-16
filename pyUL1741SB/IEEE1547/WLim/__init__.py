@@ -17,14 +17,14 @@ class WLim:
             '''
             g) Repeat steps b) through f) using active power limits of [66%] 33% and zero.
             '''
-            for wlim_pct in [0.66, 0.33, 0]:
+            for wlim_pu in [0.66, 0.33, 0]:
                 '''
                 b) Establish nominal operating conditions as specified by the manufacturer at the terminals of the
                 EUT. Make available sufficient input power for the EUT to reach its rated active power. Allow (or
                 command) the EUT to reach steady-state output at its rated active power. Begin recording EUT
                 active power.
                 '''
-                eut.active_power(wlim_pct=100)
+                eut.active_power(pu=1)
                 # wait for ss
                 '''
                 In step c), the EUT steady-state active power shall be reduced to the commanded percentage of its rated
@@ -35,7 +35,7 @@ class WLim:
                 c) Apply an active power limit to the EUT of 66% of its rated active power. Wait until the EUT active
                 power reaches a new steady state.
                 '''
-                eut.active_power(wlim_pct=wlim_pct)
+                eut.active_power(pu=wlim_pu)
                 # wait for ss,
                 '''
                 In steps d) and e), the EUT steady-state active power shall be modulated in accordance with the equations
