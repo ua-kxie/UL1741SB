@@ -129,9 +129,10 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
         y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
 
-        # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
-        y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
-        y_init = max(y_init, key=lambda x: abs(x - y_ss))
+        # # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
+        # y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
+        # y_init = max(y_init, key=lambda x: abs(x - y_ss))
+        y_init = df_meas.loc[df_meas.index[0], yarg]
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
          - olrt validate as: any y meas within 10% of y_ss before olrt, then pass

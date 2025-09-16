@@ -168,8 +168,8 @@ class EpriEnv(Env):
             self.vv_results = pd.concat([self.vv_results, df_row])
 env = EpriEnv(eut)
 
-# std.cpf_proc(env=env, eut=eut)
+std.cpf_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
-std.vv_proc(env=env, eut=eut)
+# std.vv_proc(env=env, eut=eut)
 
 print(env.crp_results)
