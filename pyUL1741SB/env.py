@@ -67,9 +67,4 @@ class Env:  # step voltage, power, sleep, etc.
         pass
 
     def validate(self, dct_label: dict):
-        if is_valid:
-            # steady state value is good
-            passfail = 'passed'
-        else:
-            passfail = 'failed'
-        print(passfail + ' ' + msg)
+        print(''.join([f'{k}: {v}; ' for k, v in dct_label.items()]))

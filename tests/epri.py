@@ -19,7 +19,6 @@ class EpriEut(Eut):
             voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(240),
             freqshalltrip_tbl=FreqShallTripTable.MaxRange(),
             vfo=False,
-            rocof=3,
             Prated=self.der.der_file.NP_P_MAX,
             Prated_prime=0,
             Srated=self.der.der_file.NP_P_MAX,
@@ -198,4 +197,4 @@ std.ov_trip_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)
 
-print(env.crp_results)
+print(env.ov_results)

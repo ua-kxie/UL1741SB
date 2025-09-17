@@ -255,7 +255,6 @@ class Eut:
         self.Prated = kwargs['Prated']  # output power rating (W)
         self.Prated_prime = kwargs['Prated_prime']  # for EUTs that can sink power, output power rating while sinking power (W)
         self.Srated = kwargs['Srated']  # apparent power rating (VA)
-        self.rocof = kwargs['rocof']
         # Volt Reg params
         self.Vin_nom = kwargs['Vin_nom']  # for an EUT with an electrical input, nominal input voltage (V)
         self.Vin_min = kwargs['Vin_min']  # for an EUT with an electrical input, minimum input voltage (V)
@@ -277,6 +276,17 @@ class Eut:
         # post
         self.mra = self.MRA(self.VN, self.Prated)
 
+    def rocof(self):
+        """
+        IEEE 1547.1-2018 6.5.2.5
+        returns rocof in hz/s
+        """
+        return {
+            Eut.AOPCat.I: 0.5,
+            Eut.AOPCat.II: 2.0,
+            Eut.AOPCat.III: 3.0,
+        }[self.aopCat]
+
     def reactive_power(self, **kwargs):
         if len(kwargs) == 0:
             # treat as query
@@ -295,7 +305,7 @@ class Eut:
     def state(self):
         pass
 
-    def vv(self):
+    def vv(self, **kwargs):
         pass
 
     def set_vt(self, **kwargs):

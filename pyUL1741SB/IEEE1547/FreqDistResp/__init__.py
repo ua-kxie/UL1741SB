@@ -92,7 +92,7 @@ class FreqDist(IEEE1547Common):
         '''
         env.ac_config(freq=PN)
         env.ac_config(freq=PB)
-        env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof))
+        env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof()))
         env.ac_config(freq=PU)
         env.sleep(timedelta(1.5 * th))
 

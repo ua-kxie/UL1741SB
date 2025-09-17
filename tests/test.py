@@ -8,7 +8,6 @@ eut = Eut(
     voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(240),
     freqshalltrip_tbl=FreqShallTripTable.MaxRange(),
     vfo=False,
-    rocof=3,
     Prated=5e3,
     Prated_prime=800,
     Srated=1200,
