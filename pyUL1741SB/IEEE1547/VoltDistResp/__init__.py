@@ -4,11 +4,13 @@
 import pandas as pd
 import enum
 from datetime import timedelta
+import copy
 
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
 from pyUL1741SB import Eut, Env
+from pyUL1741SB.eut import VoltShallTripValue
 
 
 class OpMode(enum.Enum):
@@ -86,6 +88,7 @@ class VoltDist(IEEE1547Common):
         shalltrip_tbl = eut.voltshalltrip_tbl
         VN = eut.VN
         vMRA = eut.mra.static.V
+
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all source parameters to the nominal operating conditions for the EUT.
@@ -93,7 +96,7 @@ class VoltDist(IEEE1547Common):
         '''
         k) Repeat steps c) through k) for each overvoltage operating trip region.
         '''
-        for trip_region in [shalltrip_tbl.OV2, shalltrip_tbl.OV1]:
+        for trip_key, trip_region in {'OV2': shalltrip_tbl.OV2, 'OV1': shalltrip_tbl.OV1}.items():
             '''
             c) Set (or verify) all EUT parameters to the nominal operating settings. If the overvoltage setting is
             adjustable, set the EUT to the minimum overvoltage setting, but no less than the nominal voltage
@@ -111,7 +114,7 @@ class VoltDist(IEEE1547Common):
                 '''
                 trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
                 for trip_mag in trip_mags:
-                    trip_mag = max(trip_mag, VN + 2 * vMRA)
+                    trip_mag = max(trip_mag, (VN + 2 * vMRA) / eut.VN)
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
@@ -119,19 +122,20 @@ class VoltDist(IEEE1547Common):
                     h) For multiphase units, repeat steps e) through g) for the applicable voltage on each phase or phase
                     pair individually, and all phases simultaneously.
                     '''
+                    eut.set_vt(**{trip_key: {'vpu': trip_mag, 'cts': trip_time}})
                     for iter in range(5):
                         '''
                         e), f)
                         '''
-                        dct_label = {'region': trip_region, 'time': trip_time, 'mag': trip_mag, 'iter': iter}
+                        dct_label = {'proc': 'ov', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': iter}
                         if pre_cbk is not None:
                             pre_cbk(**dct_label)
-                        self.ov_trip_validate(env, eut, trip_time, trip_mag, tMRA, vMRA)
+                        self.ov_trip_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
                         if post_cbk is not None:
                             post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def ov_trip_validate(self, env: Env, eut: Eut, th, vov, tMRA, vMRA):
+    def ov_trip_validate(self, env: Env, eut: Eut, dct_label, th, vov, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -159,13 +163,19 @@ class VoltDist(IEEE1547Common):
         (c) The clearing time shall be measured from the time t0 to tc.
         '''
         env.ac_config(Vac=vov - 2 * vMRA)
-        # TODO check voltage has reached setpoint before sleeping for th
         env.sleep(timedelta(seconds=th + 2 * tMRA))
-        # TODO verify grid is still energized, measure the time before stepping voltage for trip
+        valid = False
+        ts = env.time_now()
         env.ac_config(Vac=vov + 2 * vMRA)
-        # TODO continuously monitor power until th elapsed or de-energized
-        # TODO if de-energized, verify fault state over comms to determine pass/fail
-        env.sleep(timedelta(seconds=th + 2 * tMRA))
+        while not env.elapsed_since(timedelta(seconds=th + 2 * tMRA), ts):
+            df_meas = env.meas_single('P', 'Q')
+            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+            if all([v < thresh for v, thresh in zipped]):
+                # if eut.state() == Eut.State.FAULT:
+                valid = True
+                break
+        env.validate({**dct_label, 'trip_valid': valid})
+        # TODO communication based check for trip state?
 
     def uv_trip_proc(self, env: Env, eut: Eut):
         """"""

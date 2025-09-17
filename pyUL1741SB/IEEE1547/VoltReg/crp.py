@@ -57,7 +57,7 @@ class CRP:
                 Qmax,inj.
                 '''
                 eut.active_power(Ena=True, pu=1)
-                env.dc_config(Vin=Vin)
+                env.dc_config(Vdc=Vin)
                 eut.reactive_power(Ena=True, Q=Q)
                 '''
                 g) Step the EUT’s active power to 20% of Prated, or Pmin, whichever is less.

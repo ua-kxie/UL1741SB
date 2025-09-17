@@ -84,6 +84,27 @@ class EpriEut(Eut):
             self.der.der_file.QV_CURVE_V4 = crv.V4 / self.der.der_file.NP_AC_V_NOM
             self.der.der_file.QV_OLRT = crv.Tr
 
+    def set_vt(self, **kwargs):
+        """
+        :param kwargs: OV2, OV1, UV1, UV2, each is a dict of {'vpu': trip_mag, 'cts': trip_time}
+        :return:
+        """
+        for k, v in kwargs.items():
+            if k == 'OV2':
+                self.der.der_file.OV2_TRIP_V = v['vpu']
+                self.der.der_file.OV2_TRIP_T = v['cts']
+            elif k == 'OV1':
+                self.der.der_file.OV1_TRIP_V = v['vpu']
+                self.der.der_file.OV1_TRIP_T = v['cts']
+            elif k == 'UV1':
+                self.der.der_file.UV1_TRIP_V = v['vpu']
+                self.der.der_file.UV1_TRIP_T = v['cts']
+            elif k == 'UV2':
+                self.der.der_file.UV2_TRIP_V = v['vpu']
+                self.der.der_file.UV2_TRIP_T = v['cts']
+            else:
+                raise NotImplementedError
+
 eut = EpriEut()
 
 
@@ -93,8 +114,10 @@ class EpriEnv(Env):
         self.time = dt.datetime.fromtimestamp(0)
         self.eut = eut
         self.cpf_results = pd.DataFrame()
+        self.cpf_results = pd.DataFrame()
         self.crp_results = pd.DataFrame()
         self.vv_results = pd.DataFrame()
+        self.ov_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -152,7 +175,7 @@ class EpriEnv(Env):
         for k, v in kwargs.items():
             if k == 'power':
                 self.eut.der.update_der_input(p_dc_w=v)
-            elif k =='Vin':
+            elif k =='Vdc':
                 pass
             else:
                 raise NotImplementedError
@@ -166,10 +189,13 @@ class EpriEnv(Env):
             self.crp_results = pd.concat([self.crp_results, df_row])
         elif proc == 'vv':
             self.vv_results = pd.concat([self.vv_results, df_row])
+        else:
+            self.ov_results = pd.concat([self.ov_results, df_row])
 env = EpriEnv(eut)
 
-std.cpf_proc(env=env, eut=eut)
-std.crp_proc(env=env, eut=eut)
-std.vv_proc(env=env, eut=eut)
+std.ov_trip_proc(env=env, eut=eut)
+# std.cpf_proc(env=env, eut=eut)
+# std.crp_proc(env=env, eut=eut)
+# std.vv_proc(env=env, eut=eut)
 
-# print(env.crp_results)
+print(env.crp_results)

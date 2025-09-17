@@ -93,7 +93,7 @@ class RespPri:
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.
         '''
-        env.dc_config(Vin=eut.VN)
+        env.dc_config(Vdc=eut.VN)
         eut.active_power(pu=1)
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and

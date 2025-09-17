@@ -50,10 +50,10 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 11
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(1.20 * VN, 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10 * VN, 2.0, 1.10 * VN, 1.20 * VN, 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70 * VN, 2.0, 0.0 * VN, 0.88 * VN, 2.0, 21.0),  # UV1
-            VoltShallTripValue(0.45 * VN, 0.16, 0.0 * VN, 0.50 * VN, 0.16, 2.0)   # UV2
+            VoltShallTripValue(1.20 , 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10 , 2.0, 1.10 , 1.20 , 1.0, 13.0),  # OV1
+            VoltShallTripValue(0.70 , 2.0, 0.0 , 0.88 , 2.0, 21.0),  # UV1
+            VoltShallTripValue(0.45 , 0.16, 0.0 , 0.50 , 0.16, 2.0)   # UV2
         )
 
     @staticmethod
@@ -62,10 +62,10 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 12
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(VN * 1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(VN * 1.10, 2.0, VN * 1.10, VN * 1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue(VN * 0.70, 10.0, VN * 0.0, VN * 0.88, 2.0, 21.0),  # UV1 (different default time)
-            VoltShallTripValue(VN * 0.45, 0.16, VN * 0.0, VN * 0.50, 0.16, 2.0)   # UV2
+            VoltShallTripValue( 1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue( 1.10, 2.0,  1.10,  1.20, 1.0, 13.0),  # OV1
+            VoltShallTripValue( 0.70, 10.0,  0.0,  0.88, 2.0, 21.0),  # UV1 (different default time)
+            VoltShallTripValue( 0.45, 0.16,  0.0,  0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
@@ -74,10 +74,10 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 13
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(VN * 1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue(VN * 1.10, 13.0, VN*1.10, VN*1.20, 1.0, 13.0),  # OV1 (different default time)
-            VoltShallTripValue(VN * 0.88, 21.0, VN*0.0, VN*0.88, 21.0, 50.0),  # UV1 (different values)
-            VoltShallTripValue(VN * 0.50, 2.0, VN*0.0, VN*0.50, 2.0, 21.0)    # UV2 (different values)
+            VoltShallTripValue( 1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue( 1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
+            VoltShallTripValue( 0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
+            VoltShallTripValue( 0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
         )
 
 class FreqShallTripValue:
@@ -155,6 +155,18 @@ for DER of Abnormal Operating Performance Categories I, II, and III
 """
 
 class Eut:
+    class State(enum.Enum):
+        """
+        der state
+        """
+        OFF = 1
+        SLEEPING = 2
+        STARTING = 3
+        RUNNING = 4
+        THROTTLED = 5
+        SHUTTING_DOWN = 6
+        FAULT = 7
+        STANDBY = 8
     class AOPCat(enum.Enum):
         """
         abnormal performance category
@@ -278,4 +290,13 @@ class Eut:
         pass
 
     def fixed_pf(self, **kwargs):
+        pass
+
+    def state(self):
+        pass
+
+    def vv(self):
+        pass
+
+    def set_vt(self, **kwargs):
         pass
