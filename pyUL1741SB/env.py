@@ -57,9 +57,6 @@ class Env:  # step voltage, power, sleep, etc.
     def ac_config(self, **kwargs):
         pass
 
-    def ac_config_asym(self, **kwargs):
-        pass
-
     def log(self, **kwargs):
         print(kwargs['msg'])
 
