@@ -30,16 +30,14 @@ eut = Eut(
     delta_Plarge=0.5   # large power change threshold (p.u.)
 )
 
-def pre_cbk(**kwargs):
-    print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
-def post_cbk(**kwargs):
-    print(f"post: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
 env = Env()
-std.ov_trip_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
-std.of_trip_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
-std.crp_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
-std.cpf_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
-std.vv_proc(env=env, eut=eut, pre_cbk=pre_cbk, post_cbk=post_cbk)
+std.ovt_proc(env=env, eut=eut)
+std.uvt_proc(env=env, eut=eut)
+# std.oft_proc(env=env, eut=eut)
+# std.uft_proc(env=env, eut=eut)
+std.crp_proc(env=env, eut=eut)
+std.cpf_proc(env=env, eut=eut)
+std.vv_proc(env=env, eut=eut)
 
 # std.uf_trip_proc(env=env, eut=eut)
 # std.hfrt_proc(env=env, eut=eut)

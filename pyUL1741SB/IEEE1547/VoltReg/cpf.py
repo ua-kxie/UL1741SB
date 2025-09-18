@@ -10,12 +10,11 @@ class CPF:
                           ):
         raise NotImplementedError("IEEE 1547 cpf step validation")
 
-    def cpf_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def cpf_proc(self, env: Env, eut: Eut):
         """
         """
         def validate(env: Env, eut: Eut, dct_label: dict, perturbation, olrt, y_of_x):
-            if pre_cbk is not None:
-                pre_cbk(**dct_label)
+            env.pre_cbk(**dct_label)
             self.cpf_validate_step(
                 env=env,
                 eut=eut,
@@ -24,8 +23,7 @@ class CPF:
                 olrt=olrt,
                 y_of_x=y_of_x,
             )
-            if post_cbk is not None:
-                post_cbk(**dct_label)
+            env.post_cbk(**dct_label)
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=10)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase

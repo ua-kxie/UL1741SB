@@ -80,7 +80,7 @@ class VoltDist(IEEE1547Common):
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
     OpMdkey = 'OpMd'
-    def ov_trip_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def ovt_proc(self, env: Env, eut: Eut):
         """"""
         multiphase = eut.multiphase
         if multiphase:
@@ -128,11 +128,9 @@ class VoltDist(IEEE1547Common):
                         e), f)
                         '''
                         dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
-                        if pre_cbk is not None:
-                            pre_cbk(**dct_label)
+                        env.pre_cbk(**dct_label)
                         self.ov_trip_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
-                        if post_cbk is not None:
-                            post_cbk(**dct_label)
+                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
     def ov_trip_validate(self, env: Env, eut: Eut, dct_label, th, vov, tMRA, vMRA):
@@ -177,7 +175,7 @@ class VoltDist(IEEE1547Common):
         env.validate({**dct_label, 'trip_valid': valid})
         # TODO communication based check for trip state?
 
-    def uv_trip_proc(self, env: Env, eut: Eut):
+    def uvt_proc(self, env: Env, eut: Eut):
         """"""
         multiphase = eut.multiphase
         if multiphase:
@@ -236,11 +234,9 @@ class VoltDist(IEEE1547Common):
                         f) Record all voltage magnitudes when the unit trips.
                         '''
                         dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
-                        # if pre_cbk is not None:
-                        #     pre_cbk(**dct_label)
+                        env.pre_cbk(**dct_label)
                         self.uv_trip_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
-                        # if post_cbk is not None:
-                        #     post_cbk(**dct_label)
+                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
     def uv_trip_validate(self, env: Env, eut:Eut, dct_label, th, vuv, tMRA, vMRA):

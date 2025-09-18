@@ -195,9 +195,17 @@ class EpriEnv(Env):
             self.ov_results = pd.concat([self.ov_results, df_row])
         else:
             raise NotImplementedError
+
+    def pre_cbk(self, **kwargs):
+        print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
+
+    def post_cbk(self, **kwargs):
+        print(f"post: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
+
 env = EpriEnv(eut)
 
-std.uv_trip_proc(env=env, eut=eut)
+std.ovt_proc(env=env, eut=eut)
+std.uvt_proc(env=env, eut=eut)
 # std.cpf_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)

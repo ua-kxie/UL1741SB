@@ -7,7 +7,7 @@ from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
 class FreqDist(IEEE1547Common):
-    def of_trip_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def oft_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
         '''
         '''
         shalltrip_tbl = eut.freqshalltrip_tbl
@@ -96,7 +96,7 @@ class FreqDist(IEEE1547Common):
         env.ac_config(freq=PU)
         env.sleep(timedelta(1.5 * th))
 
-    def uf_trip_proc(self, env: Env, eut: Eut):
+    def uft_proc(self, env: Env, eut: Eut):
         '''
         '''
         shalltrip_tbl = eut.freqshalltrip_tbl

@@ -11,7 +11,7 @@ from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
-    def vv_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def vv_proc(self, env: Env, eut: Eut):
         """
         """
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
@@ -55,8 +55,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
-                        if pre_cbk is not None:
-                            pre_cbk(**dct_label)
+                        env.pre_cbk(**dct_label)
                         self.vv_validate_step(
                             env,
                             eut,
@@ -65,8 +64,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                             olrt=timedelta(seconds=vv_crv.Tr),
                             y_of_x=vv_crv.y_of_x,
                         )
-                        if post_cbk is not None:
-                            post_cbk(**dct_label)
+                        env.post_cbk(**dct_label)
 
     def vv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

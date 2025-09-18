@@ -9,13 +9,12 @@ class CRP:
                           ):
         raise NotImplementedError("IEEE 1547 crp step validation")
 
-    def crp_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def crp_proc(self, env: Env, eut: Eut):
         """
         """
         env.log(msg="cpf proc against 1547")
         def validate(env: Env, eut:Eut, dct_label: dict, perturbation, olrt, y_of_x):
-            if pre_cbk is not None:
-                pre_cbk(**dct_label)
+            env.pre_cbk(**dct_label)
             self.crp_validate_step(
                 env=env,
                 eut=eut,
@@ -24,8 +23,7 @@ class CRP:
                 olrt=olrt,
                 y_of_x=y_of_x,
             )
-            if post_cbk is not None:
-                post_cbk(**dct_label)
+            env.post_cbk(**dct_label)
         olrt = timedelta(seconds=10)
         Qsets = [eut.Qrated_inj, eut.Qrated_abs, 0.5 * eut.Qrated_inj, 0.5 * eut.Qrated_abs]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
