@@ -117,6 +117,7 @@ class EpriEnv(Env):
         self.crp_results = pd.DataFrame()
         self.vv_results = pd.DataFrame()
         self.ov_results = pd.DataFrame()
+        self.uv_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -188,13 +189,17 @@ class EpriEnv(Env):
             self.crp_results = pd.concat([self.crp_results, df_row])
         elif proc == 'vv':
             self.vv_results = pd.concat([self.vv_results, df_row])
-        else:
+        elif proc == 'uvt':
+            self.uv_results = pd.concat([self.uv_results, df_row])
+        elif proc == 'ovt':
             self.ov_results = pd.concat([self.ov_results, df_row])
+        else:
+            raise NotImplementedError
 env = EpriEnv(eut)
 
-std.ov_trip_proc(env=env, eut=eut)
+std.uv_trip_proc(env=env, eut=eut)
 # std.cpf_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)
 
-print(env.ov_results)
+print(env.uv_results)
