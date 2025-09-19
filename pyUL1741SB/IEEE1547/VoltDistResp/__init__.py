@@ -161,16 +161,16 @@ class VoltDist(IEEE1547Common):
         (c) The clearing time shall be measured from the time t0 to tc.
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
+        env.ac_config(Vac=eut.VN)
+
+        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
-        env.sleep(dur)
+        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
 
-        df_meas = env.meas_single('P', 'Q')
-        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-        operating = all([v > 2 * thresh for v, thresh in zipped])
-
-        ts, tripped = env.time_now(), False
+        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
 
@@ -258,16 +258,16 @@ class VoltDist(IEEE1547Common):
         ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
+        env.ac_config(Vac=eut.VN)
+
+        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
-        env.sleep(dur)
+        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
 
-        df_meas = env.meas_single('P', 'Q')
-        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-        operating = all([v > 2 * thresh for v, thresh in zipped])
-
-        ts, tripped = env.time_now(), False
+        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
 

@@ -80,16 +80,15 @@ class FreqDist(IEEE1547Common):
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
+
+        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 0.99, rocof=eut.rocof())
-        env.sleep(dur)
+        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
 
-        df_meas = env.meas_single('P', 'Q')
-        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-        operating = all([v > 2 * thresh for v, thresh in zipped])
-
-        ts, tripped = env.time_now(), False
+        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 1.1, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
 
     def uft_proc(self, env: Env, eut: Eut):
@@ -171,14 +170,12 @@ class FreqDist(IEEE1547Common):
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
+
+        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 1.01, rocof=eut.rocof())
-        env.sleep(dur)
+        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
 
-        df_meas = env.meas_single('P', 'Q')
-        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-        operating = all([v > 2 * thresh for v, thresh in zipped])
-
-        ts, tripped = env.time_now(), False
+        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 0.90, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})

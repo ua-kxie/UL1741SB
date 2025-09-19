@@ -27,10 +27,7 @@ class IEEE1547Common:
     def trip_validate(self, env: Env, eut:Eut, dur, ts, tMRA):
         while not env.elapsed_since(dur, ts):
             env.sleep(timedelta(seconds=tMRA))
-            df_meas = env.meas_single('P', 'Q')
-            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-            if all([v < thresh for v, thresh in zipped]):
-                # if eut.state() == Eut.State.FAULT:
+            if eut.has_tripped():
                 return True
         return False
 

@@ -119,3 +119,6 @@ class EpriEut(Eut):
                 self.der.der_file.UF2_TRIP_T = v['cts']
             else:
                 raise NotImplementedError
+
+    def has_tripped(self):
+        return self.der.der_status == 'Trip'
