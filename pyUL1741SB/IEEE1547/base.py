@@ -27,7 +27,7 @@ class IEEE1547Common:
     def trip_rst(self, env: Env, eut: Eut):
         # TODO reset the inverter for next test
         # set VDC, (Vg) to 0
-        env.ac_config(Vac=eut.VN)
+        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
         env.dc_config(Vdc=0)
         # wait 1 second
         env.sleep(timedelta(seconds=1))

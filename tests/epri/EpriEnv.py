@@ -4,6 +4,8 @@ from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 from EpriEut import EpriEut
 import opender as der
 
+DTS = 0.1
+
 class EpriEnv(Env):
     def __init__(self, eut: EpriEut):
         super().__init__()
@@ -13,8 +15,10 @@ class EpriEnv(Env):
         self.cpf_results = pd.DataFrame()
         self.crp_results = pd.DataFrame()
         self.vv_results = pd.DataFrame()
-        self.ov_results = pd.DataFrame()
-        self.uv_results = pd.DataFrame()
+        self.ovt_results = pd.DataFrame()
+        self.uvt_results = pd.DataFrame()
+        self.oft_results = pd.DataFrame()
+        self.uft_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -27,6 +31,7 @@ class EpriEnv(Env):
         self.time += td
         der.DER.t_s = td.total_seconds()
         self.eut.der.run()
+        der.DER.t_s = DTS
 
     def meas(self):
         data = {
@@ -39,8 +44,10 @@ class EpriEnv(Env):
 
     def meas_single(self, *args) -> pd.DataFrame:
         dct = self.meas()
+        der.DER.t_s = 0.01
         df = pd.DataFrame([dct]).set_index('time').loc[:, [*args]]
         self.time += dt.timedelta(seconds=0.01)
+        der.DER.t_s = DTS
         return df
 
     def meas_for(self, dur: dt.timedelta, tres: dt.timedelta, *args) -> pd.DataFrame:
@@ -53,6 +60,7 @@ class EpriEnv(Env):
             self.eut.der.run()
             self.time += tres
         df = pd.DataFrame(dfs).set_index('time').loc[:, [*args]]
+        der.DER.t_s = DTS
         return df
 
     def log(self, **kwargs):
@@ -68,11 +76,15 @@ class EpriEnv(Env):
         elif proc == 'vv':
             self.vv_results = pd.concat([self.vv_results, df_row])
         elif proc == 'uvt':
-            self.uv_results = pd.concat([self.uv_results, df_row])
+            self.uvt_results = pd.concat([self.uvt_results, df_row])
         elif proc == 'ovt':
-            self.ov_results = pd.concat([self.ov_results, df_row])
+            self.ovt_results = pd.concat([self.ovt_results, df_row])
+        elif proc == 'uft':
+            self.uft_results = pd.concat([self.uft_results, df_row])
+        elif proc == 'oft':
+            self.oft_results = pd.concat([self.oft_results, df_row])
         else:
-            raise NotImplementedError
+            raise NotImplementedError(proc)
 
     def pre_cbk(self, **kwargs):
         print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
@@ -81,11 +93,19 @@ class EpriEnv(Env):
         print(f"post: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
 
     def ac_config(self, **kwargs):
+        """"""
+        '''
+        block until settings are applied (i.e. wait for rocof-limited f change)
+        '''
         for k, v in kwargs.items():
             if k == 'Vac':
                 self.eut.der.update_der_input(v_pu=v/self.eut.der.der_file.NP_AC_V_NOM)
+            elif k =='freq':
+                self.eut.der.update_der_input(f=v)
+            elif k =='rocof':
+                pass
             else:
-                raise NotImplementedError
+                raise NotImplementedError(k)
 
     def dc_config(self, **kwargs):
         for k, v in kwargs.items():
@@ -94,4 +114,4 @@ class EpriEnv(Env):
             elif k =='Vdc':
                 pass
             else:
-                raise NotImplementedError
+                raise NotImplementedError(k)

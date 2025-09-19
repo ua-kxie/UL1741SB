@@ -98,3 +98,24 @@ class EpriEut(Eut):
                 self.der.der_file.UV2_TRIP_T = v['cts']
             else:
                 raise NotImplementedError
+
+    def set_ft(self, **kwargs):
+        """
+        :param kwargs: OF2, OF1, UF1, UF2, each is a dict of {'vpu': trip_mag, 'cts': trip_time}
+        :return:
+        """
+        for k, v in kwargs.items():
+            if k == 'OF2':
+                self.der.der_file.OF2_TRIP_F = v['freq']
+                self.der.der_file.OF2_TRIP_T = v['cts']
+            elif k == 'OF1':
+                self.der.der_file.OF1_TRIP_F = v['freq']
+                self.der.der_file.OF1_TRIP_T = v['cts']
+            elif k == 'UF1':
+                self.der.der_file.UF1_TRIP_F = v['freq']
+                self.der.der_file.UF1_TRIP_T = v['cts']
+            elif k == 'UF2':
+                self.der.der_file.UF2_TRIP_F = v['freq']
+                self.der.der_file.UF2_TRIP_T = v['cts']
+            else:
+                raise NotImplementedError

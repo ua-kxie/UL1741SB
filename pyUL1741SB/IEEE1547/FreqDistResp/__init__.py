@@ -7,11 +7,10 @@ from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
 class FreqDist(IEEE1547Common):
-    def oft_proc(self, env: Env, eut: Eut, pre_cbk=None, post_cbk=None):
+    def oft_proc(self, env: Env, eut: Eut):
         '''
         '''
         shalltrip_tbl = eut.freqshalltrip_tbl
-        env.ac_config(rocof=eut.rocof)
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source or signal injection generator parameters to the nominal operating conditions
@@ -20,7 +19,7 @@ class FreqDist(IEEE1547Common):
         '''
         m) Repeat steps c) through l) for each overfrequency operating region.
         '''
-        for op_region in [shalltrip_tbl.OF2, shalltrip_tbl.OF1]:
+        for trip_key, trip_region in {'OF2': shalltrip_tbl.OF2, 'OF1': shalltrip_tbl.OF1}.items():
             '''
             c) Disable or program the relevant settings for all other active and reactive power control functions
             of the EUT to not influence the test results for the operating region being evaluated. Set the
@@ -31,52 +30,33 @@ class FreqDist(IEEE1547Common):
             l) Set (or verify) the EUT parameters to the maximum overfrequency trip duration setting within the
             range of adjustment specified by the manufacturer and repeat steps f) through k).
             '''
-            for trip_time in [op_region.cts_min, op_region.cts_max]:
+            for trip_time in list({trip_region.cts_min, trip_region.cts_max}):
                 '''
                 k) Set (or verify) EUT parameters at the maximum of the overfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_mag in [op_region.hertz_min, op_region.hertz_max]:
+                for trip_mag in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    for iter in range(5):
+                    eut.set_ft(**{trip_key: {'freq': trip_mag, 'cts': trip_time}})
+                    for i in range(5):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
                         range of adjustment specified by the manufacturer.
                         e) Set (or verify) the EUT parameters to the minimum [maximum] overfrequency trip duration setting within the
                         range of adjustment specified by the manufacturer.
-                        
-                        f) Record applicable settings of the ac power source or signal injection generator and the EUT.
-                        g) Adjust the ac test source frequency from PN to PB. The ac test source shall be held at this
-                        frequency for period th.
-                        h) At the end of this period, increase the frequency to PU and hold for a period not less than 1.5 times
-                        the clearing time setting.
-                        i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        '''
-                        IEEE 1547.1-2020 A.4 Rate limited step function:
-                        The scaling factors A and B needs to be chosen so that PU is at least 110% (90% for under value tests) of PT. Exception: For
-                        frequency tests, the scaling factor A needs to be chosen so that PU is at least 101% (99% for under value tests) of PT.
-
-                        The hold time, th, shall be greater than or equal to100% of the trip time setting plus 200%
-                        the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
-                        IEEE Std 1547-2018 for steady-state conditions.
-                        '''
-                        th = trip_time + 2 * eut.mra.static.T(trip_time)
-                        PN = eut.fN
-                        PB = trip_mag - 2 * eut.mra.static.F  # published source?
-                        PU = trip_mag * 1.01
-                        dct_label = {'region': op_region, 'time': trip_time, 'mag': trip_mag, 'iter': iter}
-                        if pre_cbk is not None:
-                            pre_cbk(**dct_label)
-                        self.of_trip_validate(env, eut, PN, PB, th, PU)
-                        if post_cbk is not None:
-                            post_cbk(**dct_label)
+                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        env.pre_cbk(**dct_label)
+                        self.oft_validate(env, eut, dct_label, trip_mag, trip_time)
+                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def of_trip_validate(self, env: Env, eut: Eut, PN, PB, th, PU):
+    def oft_validate(self, env: Env, eut: Eut, dct_label, trip_mag, trip_time):
         """"""
+        # PN, PB, PU
+        # th, cts
         '''
         f) Record applicable settings of the ac power source or signal injection generator and the EUT.
         g) Adjust the ac test source frequency from PN to PB. The ac test source shall be held at this
@@ -89,12 +69,29 @@ class FreqDist(IEEE1547Common):
         respective clearing times for each underfrequency tripping range specified in IEEE Std 1547. The evaluated
         ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
         ranges of adjustment for each underfrequency tripping range specified in IEEE Std 1547.
+        
+        A.4 (c) The hold time, th, shall be greater than or equal to 100% of the trip time setting plus 200%
+        the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
+        IEEE Std 1547-2018 for steady-state conditions.
+        
+        [...] PU is at least 110% (90% for under value tests) of PT. 
+        Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
-        env.ac_config(freq=PN)
-        env.ac_config(freq=PB)
-        env.sleep(timedelta(seconds=th + (PB - PN) / eut.rocof()))
-        env.ac_config(freq=PU)
-        env.sleep(timedelta(1.5 * th))
+        tMRA = eut.mra.static.T(trip_time)
+        env.ac_config(freq=eut.fN, rocof=eut.rocof())
+        env.ac_config(freq=trip_mag * 0.99, rocof=eut.rocof())
+        env.sleep(timedelta(seconds=trip_time + 2 * tMRA))
+        ts, valid = env.time_now(), False
+        env.ac_config(freq=trip_mag * 1.1, rocof=eut.rocof())
+        while not env.elapsed_since(timedelta(seconds=trip_time + 2 * tMRA), ts):
+            env.sleep(timedelta(seconds=tMRA))
+            df_meas = env.meas_single('P', 'Q')
+            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+            if all([v < thresh for v, thresh in zipped]):
+                # if eut.state() == Eut.State.FAULT:
+                valid = True
+                break
+        env.validate({**dct_label, 'trip_valid': valid})
 
     def uft_proc(self, env: Env, eut: Eut):
         '''
@@ -109,7 +106,7 @@ class FreqDist(IEEE1547Common):
         '''
         m) Repeat steps c) through l) for each underfrequency operating region.
         '''
-        for op_region in [shalltrip_tbl.UF2, shalltrip_tbl.UF1]:
+        for trip_key, trip_region in {'UF2': shalltrip_tbl.UF2, 'UF1': shalltrip_tbl.UF1}.items():
             '''
             c) Disable or program the relevant settings for all other active and reactive power control
             functions of the EUT to not influence the test results for the operating region being evaluated.
@@ -120,16 +117,17 @@ class FreqDist(IEEE1547Common):
             l) Set (or verify) the EUT parameters to the [minimum] maximum underfrequency trip duration setting
             within the range of adjustment specified by the manufacturer and repeat steps e) through k).
             '''
-            for trip_time in [op_region.cts_min, op_region.cts_max]:
+            for trip_time in list({trip_region.cts_min, trip_region.cts_max}):
                 '''
                 k) Set (or verify) EUT parameters at the [minimum] maximum of the underfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_mag in [op_region.hertz_min, op_region.hertz_max]:
+                for trip_mag in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    for _ in range(5):
+                    eut.set_ft(**{trip_key: {'freq': trip_mag, 'cts': trip_time}})
+                    for i in range(5):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
                         the range of adjustment specified by the manufacturer.
@@ -142,10 +140,15 @@ class FreqDist(IEEE1547Common):
                         1.5 times the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        self.uf_trip_validate()
+                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        env.pre_cbk(**dct_label)
+                        self.uft_validate(env, eut, dct_label, trip_mag, trip_time)
+                        env.post_cbk(**dct_label)
 
-    def uf_trip_validate(self):
+    def uft_validate(self, env: Env, eut: Eut, dct_label, trip_mag, trip_time):
         """"""
+        # PN, PB, PU
+        # th, cts
         '''
         f) Record applicable settings of the ac test source or signal injection generator and the EUT.
         g) Adjust the source frequency from PN to PB. The source shall be held at this frequency for
@@ -158,8 +161,29 @@ class FreqDist(IEEE1547Common):
         respective clearing times for each underfrequency tripping range specified in IEEE Std 1547. The evaluated
         ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
         ranges of adjustment for each underfrequency tripping range specified in IEEE Std 1547.
+        
+        A.4 (c) The hold time, th, shall be greater than or equal to 100% of the trip time setting plus 200%
+        the minimum required measurement accuracy (MRA) for time, as specified in Table 3 of
+        IEEE Std 1547-2018 for steady-state conditions.
+        
+        [...] PU is at least 110% (90% for under value tests) of PT. 
+        Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
-        pass
+        tMRA = eut.mra.static.T(trip_time)
+        env.ac_config(freq=eut.fN, rocof=eut.rocof())
+        env.ac_config(freq=trip_mag * 1.01, rocof=eut.rocof())
+        env.sleep(timedelta(seconds=trip_time + 2 * tMRA))
+        ts, valid = env.time_now(), False
+        env.ac_config(freq=trip_mag * 0.90, rocof=eut.rocof())
+        while not env.elapsed_since(timedelta(seconds=trip_time + 2 * tMRA), ts):
+            env.sleep(timedelta(seconds=tMRA))
+            df_meas = env.meas_single('P', 'Q')
+            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+            if all([v < thresh for v, thresh in zipped]):
+                # if eut.state() == Eut.State.FAULT:
+                valid = True
+                break
+        env.validate({**dct_label, 'trip_valid': valid})
 
     def hfrt_proc(self, env: Env, eut: Eut):
         """"""

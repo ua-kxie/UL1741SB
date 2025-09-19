@@ -129,11 +129,11 @@ class VoltDist(IEEE1547Common):
                         '''
                         dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.ov_trip_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
+                        self.ovt_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
                         env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def ov_trip_validate(self, env: Env, eut: Eut, dct_label, th, vov, tMRA, vMRA):
+    def ovt_validate(self, env: Env, eut: Eut, dct_label, th, vov, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -162,10 +162,10 @@ class VoltDist(IEEE1547Common):
         '''
         env.ac_config(Vac=vov - 2 * vMRA)
         env.sleep(timedelta(seconds=th + 2 * tMRA))
-        valid = False
-        ts = env.time_now()
+        ts, valid = env.time_now(), False
         env.ac_config(Vac=vov + 2 * vMRA)
         while not env.elapsed_since(timedelta(seconds=th + 2 * tMRA), ts):
+            env.sleep(timedelta(seconds=tMRA))
             df_meas = env.meas_single('P', 'Q')
             zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
             if all([v < thresh for v, thresh in zipped]):
@@ -235,11 +235,11 @@ class VoltDist(IEEE1547Common):
                         '''
                         dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.uv_trip_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
+                        self.uvt_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
                         env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def uv_trip_validate(self, env: Env, eut:Eut, dct_label, th, vuv, tMRA, vMRA):
+    def uvt_validate(self, env: Env, eut:Eut, dct_label, th, vuv, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -261,10 +261,10 @@ class VoltDist(IEEE1547Common):
         # TODO wait until trip, up to the trip time setting
         env.ac_config(Vac=vuv + 2 * vMRA)
         env.sleep(timedelta(seconds=th + 2 * tMRA))
-        valid = False
-        ts = env.time_now()
+        ts, valid = env.time_now(), False
         env.ac_config(Vac=vuv - 2 * vMRA)
         while not env.elapsed_since(timedelta(seconds=th + 2 * tMRA), ts):
+            env.sleep(timedelta(seconds=tMRA))
             df_meas = env.meas_single('P', 'Q')
             zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
             if all([v < thresh for v, thresh in zipped]):
