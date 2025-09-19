@@ -30,16 +30,17 @@ class FreqDist(IEEE1547Common):
             l) Set (or verify) the EUT parameters to the maximum overfrequency trip duration setting within the
             range of adjustment specified by the manufacturer and repeat steps f) through k).
             '''
-            for trip_time in list({trip_region.cts_min, trip_region.cts_max}):
+            for trip_cts in list({trip_region.cts_min, trip_region.cts_max}):
+                tMRA = eut.mra.static.T(trip_cts)
                 '''
                 k) Set (or verify) EUT parameters at the maximum of the overfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_mag in list({trip_region.hertz_min, trip_region.hertz_max}):
+                for trip_fpu in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    eut.set_ft(**{trip_key: {'freq': trip_mag, 'cts': trip_time}})
+                    eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
                     for i in range(5):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
@@ -47,13 +48,13 @@ class FreqDist(IEEE1547Common):
                         e) Set (or verify) the EUT parameters to the minimum [maximum] overfrequency trip duration setting within the
                         range of adjustment specified by the manufacturer.
                         '''
-                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.oft_validate(env, eut, dct_label, trip_mag, trip_time)
+                        self.oft_validate(env, eut, dct_label, trip_fpu, trip_cts, tMRA)
                         env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def oft_validate(self, env: Env, eut: Eut, dct_label, trip_mag, trip_time):
+    def oft_validate(self, env: Env, eut: Eut, dct_label, trip_fpu, trip_cts, tMRA):
         """"""
         # PN, PB, PU
         # th, cts
@@ -77,10 +78,9 @@ class FreqDist(IEEE1547Common):
         [...] PU is at least 110% (90% for under value tests) of PT. 
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
-        tMRA = eut.mra.static.T(trip_time)
-        dur = timedelta(seconds=trip_time + 2 * tMRA)
+        dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
-        env.ac_config(freq=trip_mag * 0.99, rocof=eut.rocof())
+        env.ac_config(freq=trip_fpu * eut.fN * 0.99, rocof=eut.rocof())
         env.sleep(dur)
 
         df_meas = env.meas_single('P', 'Q')
@@ -88,7 +88,7 @@ class FreqDist(IEEE1547Common):
         operating = all([v > 2 * thresh for v, thresh in zipped])
 
         ts, tripped = env.time_now(), False
-        env.ac_config(freq=trip_mag * 1.1, rocof=eut.rocof())
+        env.ac_config(freq=trip_fpu * eut.fN * 1.1, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
 
@@ -116,16 +116,17 @@ class FreqDist(IEEE1547Common):
             l) Set (or verify) the EUT parameters to the [minimum] maximum underfrequency trip duration setting
             within the range of adjustment specified by the manufacturer and repeat steps e) through k).
             '''
-            for trip_time in list({trip_region.cts_min, trip_region.cts_max}):
+            for trip_cts in list({trip_region.cts_min, trip_region.cts_max}):
+                tMRA = eut.mra.static.T(trip_cts)
                 '''
                 k) Set (or verify) EUT parameters at the [minimum] maximum of the underfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_mag in list({trip_region.hertz_min, trip_region.hertz_max}):
+                for trip_fpu in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    eut.set_ft(**{trip_key: {'freq': trip_mag, 'cts': trip_time}})
+                    eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
                     for i in range(5):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
@@ -139,12 +140,12 @@ class FreqDist(IEEE1547Common):
                         1.5 times the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.uft_validate(env, eut, dct_label, trip_mag, trip_time)
+                        self.uft_validate(env, eut, dct_label, trip_fpu, trip_cts, tMRA)
                         env.post_cbk(**dct_label)
 
-    def uft_validate(self, env: Env, eut: Eut, dct_label, trip_mag, trip_time):
+    def uft_validate(self, env: Env, eut: Eut, dct_label, trip_fpu, trip_cts, tMRA):
         """"""
         # PN, PB, PU
         # th, cts
@@ -168,10 +169,9 @@ class FreqDist(IEEE1547Common):
         [...] PU is at least 110% (90% for under value tests) of PT. 
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
-        tMRA = eut.mra.static.T(trip_time)
-        dur = timedelta(seconds=trip_time + 2 * tMRA)
+        dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
-        env.ac_config(freq=trip_mag * 1.01, rocof=eut.rocof())
+        env.ac_config(freq=trip_fpu * eut.fN * 1.01, rocof=eut.rocof())
         env.sleep(dur)
 
         df_meas = env.meas_single('P', 'Q')
@@ -179,7 +179,7 @@ class FreqDist(IEEE1547Common):
         operating = all([v > 2 * thresh for v, thresh in zipped])
 
         ts, tripped = env.time_now(), False
-        env.ac_config(freq=trip_mag * 0.90, rocof=eut.rocof())
+        env.ac_config(freq=trip_fpu * eut.fN * 0.90, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
 

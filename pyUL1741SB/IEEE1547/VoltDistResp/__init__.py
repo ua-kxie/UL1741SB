@@ -107,14 +107,14 @@ class VoltDist(IEEE1547Common):
             j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
             trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
-            for trip_time in trip_times:
-                tMRA = eut.mra.static.T(trip_time)
+            for trip_cts in trip_times:
+                tMRA = eut.mra.static.T(trip_cts)
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
                 '''
                 trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
-                for trip_mag in trip_mags:
-                    trip_mag = max(trip_mag, (VN + 2 * vMRA) / eut.VN)
+                for trip_vpu in trip_mags:
+                    trip_vpu = max(trip_vpu, (VN + 2 * vMRA) / eut.VN)
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
@@ -122,18 +122,18 @@ class VoltDist(IEEE1547Common):
                     h) For multiphase units, repeat steps e) through g) for the applicable voltage on each phase or phase
                     pair individually, and all phases simultaneously.
                     '''
-                    eut.set_vt(**{trip_key: {'vpu': trip_mag, 'cts': trip_time}})
+                    eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(5):
                         '''
                         e), f)
                         '''
-                        dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.ovt_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
+                        self.ovt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
                         env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def ovt_validate(self, env: Env, eut: Eut, dct_label, th, vov, tMRA, vMRA):
+    def ovt_validate(self, env: Env, eut: Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -160,8 +160,8 @@ class VoltDist(IEEE1547Common):
         IEEE Std 1547-2018 for steady-state conditions.
         (c) The clearing time shall be measured from the time t0 to tc.
         '''
-        dur = timedelta(seconds=th + 2 * tMRA)
-        env.ac_config(Vac=vov - 2 * vMRA)
+        dur = timedelta(seconds=trip_cts + 2 * tMRA)
+        env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
         env.sleep(dur)
 
         df_meas = env.meas_single('P', 'Q')
@@ -169,7 +169,7 @@ class VoltDist(IEEE1547Common):
         operating = all([v > 2 * thresh for v, thresh in zipped])
 
         ts, tripped = env.time_now(), False
-        env.ac_config(Vac=vov + 2 * vMRA)
+        env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
@@ -204,14 +204,14 @@ class VoltDist(IEEE1547Common):
             j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
             trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
-            for trip_time in trip_times:
-                tMRA = eut.mra.static.T(trip_time)
+            for trip_cts in trip_times:
+                tMRA = eut.mra.static.T(trip_cts)
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at minimum of the range.
                 '''
                 trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
-                for trip_mag in trip_mags:
-                    trip_mag = min(trip_mag, (VN - 2 * vMRA) / eut.VN)
+                for trip_vpu in trip_mags:
+                    trip_vpu = min(trip_vpu, (VN - 2 * vMRA) / eut.VN)
                     '''
                     h) For multiphase units, repeat steps d) through g) for the applicable voltage on each phase or phase
                     pair individually, and on all phases simultaneously.
@@ -219,7 +219,7 @@ class VoltDist(IEEE1547Common):
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
-                    eut.set_vt(**{trip_key: {'vpu': trip_mag, 'cts': trip_time}})
+                    eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(5):
                         '''
                         e) Record applicable settings.
@@ -232,13 +232,13 @@ class VoltDist(IEEE1547Common):
                         ±0.02 p.u.
                         f) Record all voltage magnitudes when the unit trips.
                         '''
-                        dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_time, 'mag': trip_mag, 'iter': i}
+                        dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
                         env.pre_cbk(**dct_label)
-                        self.uvt_validate(env, eut, dct_label, trip_time, trip_mag, tMRA, vMRA)
+                        self.uvt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
                         env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
-    def uvt_validate(self, env: Env, eut:Eut, dct_label, th, vuv, tMRA, vMRA):
+    def uvt_validate(self, env: Env, eut:Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -257,8 +257,8 @@ class VoltDist(IEEE1547Common):
         ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
         ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
         '''
-        dur = timedelta(seconds=th + 2 * tMRA)
-        env.ac_config(Vac=vuv + 2 * vMRA)
+        dur = timedelta(seconds=trip_cts + 2 * tMRA)
+        env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
         env.sleep(dur)
 
         df_meas = env.meas_single('P', 'Q')
@@ -266,7 +266,7 @@ class VoltDist(IEEE1547Common):
         operating = all([v > 2 * thresh for v, thresh in zipped])
 
         ts, tripped = env.time_now(), False
-        env.ac_config(Vac=vuv - 2 * vMRA)
+        env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
         env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
