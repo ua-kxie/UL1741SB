@@ -24,6 +24,16 @@ class IEEE1547Common:
         df = pd.concat([init, resp])
         return df
 
+    def trip_validate(self, env: Env, eut:Eut, dur, ts, tMRA):
+        while not env.elapsed_since(dur, ts):
+            env.sleep(timedelta(seconds=tMRA))
+            df_meas = env.meas_single('P', 'Q')
+            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+            if all([v < thresh for v, thresh in zipped]):
+                # if eut.state() == Eut.State.FAULT:
+                return True
+        return False
+
     def trip_rst(self, env: Env, eut: Eut):
         # TODO reset the inverter for next test
         # set VDC, (Vg) to 0

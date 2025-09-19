@@ -78,20 +78,19 @@ class FreqDist(IEEE1547Common):
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
         tMRA = eut.mra.static.T(trip_time)
+        dur = timedelta(seconds=trip_time + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
         env.ac_config(freq=trip_mag * 0.99, rocof=eut.rocof())
-        env.sleep(timedelta(seconds=trip_time + 2 * tMRA))
-        ts, valid = env.time_now(), False
+        env.sleep(dur)
+
+        df_meas = env.meas_single('P', 'Q')
+        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+        operating = all([v > 2 * thresh for v, thresh in zipped])
+
+        ts, tripped = env.time_now(), False
         env.ac_config(freq=trip_mag * 1.1, rocof=eut.rocof())
-        while not env.elapsed_since(timedelta(seconds=trip_time + 2 * tMRA), ts):
-            env.sleep(timedelta(seconds=tMRA))
-            df_meas = env.meas_single('P', 'Q')
-            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-            if all([v < thresh for v, thresh in zipped]):
-                # if eut.state() == Eut.State.FAULT:
-                valid = True
-                break
-        env.validate({**dct_label, 'trip_valid': valid})
+        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
 
     def uft_proc(self, env: Env, eut: Eut):
         '''
@@ -170,20 +169,19 @@ class FreqDist(IEEE1547Common):
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
         tMRA = eut.mra.static.T(trip_time)
+        dur = timedelta(seconds=trip_time + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
         env.ac_config(freq=trip_mag * 1.01, rocof=eut.rocof())
-        env.sleep(timedelta(seconds=trip_time + 2 * tMRA))
-        ts, valid = env.time_now(), False
+        env.sleep(dur)
+
+        df_meas = env.meas_single('P', 'Q')
+        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+        operating = all([v > 2 * thresh for v, thresh in zipped])
+
+        ts, tripped = env.time_now(), False
         env.ac_config(freq=trip_mag * 0.90, rocof=eut.rocof())
-        while not env.elapsed_since(timedelta(seconds=trip_time + 2 * tMRA), ts):
-            env.sleep(timedelta(seconds=tMRA))
-            df_meas = env.meas_single('P', 'Q')
-            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-            if all([v < thresh for v, thresh in zipped]):
-                # if eut.state() == Eut.State.FAULT:
-                valid = True
-                break
-        env.validate({**dct_label, 'trip_valid': valid})
+        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
 
     def hfrt_proc(self, env: Env, eut: Eut):
         """"""

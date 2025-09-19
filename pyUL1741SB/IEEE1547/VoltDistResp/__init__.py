@@ -160,19 +160,18 @@ class VoltDist(IEEE1547Common):
         IEEE Std 1547-2018 for steady-state conditions.
         (c) The clearing time shall be measured from the time t0 to tc.
         '''
+        dur = timedelta(seconds=th + 2 * tMRA)
         env.ac_config(Vac=vov - 2 * vMRA)
-        env.sleep(timedelta(seconds=th + 2 * tMRA))
-        ts, valid = env.time_now(), False
+        env.sleep(dur)
+
+        df_meas = env.meas_single('P', 'Q')
+        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+        operating = all([v > 2 * thresh for v, thresh in zipped])
+
+        ts, tripped = env.time_now(), False
         env.ac_config(Vac=vov + 2 * vMRA)
-        while not env.elapsed_since(timedelta(seconds=th + 2 * tMRA), ts):
-            env.sleep(timedelta(seconds=tMRA))
-            df_meas = env.meas_single('P', 'Q')
-            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-            if all([v < thresh for v, thresh in zipped]):
-                # if eut.state() == Eut.State.FAULT:
-                valid = True
-                break
-        env.validate({**dct_label, 'trip_valid': valid})
+        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
 
     def uvt_proc(self, env: Env, eut: Eut):
@@ -258,20 +257,18 @@ class VoltDist(IEEE1547Common):
         ranges of adjustment for tripping magnitude and duration shall be greater than or equal to the allowable
         ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
         '''
-        # TODO wait until trip, up to the trip time setting
+        dur = timedelta(seconds=th + 2 * tMRA)
         env.ac_config(Vac=vuv + 2 * vMRA)
-        env.sleep(timedelta(seconds=th + 2 * tMRA))
-        ts, valid = env.time_now(), False
+        env.sleep(dur)
+
+        df_meas = env.meas_single('P', 'Q')
+        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+        operating = all([v > 2 * thresh for v, thresh in zipped])
+
+        ts, tripped = env.time_now(), False
         env.ac_config(Vac=vuv - 2 * vMRA)
-        while not env.elapsed_since(timedelta(seconds=th + 2 * tMRA), ts):
-            env.sleep(timedelta(seconds=tMRA))
-            df_meas = env.meas_single('P', 'Q')
-            zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
-            if all([v < thresh for v, thresh in zipped]):
-                # if eut.state() == Eut.State.FAULT:
-                valid = True
-                break
-        env.validate({**dct_label, 'trip_valid': valid})
+        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
         # TODO communication based check for trip state?
 
     def ovrt_proc(self, env: Env, eut: Eut):
