@@ -191,7 +191,7 @@ class ES:
             c) Establish nominal operating conditions as specified by the manufacturer at the terminals of the
             EUT. Make available sufficient input power for the EUT to reach its rated active power.
             '''
-            env.dc_config(pwr=eut.Prated * 1.2)
+            env.dc_config(pwr_watts=eut.Prated * 1.2)
             '''
             d) Apply the DER ES criteria settings, ES delay, and ES period or randomized delay specified in
             Table 11 for the test case under test.

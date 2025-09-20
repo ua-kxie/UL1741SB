@@ -122,3 +122,27 @@ class EpriEut(Eut):
 
     def has_tripped(self):
         return self.der.der_status == 'Trip'
+
+    def set_fw(self, **kwargs):
+        """
+        :param kwargs: Ena, DbOf, DbUf, KOf, KUf, RespTms, PMin
+        :return:
+        """
+        for k, v in kwargs.items():
+            if k == 'Ena':
+                self.der.der_file.PF_MODE_ENABLE = v
+            elif k == 'DbOf':
+                self.der.der_file.PF_DBOF = v
+            elif k == 'DbUf':
+                self.der.der_file.PF_DBUF = v
+            elif k == 'KOf':
+                self.der.der_file.PF_KOF = v
+            elif k == 'KUf':
+                self.der.der_file.PF_KUF = v
+            elif k == 'RespTms':
+                self.der.der_file.PF_OLRT = v
+            elif k == 'PMin_pu':
+                self.der.der_file.NP_P_MIN_PU = v
+            else:
+                raise NotImplementedError
+

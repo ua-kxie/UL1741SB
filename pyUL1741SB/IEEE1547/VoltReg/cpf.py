@@ -84,7 +84,7 @@ class CPF:
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
                 power requirements.
                 '''
-                env.dc_config(power=Prated)
+                env.dc_config(pwr_watts=Prated)
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''

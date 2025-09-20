@@ -109,7 +109,7 @@ class EpriEnv(Env):
 
     def dc_config(self, **kwargs):
         for k, v in kwargs.items():
-            if k == 'power':
+            if k == 'pwr_watts':
                 self.eut.der.update_der_input(p_dc_w=v)
             elif k =='Vdc':
                 pass
