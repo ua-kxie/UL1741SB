@@ -4,7 +4,7 @@ IEEE 1547.1-2020 5.5
 from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
-from pyUL1741SB.IEEE1547.base import IEEE1547Common
+from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
 
 class FreqDist(IEEE1547Common):
     def oft_proc(self, env: Env, eut: Eut):
@@ -41,7 +41,7 @@ class FreqDist(IEEE1547Common):
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
                     eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
-                    for i in range(5):
+                    for i in range(TRIP_RPT):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
                         range of adjustment specified by the manufacturer.
@@ -81,15 +81,15 @@ class FreqDist(IEEE1547Common):
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
 
-        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 0.99, rocof=eut.rocof())
-        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
+        env.sleep(dur)
 
         ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 1.1, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        ceased = self.cease_energize(env, eut)
 
-        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
+        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
 
     def uft_proc(self, env: Env, eut: Eut):
         '''
@@ -126,7 +126,7 @@ class FreqDist(IEEE1547Common):
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
                     eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
-                    for i in range(5):
+                    for i in range(TRIP_RPT):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
                         the range of adjustment specified by the manufacturer.
@@ -171,14 +171,15 @@ class FreqDist(IEEE1547Common):
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(freq=eut.fN, rocof=eut.rocof())
 
-        ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 1.01, rocof=eut.rocof())
-        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
+        env.sleep(dur)
 
         ts = env.time_now()
         env.ac_config(freq=trip_fpu * eut.fN * 0.90, rocof=eut.rocof())
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
-        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
+        ceased = self.cease_energize(env, eut)
+
+        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
 
     def hfrt_proc(self, env: Env, eut: Eut):
         """"""

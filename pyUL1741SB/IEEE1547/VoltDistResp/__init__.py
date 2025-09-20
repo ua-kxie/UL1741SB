@@ -6,7 +6,7 @@ import enum
 from datetime import timedelta
 import copy
 
-from pyUL1741SB.IEEE1547.base import IEEE1547Common
+from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
 from pyUL1741SB import Eut, Env
@@ -123,7 +123,7 @@ class VoltDist(IEEE1547Common):
                     pair individually, and all phases simultaneously.
                     '''
                     eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
-                    for i in range(5):
+                    for i in range(TRIP_RPT):
                         '''
                         e), f)
                         '''
@@ -163,15 +163,15 @@ class VoltDist(IEEE1547Common):
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(Vac=eut.VN)
 
-        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
-        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
+        env.sleep(dur)
 
         ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        ceased = self.cease_energize(env, eut)
 
-        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
+        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
         # TODO communication based check for trip state?
 
     def uvt_proc(self, env: Env, eut: Eut):
@@ -220,7 +220,7 @@ class VoltDist(IEEE1547Common):
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
                     eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
-                    for i in range(5):
+                    for i in range(TRIP_RPT):
                         '''
                         e) Record applicable settings.
                         For single-phase units, adjust the applicable voltage to parameter starting point Pb, as defined in
@@ -260,15 +260,15 @@ class VoltDist(IEEE1547Common):
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
         env.ac_config(Vac=eut.VN)
 
-        ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
-        operating = not self.trip_validate(env, eut, dur, ts, tMRA)
+        env.sleep(dur)
 
         ts = env.time_now()
         env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
         tripped = self.trip_validate(env, eut, dur, ts, tMRA)
+        ceased = self.cease_energize(env, eut)
 
-        env.validate({**dct_label, 'operating': operating, 'tripped': tripped})
+        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
         # TODO communication based check for trip state?
 
     def ovrt_proc(self, env: Env, eut: Eut):

@@ -3,6 +3,7 @@ from datetime import timedelta
 import pandas as pd
 from pyUL1741SB import Eut, Env
 
+TRIP_RPT = 5
 
 class IEEE1547Common:
     def range_4p2(self, y_of_x, x_ss, xMRA, yMRA):
@@ -24,7 +25,21 @@ class IEEE1547Common:
         df = pd.concat([init, resp])
         return df
 
+    def cease_energize(self, env: Env, eut:Eut):
+        """"""
+        df_meas = env.meas_single('P', 'Q')
+        zipped = zip(df_meas.iloc[0, :].values, [eut.mra.static.P, eut.mra.static.Q])
+        return all([v < thresh for v, thresh in zipped])
+
     def trip_validate(self, env: Env, eut:Eut, dur, ts, tMRA):
+        """"""
+        '''
+        5.4.2.4 Criteria - freq trip similar
+        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within
+        respective clearing times for each overvoltage range specified in IEEE Std 1547. The evaluated ranges of
+        adjustment for tripping magnitude and duration shall be greater than or equal to the allowable ranges of
+        adjustment for each overvoltage tripping range specified in IEEE Std 1547.
+        '''
         while not env.elapsed_since(dur, ts):
             env.sleep(timedelta(seconds=tMRA))
             if eut.has_tripped():
