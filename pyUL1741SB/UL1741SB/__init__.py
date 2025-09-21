@@ -3,6 +3,7 @@ from typing import Callable
 import statistics as stats
 import logging
 import numpy as np
+import pandas as pd
 
 from pyUL1741SB import Eut, Env
 
@@ -120,14 +121,57 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             'data': df_meas
         })
 
-    def vv_vref_validate(self):
+    def vv_vref_proc(self, env: Env, eut: Eut):
+        """
+        """
+        if eut.Cat == Eut.Category.A:
+            crv = VVCurve.Crv_1A()  # just char1 curve, UL1741 amendment
+        elif eut.Cat == Eut.Category.B:
+            crv = VVCurve.Crv_1B()
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        '''
+        '''
+        j) Repeat test steps b) through i) with Tref set at 5000 s.
+        '''
+        for Tref_s in [300, 5000]:
+            '''
+            b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
+            control functions.
+            c) Set all ac test source parameters to the nominal operating voltage and frequency.
+            d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
+            voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
+            requirements.
+            e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other functions should
+            be turned off. Enable the autonomously adjusting VRef and set Tref to 300 s.
+            f) Verify volt-var mode is reported as active and that the correct characteristic is reported. Verify Tref
+            is reported back correctly.
+            g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
+            current measurements.
+            '''
+            eut.set_vv(Ena=True, crv=crv)
+            eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            '''
+            h) Step the ac test source voltage to (V3 + V4)/2.
+            i) Step the ac test source voltage to (V2 + V1)/2.
+            '''
+            for step, perturbation, is_valid in [
+                ('h', lambda: env.ac_config(Vac=eut.VN * (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
+                ('i', lambda: env.ac_config(Vac=eut.VN * (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
+            ]:
+                dct_label = {'proc': 'vv-vref', 'Tref': Tref_s, 'step': step}
+                self.vv_vref_validate(env, eut, dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
+
+    def vv_vref_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, is_valid: Callable[[float], bool]):
         """"""
         '''
         IEEE 1547-2020 5.14.5.3
         Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
         new steady-state reactive power, Qfinal, shall be determined. To obtain a steady-state value, Qfinal may be
         measured at a time period much larger than the voltage reference low-pass filter time constant, Tref, setting
-        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state state
+        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state
         error is 1%. In addition, filtering may be used to reject any variation in ac test source voltage during
         steady-state measurement.
 
@@ -138,7 +182,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         SB Correction:
         In IEEE 1547.1-2020 5.14.5.2, the procedure requires measuring for at least 4 times Tref. 
         As the test settings for Tref are 300 and 5000s, the requirement to measure for 4 times that long greatly 
-        extends testing time, and is not necessary in all cases. It is acceptable to stop measureing sooner, 
+        extends testing time, and is not necessary in all cases. It is acceptable to stop measuring sooner, 
         if Q has reached steady state at a value compliant with the magnitude criteria, in a shorter time.
         
         In IEEE 1547.1-2020 5.14.5.3, revise the criteria as follows:
@@ -157,7 +201,42 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         face when performing this test with some EUT's (e.g. very large EUT's with external transformers). An 
         alternative is to use signal injection for this test, as allowed by IEEE 1547.1-2020 Section 5.14.2.
         '''
-        raise NotImplementedError
+        # measure init
+        # perturb
+        # measure until Q is valid, up to 1x Tr (4x Tr looks like an error)
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        yarg = 'Q'
+        meas_args = (yarg,)
+
+        t_step = timedelta(seconds=eut.mra.static.T(olrt.total_seconds()))
+        resp, valids = [], []
+        resp.append(env.meas_single(*meas_args))
+        ts = env.time_now()
+        perturb()
+        while not env.elapsed_since(4 * olrt, ts):
+            env.sleep(t_step)
+            meas = env.meas_single(*meas_args)
+            if is_valid(meas.loc[meas.index[0], 'Q']):
+                valids.append(True)
+            else:
+                valids = []
+            resp.append(meas)
+            if len(valids) > 10:  # 30 seconds at 300s Tr, 60 seconds at 5000s Tr
+                break
+        df_meas = pd.concat(resp)
+
+        crit1 = df_meas.loc[df_meas.index[-10]:, 'Q'].apply(is_valid).all()
+        crit2 = (df_meas.index[-10] - df_meas.index[0]).total_seconds() < olrt.total_seconds() * 4
+        # get last 10 meas, check all values in last 10 meas are valid
+        # get first of last 10 meas, check time is not more than olrt
+        # seem dubious, validation similar to vv test would make more sense
+
+        env.validate(dct_label={
+            **dct_label,
+            'olrt_valid': crit1 and crit2,
+            'data': df_meas
+        })
 
     def cpf_crp_validate_common(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

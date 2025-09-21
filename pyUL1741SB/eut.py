@@ -1,6 +1,5 @@
 import enum
 import numpy as np
-from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class VoltShallTripValue:
     def __init__(self, volt, cts, volt_min=None, volt_max=None, cts_min=None, cts_max=None):
@@ -214,7 +213,8 @@ class Eut:
                 self.__T = 0.01  # 1 % of measured duration
 
             def T(self, dur_s: float):
-                return self.__T * max(5, min(dur_s, 600))
+                # between 0.05 to 6 seconds
+                return self.__T * max(5.0, min(dur_s, 600.0))
 
         class Dynamic:
             def __init__(self, v_nominal):
@@ -306,7 +306,7 @@ class Eut:
     def state(self):
         pass
 
-    def set_vv(self, Ena: bool, crv: VVCurve=None):
+    def set_vv(self, Ena: bool, crv=None):
         pass
 
     def set_vt(self, **kwargs):

@@ -157,44 +157,10 @@ class VV:
         """
         raise NotImplementedError
 
-    def vv_vref(self, env: Env, eut: Eut):
-        """
-        """
-        if eut.Cat == Eut.Category.A:
-            crv = VVCurve.Crv_1A()  # just char1 curve, UL1741 amendment
-        elif eut.Cat == Eut.Category.B:
-            crv = VVCurve.Crv_1B()
-        else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
-        '''
-        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        '''
-        '''
-        j) Repeat test steps b) through i) with Tref set at 5000 s.
-        '''
-        for Tref_s in [300, 5000]:
-            '''
-            b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
-            control functions.
-            c) Set all ac test source parameters to the nominal operating voltage and frequency.
-            d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
-            voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
-            requirements.
-            e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other functions should
-            be turned off. Enable the autonomously adjusting VRef and set Tref to 300 s.
-            f) Verify volt-var mode is reported as active and that the correct characteristic is reported. Verify Tref
-            is reported back correctly.
-            g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
-            current measurements.
-            '''
-            eut.set_vv(Ena=True, crv=crv)
-            eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
-            '''
-            h) Step the ac test source voltage to (V3 + V4)/2.
-            i) Step the ac test source voltage to (V2 + V1)/2.
-            '''
+    def vv_vref_proc(self, env: Env, eut: Eut):
+        raise NotImplementedError
 
-    def vv_vref_validate(self):
+    def vv_vref_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, is_valid: Callable[[float], bool]):
         """"""
         '''
         Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
