@@ -1,7 +1,10 @@
 from pyUL1741SB import Eut, Env
+from datetime import timedelta
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
+olrt = 30  # variable, IEEE 1547-2018 4.6.2
 
-class WLim:
+class WLim(IEEE1547Common):
     def limw_proc(self, env: Env, eut: Eut):
         """"""
         '''
@@ -25,7 +28,7 @@ class WLim:
                 active power.
                 '''
                 eut.active_power(pu=1)
-                # wait for ss
+                env.sleep(timedelta(olrt * 1.5))
                 '''
                 In step c), the EUT steady-state active power shall be reduced to the commanded percentage of its rated
                 power plus 1.5 × (MRA of active power) or less within a time that complies with 4.6.2 of IEEE Std 1547-
@@ -39,7 +42,7 @@ class WLim:
                 # wait for ss,
                 '''
                 In steps d) and e), the EUT steady-state active power shall be modulated in accordance with the equations
-                in Table 23 of IEEE Std 1547-2018 within the tolerance as defined in 4.2 of this standard. 85 The response
+                in Table 23 of IEEE Std 1547-2018 within the tolerance as defined in 4.2 of this standard. The response
                 time shall comply with 4.6.2 of IEEE Std 1547-2018.
                 '''
                 '''
@@ -47,18 +50,18 @@ class WLim:
                 steady state. Return ac test source frequency to nominal and hold until EUT active power reaches
                 steady state.
                 '''
-                env.ac_config(freq=59)
+                env.ac_config(rocof=eut.rocof(), freq=59)
                 # wait for ss, eval subject to freq droop
-                env.ac_config(freq=eut.fN)
+                env.ac_config(rocof=eut.rocof(), freq=eut.fN)
                 # wait for ss, eval subject to freq droop
                 '''
                 e) Increase the frequency of the ac test source to 61 Hz and hold until EUT active power reaches
                 steady state. Return ac test source frequency to nominal and hold until EUT active power reaches
                 steady state.
                 '''
-                env.ac_config(freq=61)
+                env.ac_config(rocof=eut.rocof(), freq=61)
                 # wait for ss, eval subject to freq droop
-                env.ac_config(freq=eut.fN)
+                env.ac_config(rocof=eut.rocof(), freq=eut.fN)
                 # wait for ss, eval subject to freq droop
                 '''
                 In step f), the EUT steady-state active power shall be modulated in accordance with the applied volt-watt
@@ -68,7 +71,7 @@ class WLim:
                 f) Increase the voltage of the ac test source to 1.08 times nominal and hold until EUT active power
                 reaches steady state. Return ac test source voltage to nominal.
                 '''
-                env.ac_config(freq=eut.fN * 1.08)
+                env.ac_config(Vac=eut.VN * 1.08)
                 # wait for ss
-                env.ac_config(freq=eut.fN)
+                env.ac_config(Vac=eut.VN)
                 raise NotImplementedError

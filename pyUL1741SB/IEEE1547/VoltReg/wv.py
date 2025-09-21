@@ -195,7 +195,7 @@ class WV:
         elif eut.Cat == Eut.Category.B:
             vv_crvs = [WVCurve.Crv_1B(eut.Prated, eut.VN)]
         else:
-            raise TypeError(f'unknown category {eut.Cat}')
+            raise TypeError(f'unknown eut category {eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source parameters to the nominal operating voltage and frequency.

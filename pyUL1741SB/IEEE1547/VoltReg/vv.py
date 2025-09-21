@@ -16,7 +16,6 @@ class VVCurve:
         self.V4 = kwargs['V4']
         self.Q4 = kwargs['Q4']
         self.Tr = kwargs['Tr']
-        self.name = kwargs['name']
 
     def y_of_x(self, x):
         return np.interp(
@@ -26,100 +25,46 @@ class VVCurve:
         )
 
     @staticmethod
-    def Crv_1A(Prated, VN):
-        return VVCurve(
-            VRef=VN,
-            V2=VN,
-            Q2=0,
-            V3=VN,
-            Q3=0,
-            V1=0.9 * VN,
-            Q1=0.25 * Prated,
-            V4=1.1 * VN,
-            Q4=-0.25 * Prated,
-            Tr=10,
-            name='1a'
-        )
+    def Crv_1A():
+        return VVCurve(VRef=1.0,
+                       V2=1.0, Q2=0, V3=1.0, Q3=0,
+                       V1=0.9, Q1=0.25, V4=1.1, Q4=-0.25,
+                       Tr=10)
 
     @staticmethod
-    def Crv_1B(Prated, VN):
-        return VVCurve(
-            VRef=VN,
-            V2=0.98 * VN,
-            Q2=0,
-            V3=1.02 * VN,
-            Q3=0,
-            V1=0.92 * VN,
-            Q1=0.44 * Prated,
-            V4=1.08 * VN,
-            Q4=-0.44 * Prated,
-            Tr=5,
-            name='1b'
-        )
+    def Crv_1B():
+        return VVCurve(VRef=1.0,
+                       V2=0.98, Q2=0, V3=1.02, Q3=0,
+                       V1=0.92, Q1=0.44, V4=1.08, Q4=-0.44,
+                       Tr=5)
 
     @staticmethod
-    def Crv_2A(Prated, VN):
-        return VVCurve(
-            VRef=1.05 * VN,
-            V2=1.04 * VN,
-            Q2=0.5 * Prated,
-            V3=1.07 * VN,
-            Q3=0.5 * Prated,
-            V1=0.88 * VN,
-            Q1=1.0 * Prated,
-            V4=1.1 * VN,
-            Q4=-1.0 * Prated,
-            Tr=1,
-            name='2a'
-        )
+    def Crv_2A():
+        return VVCurve(VRef=1.05,
+                       V2=1.04, Q2=0.5, V3=1.07, Q3=0.5,
+                       V1=0.88, Q1=1.0, V4=1.1, Q4=-1.0,
+                       Tr=1)
 
     @staticmethod
-    def Crv_2B(Prated, VN):
-        return VVCurve(
-            VRef=1.05 * VN,
-            V2=1.04 * VN,
-            Q2=0.5 * Prated,
-            V3=1.07 * VN,
-            Q3=0.5 * Prated,
-            V1=0.88 * VN,
-            Q1=1.0 * Prated,
-            V4=1.1 * VN,
-            Q4=-1.0 * Prated,
-            Tr=1,
-            name='2b'
-        )
+    def Crv_2B():
+        return VVCurve(VRef=1.05,
+                       V2=1.04, Q2=0.5, V3=1.07, Q3=0.5,
+                       V1=0.88, Q1=1.0, V4=1.1, Q4=-1.0,
+                       Tr=1)
 
     @staticmethod
-    def Crv_3A(Prated, VN):
-        return VVCurve(
-            VRef=0.95 * VN,
-            V2=0.93 * VN,
-            Q2=-0.5 * Prated,
-            V3=0.96 * VN,
-            Q3=-0.5 * Prated,
-            V1=0.9 * VN,
-            Q1=1.0 * Prated,
-            V4=1.1 * VN,
-            Q4=-1.0 * Prated,
-            Tr=90,
-            name='3a'
-        )
+    def Crv_3A():
+        return VVCurve(VRef=0.95,
+                       V2=0.93, Q2=-0.5, V3=0.96, Q3=-0.5,
+                       V1=0.9, Q1=1.0, V4=1.1, Q4=-1.0,
+                       Tr=90)
 
     @staticmethod
-    def Crv_3B(Prated, VN):
-        return VVCurve(
-            VRef=0.95 * VN,
-            V2=0.93 * VN,
-            Q2=-0.5 * Prated,
-            V3=0.96 * VN,
-            Q3=-0.5 * Prated,
-            V1=0.9 * VN,
-            Q1=1.0 * Prated,
-            V4=1.1 * VN,
-            Q4=-1.0 * Prated,
-            Tr=90,
-            name='3b'
-        )
+    def Crv_3B():
+        return VVCurve(VRef=0.95,
+                       V2=0.93, Q2=-0.5, V3=0.96, Q3=-0.5,
+                       V1=0.9, Q1=1.0, V4=1.1, Q4=-1.0,
+                       Tr=90)
 
 class VV:
     def vv_validate_step(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
@@ -211,54 +156,23 @@ class VV:
         """
         """
         raise NotImplementedError
-        VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
-        av = 1.5 * eut.mra.static.V
+
+    def vv_vref(self, env: Env, eut: Eut):
+        """
+        """
         if eut.Cat == Eut.Category.A:
-            vv_crvs = [VVCurve.Crv_1A(eut.Prated, eut.VN), VVCurve.Crv_2A(eut.Prated, eut.VN), VVCurve.Crv_3A(eut.Prated, eut.VN)]
+            crv = VVCurve.Crv_1A()  # just char1 curve, UL1741 amendment
         elif eut.Cat == Eut.Category.B:
-            vv_crvs = [VVCurve.Crv_1B(eut.Prated, eut.VN), VVCurve.Crv_2B(eut.Prated, eut.VN), VVCurve.Crv_3B(eut.Prated, eut.VN)]
-        '''
-        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
-        control functions.
-        c) Set all ac test source parameters to the nominal operating voltage and frequency.
-        d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
-        voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
-        requirements.
-        '''
-
-        '''
-        ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
-        '''
-        for vref in [VN, 1.05 * VN, 0.95 * VN]:
-        # for vref in [VN]:  # 1741SB amendment
-            '''
-            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
-            '''
-            for pwr in [Prated, 0.2 * Prated, 0.66 * Prated]:
-            # for pwr in [Prated]:  # 1741SB amendment
-                '''
-                gg) Repeat steps e) through ee) for characteristics 2 and 3.
-                '''
-                for vv_crv in vv_crvs:
-                    '''
-                    e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
-                    be turned off. Turn off the autonomously adjusting reference voltage.
-                    f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
-                    '''
-                    dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
-
-    def vv_vref(self):
-        """
-        """
+            crv = VVCurve.Crv_1B()
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         '''
         '''
         j) Repeat test steps b) through i) with Tref set at 5000 s.
         '''
-        raise NotImplementedError("IEEE 1547 vv_vref")
-        for Tref in [300, 5000]:
+        for Tref_s in [300, 5000]:
             '''
             b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
             control functions.
@@ -272,9 +186,28 @@ class VV:
             is reported back correctly.
             g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
             current measurements.
+            '''
+            eut.set_vv(Ena=True, crv=crv)
+            eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            '''
             h) Step the ac test source voltage to (V3 + V4)/2.
             i) Step the ac test source voltage to (V2 + V1)/2.
             '''
+
+    def vv_vref_validate(self):
+        """"""
+        '''
+        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
+        new steady-state reactive power, Qfinal, shall be determined. To obtain a steady-state value, Qfinal may be
+        measured at a time period much larger than the voltage reference low-pass filter time constant, Tref, setting
+        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state state
+        error is 1%. In addition, filtering may be used to reject any variation in ac test source voltage during
+        steady-state measurement.
+        
+        The reactive power output at 1 times the voltage reference low-pass filter time constant, Tref, Q(Tref), shall
+        be less than 10% of Q4 for increasing voltage and shall be less than 10% of Q1 for decreasing voltage.
+        '''
+        raise NotImplementedError
 
     def vv_imbal(self):
         '''

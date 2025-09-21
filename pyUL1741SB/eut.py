@@ -1,5 +1,6 @@
 import enum
 import numpy as np
+from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class VoltShallTripValue:
     def __init__(self, volt, cts, volt_min=None, volt_max=None, cts_min=None, cts_max=None):
@@ -305,11 +306,14 @@ class Eut:
     def state(self):
         pass
 
-    def vv(self, **kwargs):
+    def set_vv(self, Ena: bool, crv: VVCurve=None):
         pass
 
     def set_vt(self, **kwargs):
         pass
 
     def set_ft(self, **kwargs):
+        pass
+
+    def set_vv_vref(self, Ena: bool, Tref_s):
         pass

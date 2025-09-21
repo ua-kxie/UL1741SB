@@ -292,7 +292,7 @@ class VoltDist(IEEE1547Common):
         elif eut.Cat == Eut.Category.B:
             vvcrv = VVCurve.Crv_1B(eut.Prated, eut.VN)
         else:
-            raise TypeError(f'unknown category {eut.Cat}')
+            raise TypeError(f'unknown eut category {eut.Cat}')
 
         if eut.aopCat == Eut.AOPCat.I:
             lvrt_seq = LVRTSeq.AOPCatI()
@@ -307,7 +307,7 @@ class VoltDist(IEEE1547Common):
             fw_of = FW_OF.CatIII_CharI()
             fw_uf = FW_UF.CatIII_CharI()
         else:
-            raise TypeError(f'unknown category {eut.aopCat}')
+            raise TypeError(f'unknown eut aop category {eut.aopCat}')
         '''
         The settings for magnitude and duration of undervoltage tripping functions shall be
         disabled or set so as not to influence the outcome of the test. 

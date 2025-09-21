@@ -6,13 +6,13 @@ from pyUL1741SB import Eut, Env
 TRIP_RPT = 5
 
 class IEEE1547Common:
-    def range_4p2(self, y_of_x, x_ss, xMRA, yMRA):
+    def range_4p2(self, y_of_x, x, xMRA, yMRA):
         """"""
         '''
         IEEE 1547.1-2020 4.2
         '''
-        y_min = min(y_of_x(x_ss - 1.5 * xMRA), y_of_x(x_ss + 1.5 * xMRA)) - 1.5 * yMRA
-        y_max = max(y_of_x(x_ss - 1.5 * xMRA), y_of_x(x_ss + 1.5 * xMRA)) + 1.5 * yMRA
+        y_min = min(y_of_x(x - 1.5 * xMRA), y_of_x(x + 1.5 * xMRA)) - 1.5 * yMRA
+        y_max = max(y_of_x(x - 1.5 * xMRA), y_of_x(x + 1.5 * xMRA)) + 1.5 * yMRA
         return y_min, y_max
 
     def meas_perturb(self, env: Env, eut:Eut, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):

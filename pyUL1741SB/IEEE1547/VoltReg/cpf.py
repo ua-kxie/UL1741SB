@@ -40,7 +40,7 @@ class CPF:
         elif eut.Cat == Eut.Category.B:
             targetPFs = [0.9, -0.9, 0.95, -0.95]
         else:
-            raise TypeError(f'unknown category {eut.Cat}')
+            raise TypeError(f'unknown eut category {eut.Cat}')
         '''
         5.14.2:
         The term av is used throughout these tests and is defined as 150% of the minimum required measurement accuracy

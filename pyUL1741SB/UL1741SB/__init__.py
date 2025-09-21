@@ -11,17 +11,26 @@ from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
+    def await_ss(self):
+        # for tests without a well-defined olrt, detect ss. Specifically SB correction for vv-vref
+
+        # get target range
+        # detect measurement is within range and not moving
+
+        # how to detect not moving in presence of noise? stationarity tests like augmented dickey-fuller
+        pass
+
     def vv_proc(self, env: Env, eut: Eut):
         """
         """
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
         av = 1.5 * eut.mra.static.V
         if eut.Cat == Eut.Category.A:
-            vv_crvs = [VVCurve.Crv_1A(eut.Prated, eut.VN)]  # just char1 curve, UL1741 amendment
+            vv_crvs = [VVCurve.Crv_1A()]  # just char1 curve, UL1741 amendment
         elif eut.Cat == Eut.Category.B:
-            vv_crvs = [VVCurve.Crv_1B(eut.Prated, eut.VN)]
+            vv_crvs = [VVCurve.Crv_1B()]
         else:
-            raise TypeError(f'unknown category {eut.Cat}')
+            raise TypeError(f'unknown eut category {eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
@@ -51,7 +60,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     be turned off. Turn off the autonomously adjusting reference voltage.
                     f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
                     '''
-                    eut.vv(Ena=True, crv=vv_crv)
+                    eut.set_vv(Ena=True, crv=vv_crv)
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
@@ -110,6 +119,45 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             'ss_valid': ss_valid,
             'data': df_meas
         })
+
+    def vv_vref_validate(self):
+        """"""
+        '''
+        IEEE 1547-2020 5.14.5.3
+        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
+        new steady-state reactive power, Qfinal, shall be determined. To obtain a steady-state value, Qfinal may be
+        measured at a time period much larger than the voltage reference low-pass filter time constant, Tref, setting
+        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state state
+        error is 1%. In addition, filtering may be used to reject any variation in ac test source voltage during
+        steady-state measurement.
+
+        The reactive power output at 1 times the voltage reference low-pass filter time constant, Tref, Q(Tref), shall
+        be less than 10% of Q4 for increasing voltage and shall be less than 10% of Q1 for decreasing voltage.
+        '''
+        '''
+        SB Correction:
+        In IEEE 1547.1-2020 5.14.5.2, the procedure requires measuring for at least 4 times Tref. 
+        As the test settings for Tref are 300 and 5000s, the requirement to measure for 4 times that long greatly 
+        extends testing time, and is not necessary in all cases. It is acceptable to stop measureing sooner, 
+        if Q has reached steady state at a value compliant with the magnitude criteria, in a shorter time.
+        
+        In IEEE 1547.1-2020 5.14.5.3, revise the criteria as follows:
+            a) it is not required to measure Qfinal at a "time period much larger than ... Tref". Disregard the 
+            statement that "at 2 times the open loop response time setting, the steady-state error is 1%". It is 
+            acceptable to stop measuring sooner if Q has reached steady state faster
+            
+            b) After each step (h) and (i), Qfinal shall have an absolute value:
+                - Less than 10% of the absolute value of Q1 for decreasing voltage, or
+                - Less than 10% of the absolute value of Q4 for increasing voltage,
+                in a time not more than 4x Tref
+        
+        For this test, it is acceptable for the AC source to require longer than 1 cycle requirement stated in 
+        IEEE 15476.1-2020 to produce the required test voltage at the EUT terminals, but not more than 1s. This 
+        allowance is based on the time constants used in this test, and on some potential difficulties AC sources will 
+        face when performing this test with some EUT's (e.g. very large EUT's with external transformers). An 
+        alternative is to use signal injection for this test, as allowed by IEEE 1547.1-2020 Section 5.14.2.
+        '''
+        raise NotImplementedError
 
     def cpf_crp_validate_common(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

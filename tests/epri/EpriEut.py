@@ -35,7 +35,7 @@ class EpriEut(Eut):
             delta_Psmall=0.1,  # small power change threshold (p.u.)
             delta_Plarge=0.5  # large power change threshold (p.u.)
         )
-    # eut.fixed_pf(Ena=True, PF=targetPF)
+
     def fixed_pf(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':
@@ -49,6 +49,7 @@ class EpriEut(Eut):
                     self.der.der_file.CONST_PF = v
             else:
                 raise NotImplementedError
+
     def active_power(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':
@@ -57,6 +58,7 @@ class EpriEut(Eut):
                 self.der.der_file.AP_LIMIT = v
             else:
                 raise NotImplementedError
+
     def reactive_power(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':
@@ -65,18 +67,23 @@ class EpriEut(Eut):
                 self.der.der_file.CONST_Q = v / self.der.der_file.NP_VA_MAX
             else:
                 raise NotImplementedError
-    def vv(self, Ena, crv:VVCurve=None):
+
+    def set_vv(self, Ena: bool, crv: VVCurve=None):
         self.der.der_file.QV_MODE_ENABLE = Ena
         if crv is not None:
-            self.der.der_file.QV_CURVE_Q1 = crv.Q1 / self.der.der_file.NP_VA_MAX
-            self.der.der_file.QV_CURVE_Q2 = crv.Q2 / self.der.der_file.NP_VA_MAX
-            self.der.der_file.QV_CURVE_Q3 = crv.Q3 / self.der.der_file.NP_VA_MAX
-            self.der.der_file.QV_CURVE_Q4 = crv.Q4 / self.der.der_file.NP_VA_MAX
-            self.der.der_file.QV_CURVE_V1 = crv.V1 / self.der.der_file.NP_AC_V_NOM
-            self.der.der_file.QV_CURVE_V2 = crv.V2 / self.der.der_file.NP_AC_V_NOM
-            self.der.der_file.QV_CURVE_V3 = crv.V3 / self.der.der_file.NP_AC_V_NOM
-            self.der.der_file.QV_CURVE_V4 = crv.V4 / self.der.der_file.NP_AC_V_NOM
+            self.der.der_file.QV_CURVE_Q1 = crv.Q1
+            self.der.der_file.QV_CURVE_Q2 = crv.Q2
+            self.der.der_file.QV_CURVE_Q3 = crv.Q3
+            self.der.der_file.QV_CURVE_Q4 = crv.Q4
+            self.der.der_file.QV_CURVE_V1 = crv.V1
+            self.der.der_file.QV_CURVE_V2 = crv.V2
+            self.der.der_file.QV_CURVE_V3 = crv.V3
+            self.der.der_file.QV_CURVE_V4 = crv.V4
             self.der.der_file.QV_OLRT = crv.Tr
+
+    def set_vv_vref(self, Ena: bool, Tref_s):
+        self.der.der_file.QV_VREF_AUTO_MODE = Ena
+        self.der.der_file.QV_VREF_TIME = Tref_s
 
     def set_vt(self, **kwargs):
         """
