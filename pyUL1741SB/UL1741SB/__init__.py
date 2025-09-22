@@ -64,7 +64,9 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             for direction, dct_steps in lst_dct_steps:
                 for k, step in dct_steps.items():
                     dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
-                    self.wv_validate_step(env, eut, dct_label, step, timedelta(seconds=5), wv_crv.y_of_x)
+                    self.wv_validate_step(
+                        env, eut, dct_label, lambda: eut.active_power(pu=step), timedelta(seconds=5),
+                        lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
 
     def wv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

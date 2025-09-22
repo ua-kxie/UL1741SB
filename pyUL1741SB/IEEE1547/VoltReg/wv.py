@@ -33,9 +33,9 @@ class WVCurve:
             P3=1.0,  # Prated in per unit
             P2=0.5,  # 0.5 * Prated in per unit
             P1=max(0.2, Pmin / Prated),  # max(0.2 * Prated, Pmin) in per unit
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),  # min(0.2 * Prated_prime, Pmin_prime) in per unit
-            P2_prime=0.5,  # 0.5 * Prated_prime in per unit
-            P3_prime=1.0,  # Prated_prime in per unit
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),  # min(0.2 * Prated_prime, Pmin_prime) in per unit
+            P2_prime=-0.5,  # 0.5 * Prated_prime in per unit
+            P3_prime=-1.0,  # Prated_prime in per unit
             Q3=-0.25,  # -0.25 * Srated in per unit (absorption)
             Q2=0,
             Q1=0,
@@ -51,9 +51,9 @@ class WVCurve:
             P3=1.0,
             P2=0.5,
             P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
-            P2_prime=0.5,
-            P3_prime=1.0,
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
+            P2_prime=-0.5,
+            P3_prime=-1.0,
             Q3=-0.44,  # absorption
             Q2=0,
             Q1=0,
@@ -69,9 +69,9 @@ class WVCurve:
             P3=1.0,
             P2=0.5,
             P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
-            P2_prime=0.5,
-            P3_prime=1.0,
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
+            P2_prime=-0.5,
+            P3_prime=-1.0,
             Q3=-0.25,  # absorption
             Q2=-0.13,  # absorption
             Q1=-0.13,  # absorption
@@ -87,9 +87,9 @@ class WVCurve:
             P3=1.0,
             P2=0.5,
             P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
-            P2_prime=0.5,
-            P3_prime=1.0,
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
+            P2_prime=-0.5,
+            P3_prime=-1.0,
             Q3=-0.44,  # absorption
             Q2=-0.22,  # absorption
             Q1=-0.22,  # absorption
@@ -105,9 +105,9 @@ class WVCurve:
             P3=1.0,
             P2=0.5,
             P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
-            P2_prime=0.5,
-            P3_prime=1.0,
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
+            P2_prime=-0.5,
+            P3_prime=-1.0,
             Q3=-0.25,  # absorption
             Q2=-0.25,  # absorption
             Q1=0,
@@ -123,9 +123,9 @@ class WVCurve:
             P3=1.0,
             P2=0.5,
             P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
-            P2_prime=0.5,
-            P3_prime=1.0,
+            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
+            P2_prime=-0.5,
+            P3_prime=-1.0,
             Q3=-0.44,  # absorption
             Q2=-0.44,  # absorption
             Q1=0,
@@ -160,10 +160,10 @@ class WV:
         x) Step the EUT’s available active power to aP below P1.
         y) Step the EUT’s available active power to Pmin.
         '''
-        aP = 1.5 * eut.mra.static.P
+        aP = 1.5 * eut.mra.static.P / eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_inj = [
-            eut.Pmin,
+            eut.Pmin/eut.Prated,
             wv_crv.P1 - aP,
             wv_crv.P1 + aP,
             (wv_crv.P1 + wv_crv.P2) / 2.,
@@ -172,7 +172,7 @@ class WV:
             (wv_crv.P2 + wv_crv.P3) / 2.,
             wv_crv.P3 - aP,
             wv_crv.P3 + aP,
-            eut.Prated,
+            1,
             wv_crv.P3 + aP,
             wv_crv.P3 - aP,
             (wv_crv.P2 + wv_crv.P3) / 2.,
@@ -181,18 +181,18 @@ class WV:
             (wv_crv.P1 + wv_crv.P2) / 2.,
             wv_crv.P1 + aP,
             wv_crv.P1 - aP,
-            eut.Pmin,
+            eut.Pmin/eut.Prated,
         ]
-        ret = {k: lambda: eut.active_power(pu=v/eut.Prated) for k, v in zip(step_keys, pwrs_inj)}
+        ret = {k: v for k, v in zip(step_keys, pwrs_inj)}
         return ret
 
     def wv_traverse_steps_abs(self, env: Env, eut: Eut, wv_crv: WVCurve):
         """
         """
-        aP = 1.5 * eut.mra.static.P
+        aP = 1.5 * eut.mra.static.P / eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_abs = [
-            eut.Pmin_prime,
+            eut.Pmin_prime/eut.Prated,
             wv_crv.P1_prime + aP,
             wv_crv.P1_prime - aP,
             (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
@@ -201,7 +201,7 @@ class WV:
             (wv_crv.P2_prime + wv_crv.P3) / 2.,
             wv_crv.P3 + aP,
             wv_crv.P3 - aP,
-            eut.Prated_prime,
+            -1,
             wv_crv.P3 - aP,
             wv_crv.P3 + aP,
             (wv_crv.P2_prime + wv_crv.P3) / 2.,
@@ -210,9 +210,9 @@ class WV:
             (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
             wv_crv.P1_prime - aP,
             wv_crv.P1_prime + aP,
-            eut.Pmin_prime,
+            eut.Pmin_prime/eut.Prated,
         ]
-        ret = {k: lambda: eut.active_power(pu=v/eut.Prated_prime) for k, v in zip(step_keys, pwrs_abs)}
+        ret = {k: v for k, v in zip(step_keys, pwrs_abs)}
         return ret
 
     def wv_proc(self, env: Env, eut: Eut):
