@@ -1,4 +1,5 @@
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
+from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 import opender as der
 
@@ -50,12 +51,14 @@ class EpriEut(Eut):
             else:
                 raise NotImplementedError
 
+    def wlim(self, Ena: bool, pu):
+        self.der.der_file.AP_LIMIT_ENABLE = Ena
+        self.der.der_file.AP_LIMIT = pu
+
     def active_power(self, **kwargs):
         for k, v in kwargs.items():
-            if k == 'Ena':
-                self.der.der_file.AP_LIMIT_ENABLE = v
-            elif k == 'pu':
-                self.der.der_file.AP_LIMIT = v
+            if k == 'pu':
+                self.der.update_der_input(p_dc_pu=v)
             else:
                 raise NotImplementedError
 
@@ -80,6 +83,22 @@ class EpriEut(Eut):
             self.der.der_file.QV_CURVE_V3 = crv.V3
             self.der.der_file.QV_CURVE_V4 = crv.V4
             self.der.der_file.QV_OLRT = crv.Tr
+
+    def set_wv(self, Ena: bool, crv: WVCurve=None):
+        self.der.der_file.QP_MODE_ENABLE = Ena
+        if crv is not None:
+            self.der.der_file.QP_CURVE_Q1_GEN = crv.Q1
+            self.der.der_file.QP_CURVE_Q2_GEN = crv.Q2
+            self.der.der_file.QP_CURVE_Q3_GEN = crv.Q3
+            self.der.der_file.QP_CURVE_P1_GEN = crv.P1
+            self.der.der_file.QP_CURVE_P2_GEN = crv.P2
+            self.der.der_file.QP_CURVE_P3_GEN = crv.P3
+            self.der.der_file.QP_CURVE_Q1_LOAD = crv.Q1_prime
+            self.der.der_file.QP_CURVE_Q2_LOAD = crv.Q2_prime
+            self.der.der_file.QP_CURVE_Q3_LOAD = crv.Q3_prime
+            self.der.der_file.QP_CURVE_P1_LOAD = crv.P1_prime
+            self.der.der_file.QP_CURVE_P2_LOAD = crv.P2_prime
+            self.der.der_file.QP_CURVE_P3_LOAD = crv.P3_prime
 
     def set_vv_vref(self, Ena: bool, Tref_s):
         self.der.der_file.QV_VREF_AUTO_MODE = Ena

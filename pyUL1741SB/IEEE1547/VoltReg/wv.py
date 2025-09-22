@@ -28,114 +28,114 @@ class WVCurve:
 
     @staticmethod
     def Crv_1A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 1A using Category A values from Table 28"""
+        """Create WV Curve 1A using Category A values from Table 28 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.25 * Srated,  # absorption
+            P3=1.0,  # Prated in per unit
+            P2=0.5,  # 0.5 * Prated in per unit
+            P1=max(0.2, Pmin / Prated),  # max(0.2 * Prated, Pmin) in per unit
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),  # min(0.2 * Prated_prime, Pmin_prime) in per unit
+            P2_prime=0.5,  # 0.5 * Prated_prime in per unit
+            P3_prime=1.0,  # Prated_prime in per unit
+            Q3=-0.25,  # -0.25 * Srated in per unit (absorption)
             Q2=0,
             Q1=0,
             Q1_prime=0,
             Q2_prime=0,
-            Q3_prime=0.44 * Srated  # injection
+            Q3_prime=0.44  # 0.44 * Srated in per unit (injection)
         )
 
     @staticmethod
     def Crv_1B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 1B using Category B values from Table 28"""
+        """Create WV Curve 1B using Category B values from Table 28 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.44 * Srated,  # absorption
+            P3=1.0,
+            P2=0.5,
+            P1=max(0.2, Pmin / Prated),
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
+            P2_prime=0.5,
+            P3_prime=1.0,
+            Q3=-0.44,  # absorption
             Q2=0,
             Q1=0,
             Q1_prime=0,
             Q2_prime=0,
-            Q3_prime=0.44 * Srated  # injection
+            Q3_prime=0.44  # injection
         )
 
     @staticmethod
     def Crv_2A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 2A using Category A values from Table 29"""
+        """Create WV Curve 2A using Category A values from Table 29 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.25 * Srated,  # absorption
-            Q2=-0.13 * Srated,  # absorption
-            Q1=-0.13 * Srated,  # absorption
-            Q1_prime=0.22 * Srated,  # injection
-            Q2_prime=0.22 * Srated,  # injection
-            Q3_prime=0.44 * Srated  # injection
+            P3=1.0,
+            P2=0.5,
+            P1=max(0.2, Pmin / Prated),
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
+            P2_prime=0.5,
+            P3_prime=1.0,
+            Q3=-0.25,  # absorption
+            Q2=-0.13,  # absorption
+            Q1=-0.13,  # absorption
+            Q1_prime=0.22,  # injection
+            Q2_prime=0.22,  # injection
+            Q3_prime=0.44  # injection
         )
 
     @staticmethod
     def Crv_2B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 2B using Category B values from Table 29"""
+        """Create WV Curve 2B using Category B values from Table 29 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.44 * Srated,  # absorption
-            Q2=-0.22 * Srated,  # absorption
-            Q1=-0.22 * Srated,  # absorption
-            Q1_prime=0.22 * Srated,  # injection
-            Q2_prime=0.22 * Srated,  # injection
-            Q3_prime=0.44 * Srated  # injection
+            P3=1.0,
+            P2=0.5,
+            P1=max(0.2, Pmin / Prated),
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
+            P2_prime=0.5,
+            P3_prime=1.0,
+            Q3=-0.44,  # absorption
+            Q2=-0.22,  # absorption
+            Q1=-0.22,  # absorption
+            Q1_prime=0.22,  # injection
+            Q2_prime=0.22,  # injection
+            Q3_prime=0.44  # injection
         )
 
     @staticmethod
     def Crv_3A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 3A using Category A values from Table 30"""
+        """Create WV Curve 3A using Category A values from Table 30 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.25 * Srated,  # absorption
-            Q2=-0.25 * Srated,  # absorption
+            P3=1.0,
+            P2=0.5,
+            P1=max(0.2, Pmin / Prated),
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
+            P2_prime=0.5,
+            P3_prime=1.0,
+            Q3=-0.25,  # absorption
+            Q2=-0.25,  # absorption
             Q1=0,
             Q1_prime=0,
-            Q2_prime=0.44 * Srated,  # injection
-            Q3_prime=0.44 * Srated  # injection
+            Q2_prime=0.44,  # injection
+            Q3_prime=0.44  # injection
         )
 
     @staticmethod
     def Crv_3B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
-        """Create WV Curve 3B using Category B values from Table 30"""
+        """Create WV Curve 3B using Category B values from Table 30 (per unit)"""
         return WVCurve(
-            P3=Prated,
-            P2=0.5 * Prated,
-            P1=max(0.2 * Prated, Pmin),
-            P1_prime=min(0.2 * Prated_prime, Pmin_prime),
-            P2_prime=0.5 * Prated_prime,
-            P3_prime=Prated_prime,
-            Q3=-0.44 * Srated,  # absorption
-            Q2=-0.44 * Srated,  # absorption
+            P3=1.0,
+            P2=0.5,
+            P1=max(0.2, Pmin / Prated),
+            P1_prime=0 if Prated_prime == 0 else min(0.2, Pmin_prime / Prated_prime),
+            P2_prime=0.5,
+            P3_prime=1.0,
+            Q3=-0.44,  # absorption
+            Q2=-0.44,  # absorption
             Q1=0,
             Q1_prime=0,
-            Q2_prime=0.44 * Srated,  # injection
-            Q3_prime=0.44 * Srated  # injection
+            Q2_prime=0.44,  # injection
+            Q3_prime=0.44  # injection
         )
 
 class WV:
-    def wv_traverse_steps(self, wv_crv: WVCurve, Pmin, Prated, aP, env: Env):
+    def wv_traverse_steps_inj(self, env: Env, eut: Eut, wv_crv: WVCurve):
         """
         """
         '''
@@ -160,30 +160,62 @@ class WV:
         x) Step the EUT’s available active power to aP below P1.
         y) Step the EUT’s available active power to Pmin.
         '''
-        ret = {
-            'g': lambda: env.ac_config(Vac=Pmin),
-            'h': lambda: env.ac_config(Vac=wv_crv.P1 - aP),
-            'i': lambda: env.ac_config(Vac=wv_crv.P1 + aP),
-            'j': lambda: env.ac_config(Vac=(wv_crv.P1 + wv_crv.P2) / 2.),
-            'k': lambda: env.ac_config(Vac=wv_crv.P2 - aP),
-            'l': lambda: env.ac_config(Vac=wv_crv.P2 + aP),
-            'm': lambda: env.ac_config(Vac=(wv_crv.P2 + wv_crv.P3) / 2.),
-            'n': lambda: env.ac_config(Vac=wv_crv.P3 - aP),
-            'o': lambda: env.ac_config(Vac=wv_crv.P3 + aP),
-            'p': lambda: env.ac_config(Vac=Prated),
-            'q': lambda: env.ac_config(Vac=wv_crv.P3 + aP),
-            'r': lambda: env.ac_config(Vac=wv_crv.P3 - aP),
-            's': lambda: env.ac_config(Vac=(wv_crv.P2 + wv_crv.P3) / 2.),
-            't': lambda: env.ac_config(Vac=wv_crv.P2 + aP),
-            'u': lambda: env.ac_config(Vac=wv_crv.P2 - aP),
-            'v': lambda: env.ac_config(Vac=(wv_crv.P1 + wv_crv.P2) / 2.),
-            'w': lambda: env.ac_config(Vac=wv_crv.P1 + aP),
-            'x': lambda: env.ac_config(Vac=wv_crv.P1 - aP),
-            'y': lambda: env.ac_config(Vac=Pmin)
-        }
+        aP = 1.5 * eut.mra.static.P
+        step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
+        pwrs_inj = [
+            eut.Pmin,
+            wv_crv.P1 - aP,
+            wv_crv.P1 + aP,
+            (wv_crv.P1 + wv_crv.P2) / 2.,
+            wv_crv.P2 - aP,
+            wv_crv.P2 + aP,
+            (wv_crv.P2 + wv_crv.P3) / 2.,
+            wv_crv.P3 - aP,
+            wv_crv.P3 + aP,
+            eut.Prated,
+            wv_crv.P3 + aP,
+            wv_crv.P3 - aP,
+            (wv_crv.P2 + wv_crv.P3) / 2.,
+            wv_crv.P2 + aP,
+            wv_crv.P2 - aP,
+            (wv_crv.P1 + wv_crv.P2) / 2.,
+            wv_crv.P1 + aP,
+            wv_crv.P1 - aP,
+            eut.Pmin,
+        ]
+        ret = {k: lambda: eut.active_power(pu=v/eut.Prated) for k, v in zip(step_keys, pwrs_inj)}
         return ret
 
-    def wv(self, env: Env, eut: Eut):
+    def wv_traverse_steps_abs(self, env: Env, eut: Eut, wv_crv: WVCurve):
+        """
+        """
+        aP = 1.5 * eut.mra.static.P
+        step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
+        pwrs_abs = [
+            eut.Pmin_prime,
+            wv_crv.P1_prime + aP,
+            wv_crv.P1_prime - aP,
+            (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
+            wv_crv.P2_prime + aP,
+            wv_crv.P2_prime - aP,
+            (wv_crv.P2_prime + wv_crv.P3) / 2.,
+            wv_crv.P3 + aP,
+            wv_crv.P3 - aP,
+            eut.Prated_prime,
+            wv_crv.P3 - aP,
+            wv_crv.P3 + aP,
+            (wv_crv.P2_prime + wv_crv.P3) / 2.,
+            wv_crv.P2_prime - aP,
+            wv_crv.P2_prime + aP,
+            (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
+            wv_crv.P1_prime - aP,
+            wv_crv.P1_prime + aP,
+            eut.Pmin_prime,
+        ]
+        ret = {k: lambda: eut.active_power(pu=v/eut.Prated_prime) for k, v in zip(step_keys, pwrs_abs)}
+        return ret
+
+    def wv_proc(self, env: Env, eut: Eut):
         """
         """
         env.log(msg="cpf proc against 1547")
@@ -216,4 +248,4 @@ class WV:
                 z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
                 '''
                 for Pnom in [PN, PN_prime]:
-                    dct_vvsteps = self.wv_traverse_steps()
+                    dct_vvsteps = self.wv_traverse_steps_inj()

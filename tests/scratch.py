@@ -13,6 +13,8 @@ der_obj.run()
 der_obj.update_der_input(f=58.5)
 der_obj.update_der_input(f=61.2)
 
+der_obj.der_file.QP_MODE_ENABLE=True
+
 class RMSVolts(float):
     def __new__(cls, value):
         obj = super().__new__(cls, value)

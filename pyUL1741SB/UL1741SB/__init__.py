@@ -10,6 +10,7 @@ from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
+from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
     def await_ss(self):
@@ -20,6 +21,63 @@ class UL1741SB(IEEE1547, IEEE1547Common):
 
         # how to detect not moving in presence of noise? stationarity tests like augmented dickey-fuller
         pass
+
+    def wv_proc(self, env: Env, eut: Eut):
+        """
+        """
+        env.log(msg="cpf proc against 1547")
+        if eut.Cat == Eut.Category.A:
+            wv_crvs = [
+                ('1A', WVCurve.Crv_1A(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+                ('2A', WVCurve.Crv_2A(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+                ('3A', WVCurve.Crv_3A(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+            ]
+        elif eut.Cat == Eut.Category.B:
+            wv_crvs = [
+                ('1B', WVCurve.Crv_1B(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+                ('2B', WVCurve.Crv_2B(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+                ('3B', WVCurve.Crv_3B(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)),
+            ]
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        b) Set all ac test source parameters to the nominal operating voltage and frequency.
+        c) Set all EUT parameters to the rated active power conditions for the EUT.
+        d) Set all voltage trip parameters to default settings.
+        e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
+        be turned off.
+        '''
+        '''
+        bb) Repeat steps f) through aa) for characteristics 2 and 3.
+        '''
+        for crv_key, wv_crv in wv_crvs:
+            eut.set_wv(Ena=True, crv=wv_crv)
+            lst_dct_steps = [('inj', self.wv_traverse_steps_inj(env, eut, wv_crv))]
+            '''
+            z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
+            '''
+            if eut.Prated_prime < 0:
+                lst_dct_steps.append(('abs', self.wv_traverse_steps_abs(env, eut, wv_crv)))
+
+            # validate for all steps
+            for direction, dct_steps in lst_dct_steps:
+                for k, step in dct_steps.items():
+                    dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
+                    self.wv_validate_step(env, eut, dct_label, step, timedelta(seconds=5), wv_crv.y_of_x)
+
+    def wv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
+        xMRA = eut.mra.static.P
+        yMRA = eut.mra.static.Q
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'P', 'Q'
+
+        self.vv_wv_common_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
     def vv_proc(self, env: Env, eut: Eut):
         """
@@ -76,18 +134,8 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                         )
                         env.post_cbk(**dct_label)
 
-    def vv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        """"""
-        '''
-        IEEE 1547.1-2020 5.14.3.3
-        '''
-        xMRA = eut.mra.static.V
-        yMRA = eut.mra.static.Q
-        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
-        xarg, yarg = 'V', 'Q'
-        meas_args = (xarg, yarg)
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
+    def vv_wv_common_validate(self, env: Env, eut: Eut, dct_label: dict, perturb:Callable, xarg, yarg, y_of_x: Callable, olrt: timedelta, xMRA, yMRA):
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -120,6 +168,19 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             'ss_valid': ss_valid,
             'data': df_meas
         })
+
+    def vv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
+        xMRA = eut.mra.static.V
+        yMRA = eut.mra.static.Q
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'V', 'Q'
+
+        self.vv_wv_common_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
     def vv_vref_proc(self, env: Env, eut: Eut):
         """
