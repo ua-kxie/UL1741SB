@@ -6,15 +6,15 @@ std = UL1741SB()
 eut = EpriEut()
 env = EpriEnv(eut)
 
-# std.cpf_proc(env=env, eut=eut)
+std.cpf_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)
 
 # std.vv_vref_proc(env=env, eut=eut)
 # print(env.vv_vref_results)
 
-std.wv_proc(env=env, eut=eut)
-print(env.wv_results)
+# std.wv_proc(env=env, eut=eut)
+# print(env.wv_results)
 
 # std.ovt_proc(env=env, eut=eut)
 # std.uvt_proc(env=env, eut=eut)
@@ -24,5 +24,4 @@ print(env.wv_results)
 # std.uft_proc(env=env, eut=eut)
 # print(env.oft_results)
 # print(env.uft_results)
-
-
+pass

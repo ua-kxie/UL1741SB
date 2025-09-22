@@ -87,9 +87,9 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
         av = 1.5 * eut.mra.static.V
         if eut.Cat == Eut.Category.A:
-            vv_crvs = [VVCurve.Crv_1A()]  # just char1 curve, UL1741 amendment
+            vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment
         elif eut.Cat == Eut.Category.B:
-            vv_crvs = [VVCurve.Crv_1B()]
+            vv_crvs = [('1B', VVCurve.Crv_1B())]
         else:
             raise TypeError(f'unknown eut category {eut.Cat}')
         '''
@@ -101,7 +101,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
-        eut.active_power(Ena=False)
+        eut.wlim(Ena=False, pu=1)
         eut.reactive_power(Ena=False)
         eut.fixed_pf(Ena=False)
         '''
@@ -115,7 +115,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                 '''
                 gg) Repeat steps e) through ee) for characteristics 2 and 3.
                 '''
-                for vv_crv in vv_crvs:
+                for crv_name, vv_crv in vv_crvs:
                     '''
                     e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
                     be turned off. Turn off the autonomously adjusting reference voltage.
@@ -124,7 +124,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     eut.set_vv(Ena=True, crv=vv_crv)
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
                     for stepname, perturbation in dct_vvsteps.items():
-                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{vv_crv.name}', 'step': f'{stepname}'}
+                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
                         env.pre_cbk(**dct_label)
                         self.vv_validate_step(
                             env,

@@ -54,7 +54,7 @@ class CRP:
                 f) Verify constant var mode is reported as active and that the reactive power setting is reported as
                 Qmax,inj.
                 '''
-                eut.active_power(Ena=True, pu=1)
+                eut.wlim(Ena=True, pu=1)
                 env.dc_config(Vdc=Vin)
                 eut.reactive_power(Ena=True, Q=Q)
                 '''
@@ -66,9 +66,9 @@ class CRP:
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(Ena=True, pu=max(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
-                    'h': lambda: eut.active_power(Ena=True, pu=max(0.05, Pmin/Prated)),
-                    'i': lambda: eut.active_power(Ena=True, pu=1),
+                    'g': lambda: eut.wlim(Ena=True, pu=max(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
+                    'h': lambda: eut.wlim(Ena=True, pu=max(0.05, Pmin/Prated)),
+                    'i': lambda: eut.wlim(Ena=True, pu=1),
                     'j': lambda: env.ac_config(Vac=VL + av),
                     'k': lambda: env.ac_config(Vac=VH - av),
                     'l': lambda: env.ac_config(Vac=VL + av),
