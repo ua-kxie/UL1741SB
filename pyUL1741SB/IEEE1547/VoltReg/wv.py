@@ -27,111 +27,69 @@ class WVCurve:
         )
 
     @staticmethod
-    def Crv_1A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_1A(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 1A using Category A values from Table 28 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,  # Prated in per unit
-            P2=0.5,  # 0.5 * Prated in per unit
-            P1=max(0.2, Pmin / Prated),  # max(0.2 * Prated, Pmin) in per unit
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),  # min(0.2 * Prated_prime, Pmin_prime) in per unit
-            P2_prime=-0.5,  # 0.5 * Prated_prime in per unit
-            P3_prime=-1.0,  # Prated_prime in per unit
-            Q3=-0.25,  # -0.25 * Srated in per unit (absorption)
-            Q2=0,
-            Q1=0,
-            Q1_prime=0,
-            Q2_prime=0,
-            Q3_prime=0.44  # 0.44 * Srated in per unit (injection)
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.25, Q2=0, Q1=0,
+            Q1_prime=0, Q2_prime=0, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_1B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_1B(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 1B using Category B values from Table 28 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,
-            P2=0.5,
-            P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
-            P2_prime=-0.5,
-            P3_prime=-1.0,
-            Q3=-0.44,  # absorption
-            Q2=0,
-            Q1=0,
-            Q1_prime=0,
-            Q2_prime=0,
-            Q3_prime=0.44  # injection
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.44, Q2=0, Q1=0,
+            Q1_prime=0, Q2_prime=0, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_2A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_2A(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 2A using Category A values from Table 29 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,
-            P2=0.5,
-            P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
-            P2_prime=-0.5,
-            P3_prime=-1.0,
-            Q3=-0.25,  # absorption
-            Q2=-0.13,  # absorption
-            Q1=-0.13,  # absorption
-            Q1_prime=0.22,  # injection
-            Q2_prime=0.22,  # injection
-            Q3_prime=0.44  # injection
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.25, Q2=-0.13, Q1=-0.13,
+            Q1_prime=0.22, Q2_prime=0.22, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_2B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_2B(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 2B using Category B values from Table 29 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,
-            P2=0.5,
-            P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
-            P2_prime=-0.5,
-            P3_prime=-1.0,
-            Q3=-0.44,  # absorption
-            Q2=-0.22,  # absorption
-            Q1=-0.22,  # absorption
-            Q1_prime=0.22,  # injection
-            Q2_prime=0.22,  # injection
-            Q3_prime=0.44  # injection
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.44, Q2=-0.22, Q1=-0.22,
+            Q1_prime=0.22, Q2_prime=0.22, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_3A(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_3A(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 3A using Category A values from Table 30 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,
-            P2=0.5,
-            P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
-            P2_prime=-0.5,
-            P3_prime=-1.0,
-            Q3=-0.25,  # absorption
-            Q2=-0.25,  # absorption
-            Q1=0,
-            Q1_prime=0,
-            Q2_prime=0.44,  # injection
-            Q3_prime=0.44  # injection
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.25, Q2=-0.25, Q1=0,
+            Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_3B(Prated, Pmin, Srated, Prated_prime, Pmin_prime):
+    def Crv_3B(Prated, Pmin, Prated_prime, Pmin_prime):
         """Create WV Curve 3B using Category B values from Table 30 (per unit)"""
+        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
         return WVCurve(
-            P3=1.0,
-            P2=0.5,
-            P1=max(0.2, Pmin / Prated),
-            P1_prime=0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime),
-            P2_prime=-0.5,
-            P3_prime=-1.0,
-            Q3=-0.44,  # absorption
-            Q2=-0.44,  # absorption
-            Q1=0,
-            Q1_prime=0,
-            Q2_prime=0.44,  # injection
-            Q3_prime=0.44  # injection
+            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
+            Q3=-0.44, Q2=-0.44, Q1=0,
+            Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
 class WV:
@@ -218,34 +176,4 @@ class WV:
     def wv_proc(self, env: Env, eut: Eut):
         """
         """
-        env.log(msg="cpf proc against 1547")
-        olrt = timedelta(seconds=10)
-        VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
-        av = 1.5 * eut.mra.static.V
-        if eut.Cat == Eut.Category.A:
-            vv_crvs = [WVCurve.Crv_1A(eut.Prated, eut.VN)]  # just char1 curve, UL1741 amendment
-        elif eut.Cat == Eut.Category.B:
-            vv_crvs = [WVCurve.Crv_1B(eut.Prated, eut.VN)]
-        else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
-        '''
-        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all ac test source parameters to the nominal operating voltage and frequency.
-        c) Set all EUT parameters to the rated active power conditions for the EUT.
-        d) Set all voltage trip parameters to default settings.
-        e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
-        be turned off.
-        '''
-        '''
-        bb) Repeat steps f) through aa) for characteristics 2 and 3.
-        '''
-        for wv_crv in [WVCurve.Crv_1A(), WVCurve.Crv_2A(), WVCurve.Crv_3A()]:
-            '''
-            aa) Repeat test steps f) through z) at EUT power set at 20% and 66% of rated power.
-            '''
-            for pwr in [Prated, 0.2*Prated, 0.66*Prated]:
-                '''
-                z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
-                '''
-                for Pnom in [PN, PN_prime]:
-                    dct_vvsteps = self.wv_traverse_steps_inj()
+        raise NotImplementedError

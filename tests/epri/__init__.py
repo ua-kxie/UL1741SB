@@ -1,12 +1,13 @@
 from pyUL1741SB.UL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
+import pandas as pd
 
 std = UL1741SB()
 eut = EpriEut()
 env = EpriEnv(eut)
 
-std.cpf_proc(env=env, eut=eut)
+# std.cpf_proc(env=env, eut=eut)
 # std.crp_proc(env=env, eut=eut)
 # std.vv_proc(env=env, eut=eut)
 
@@ -24,4 +25,7 @@ std.cpf_proc(env=env, eut=eut)
 # std.uft_proc(env=env, eut=eut)
 # print(env.oft_results)
 # print(env.uft_results)
+
+# df = pd.concat(env.cpf_results.loc[:, 'data'].values)
+# df = pd.concat(env.crp_results.loc[:, 'data'].values)
 pass
