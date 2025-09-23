@@ -1,4 +1,7 @@
 import numpy as np
+from typing_extensions import Callable
+from datetime import timedelta
+
 from pyUL1741SB import Eut, Env
 
 class VWCurve:
@@ -7,70 +10,110 @@ class VWCurve:
         self.V1 = kwargs['V1']
         self.P1 = kwargs['P1']
         self.V2 = kwargs['V2']
-        self.P2 = kwargs['P2']  # For DER that can only generate active power
-        self.P2_prime = kwargs['P2_prime']  # For DER that can absorb active power
+        self.P2 = kwargs['P2']
         self.Tr = kwargs['Tr']
 
-    def y_of_x_inj(self, x):
+    def y_of_x(self, x):
         return np.interp(
             x,
             [self.V1, self.V2],
             [self.P1, self.P2],
         )
 
-    def y_of_x_abs(self, x):
-        return np.interp(
-            x,
-            [self.V1, self.V2],
-            [self.P1, self.P2_prime],
-        )
-
     @staticmethod
-    def Crv_1A(Prated, Pmin):
+    def Crv_1A_inj(eut: Eut):
         """Create VW Curve 1A using Category A values from Table 31 (per-unit)"""
         return VWCurve(
-            V1=1.06, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=0, Tr=10
+            V1=1.06, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=10
         )
 
     @staticmethod
-    def Crv_1B(Prated, Pmin):
+    def Crv_1A_abs(eut: Eut):
+        """Create VW Curve 1A using Category A values from Table 31 (per-unit)"""
+        return VWCurve(
+            V1=1.06, P1=1.0,
+            V2=1.1, P2=0, Tr=10
+        )
+
+    @staticmethod
+    def Crv_1B_inj(eut: Eut):
         """Create VW Curve 1B using Category B values from Table 31 (per-unit)"""
         return VWCurve(
-            V1=1.06, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=0, Tr=10
+            V1=1.06, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=10
         )
 
     @staticmethod
-    def Crv_2A(Prated, Pmin, Prated_prime):
+    def Crv_1B_abs(eut: Eut):
+        """Create VW Curve 1B using Category B values from Table 31 (per-unit)"""
+        return VWCurve(
+            V1=1.06, P1=1.0,
+            V2=1.1, P2=0, Tr=10
+        )
+
+    @staticmethod
+    def Crv_2A_inj(eut: Eut):
         """Create VW Curve 2A using Category A values from Table 32 (per-unit)"""
         return VWCurve(
-            V1=1.05, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=-1, Tr=60
+            V1=1.05, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=60
         )
 
     @staticmethod
-    def Crv_2B(Prated, Pmin, Prated_prime):
+    def Crv_2A_abs(eut: Eut):
+        """Create VW Curve 2A using Category A values from Table 32 (per-unit)"""
+        return VWCurve(
+            V1=1.05, P1=1.0,
+            V2=1.1, P2=-1, Tr=60
+        )
+
+    @staticmethod
+    def Crv_2B_inj(eut: Eut):
         """Create VW Curve 2B using Category B values from Table 32 (per-unit)"""
         return VWCurve(
-            V1=1.05, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=-1, Tr=60
+            V1=1.05, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=60
         )
 
     @staticmethod
-    def Crv_3A(Prated, Pmin, Prated_prime):
+    def Crv_2B_abs(eut: Eut):
+        """Create VW Curve 2B using Category B values from Table 32 (per-unit)"""
+        return VWCurve(
+            V1=1.05, P1=1.0,
+            V2=1.1, P2=-1, Tr=60
+        )
+
+    @staticmethod
+    def Crv_3A_inj(eut: Eut):
         """Create VW Curve 3A using Category A values from Table 33 (per-unit)"""
         return VWCurve(
-            V1=1.09, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=-1, Tr=0.5
+            V1=1.09, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=0.5
         )
 
     @staticmethod
-    def Crv_3B(Prated, Pmin, Prated_prime):
+    def Crv_3A_abs(eut: Eut):
+        """Create VW Curve 3A using Category A values from Table 33 (per-unit)"""
+        return VWCurve(
+            V1=1.09, P1=1.0,
+            V2=1.1, P2=-1, Tr=0.5
+        )
+
+    @staticmethod
+    def Crv_3B_inj(eut: Eut):
         """Create VW Curve 3B using Category B values from Table 33 (per-unit)"""
         return VWCurve(
-            V1=1.09, P1=1.0, V2=1.1,
-            P2=min(0.2, Pmin / Prated), P2_prime=-1, Tr=0.5
+            V1=1.09, P1=1.0,
+            V2=1.1, P2=min(0.2, eut.Pmin / eut.Prated), Tr=0.5
+        )
+
+    @staticmethod
+    def Crv_3B_abs(eut: Eut):
+        """Create VW Curve 3B using Category B values from Table 33 (per-unit)"""
+        return VWCurve(
+            V1=1.09, P1=1.0,
+            V2=1.1, P2=-1, Tr=0.5
         )
 
 class VW:
@@ -94,19 +137,19 @@ class VW:
         '''
         aV = eut.mra.static.V * 1.5
         ret = {
-            'g': lambda: env.ac_config(Vac=eut.VL + aV),
-            'h': lambda: env.ac_config(Vac=vw_crv.V1 * eut.VN - aV),
-            'i': lambda: env.ac_config(Vac=vw_crv.V1 * eut.VN + aV),
-            'j': lambda: env.ac_config(Vac=(vw_crv.V1 + vw_crv.V2) * eut.VN / 2.),
-            'k': lambda: env.ac_config(Vac=vw_crv.V2 * eut.VN - aV),
-            'l': lambda: env.ac_config(Vac=vw_crv.V2 * eut.VN + aV),
-            'm': lambda: env.ac_config(Vac=eut.VH - aV),
-            'n': lambda: env.ac_config(Vac=vw_crv.V2 * eut.VN + aV),
-            'o': lambda: env.ac_config(Vac=vw_crv.V2 * eut.VN - aV),
-            'p': lambda: env.ac_config(Vac=(vw_crv.V1 + vw_crv.V2) * eut.VN / 2.),
-            'q': lambda: env.ac_config(Vac=vw_crv.V1 * eut.VN + aV),
-            'r': lambda: env.ac_config(Vac=vw_crv.V1 * eut.VN - aV),
-            's': lambda: env.ac_config(Vac=eut.VL + aV)
+            'g': eut.VL + aV,
+            'h': vw_crv.V1 * eut.VN - aV,
+            'i': vw_crv.V1 * eut.VN + aV,
+            'j': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
+            'k': vw_crv.V2 * eut.VN - aV,
+            'l': vw_crv.V2 * eut.VN + aV,
+            'm': eut.VH - aV,
+            'n': vw_crv.V2 * eut.VN + aV,
+            'o': vw_crv.V2 * eut.VN - aV,
+            'p': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
+            'q': vw_crv.V1 * eut.VN + aV,
+            'r': vw_crv.V1 * eut.VN - aV,
+            's': eut.VL + aV
         }
         return ret
 
@@ -115,15 +158,21 @@ class VW:
         """
         if eut.Cat == Eut.Category.A:
             vw_crvs = [
-                '1A', VWCurve.Crv_1A(eut.Prated, eut.Pmin),
-                '2A', VWCurve.Crv_2A(eut.Prated, eut.Pmin, eut.Prated_prime),
-                '3A', VWCurve.Crv_3A(eut.Prated, eut.Pmin, eut.Prated_prime)
+                ('1A_inj', VWCurve.Crv_1A_inj(eut)),
+                ('2A_inj', VWCurve.Crv_2A_inj(eut)),
+                ('3A_inj', VWCurve.Crv_3A_inj(eut)),
+                ('1A_abs', VWCurve.Crv_1A_abs(eut)),
+                ('2A_abs', VWCurve.Crv_2A_abs(eut)),
+                ('3A_abs', VWCurve.Crv_3A_abs(eut))
             ]
         elif eut.Cat == Eut.Category.B:
             vw_crvs = [
-                '1B', VWCurve.Crv_1A(eut.Prated, eut.Pmin),
-                '2B', VWCurve.Crv_2A(eut.Prated, eut.Pmin, eut.Prated_prime),
-                '3B', VWCurve.Crv_3A(eut.Prated, eut.Pmin, eut.Prated_prime)
+                ('1B_inj', VWCurve.Crv_1A_inj(eut)),
+                ('2B_inj', VWCurve.Crv_2A_inj(eut)),
+                ('3B_inj', VWCurve.Crv_3A_inj(eut)),
+                ('1B_abs', VWCurve.Crv_1A_abs(eut)),
+                ('2B_abs', VWCurve.Crv_2A_abs(eut)),
+                ('3B_abs', VWCurve.Crv_3A_abs(eut))
             ]
         else:
             raise TypeError(f'unknown eut category {eut.Cat}')
@@ -139,7 +188,11 @@ class VW:
             '''
             u) Repeat steps d) through s) for Characteristics 2 and 3.
             '''
-            eut.active_power(Ena=True, pu=pwr_pu)
+            eut.active_power(pu=pwr_pu)
+            if eut.Prated_prime == 0:
+                # for euts incapable of absorption, do not test absorption curves
+                vw_crvs = vw_crvs[:3]
+            vw_crvs = vw_crvs[:1]
             for crv_name, vw_crv in vw_crvs:
                 '''
                 v) Test may be repeated for EUTs that can also absorb power using the P’ values in the characteristic definition. 
@@ -149,9 +202,13 @@ class VW:
                 e) Set EUT volt-watt parameters to the values specified by Characteristic 1. All other functions should be turned off.
                 f) Verify volt-watt mode is reported as active and that the correct characteristic is reported.
                 '''
-                lst_dct_steps = [self.vw_traverse_steps(env, eut, vw_crv)]
-                if eut.Prated_prime < 0:
-                    lst_dct_steps.append(self.vw_traverse_steps(env, eut, vw_crv))
+                eut.set_vw(Ena=True, crv=vw_crv)
+                for k, v in self.vw_traverse_steps(env, eut, vw_crv).items():
+                    dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
+                    self.vw_validate(env, eut, dct_label, lambda: env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / eut.VN) * eut.Prated)
+
+    def vw_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt:timedelta, y_of_x: Callable[[float], float]):
+        raise NotImplementedError
 
     def vw_imbal(self):
         """

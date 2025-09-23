@@ -28,4 +28,7 @@ env = EpriEnv(eut)
 
 # df = pd.concat(env.cpf_results.loc[:, 'data'].values)
 # df = pd.concat(env.crp_results.loc[:, 'data'].values)
+
+std.vw_proc(env=env, eut=eut)
+df = pd.concat(env.vw_results.loc[:, 'data'].values)
 pass

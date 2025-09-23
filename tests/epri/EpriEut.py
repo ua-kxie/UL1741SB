@@ -1,4 +1,5 @@
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
+from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 import opender as der
@@ -99,6 +100,15 @@ class EpriEut(Eut):
             self.der.der_file.QP_CURVE_P1_LOAD = crv.P1_prime
             self.der.der_file.QP_CURVE_P2_LOAD = crv.P2_prime
             self.der.der_file.QP_CURVE_P3_LOAD = crv.P3_prime
+
+    def set_vw(self, Ena: bool, crv: VWCurve=None):
+        self.der.der_file.PV_MODE_ENABLE = Ena
+        if crv is not None:
+            self.der.der_file.PV_CURVE_P1 = crv.P1
+            self.der.der_file.PV_CURVE_P2 = crv.P2
+            self.der.der_file.PV_CURVE_V1 = crv.V1
+            self.der.der_file.PV_CURVE_V2 = crv.V2
+            self.der.der_file.PV_OLRT = crv.Tr
 
     def set_vv_vref(self, Ena: bool, Tref_s):
         self.der.der_file.QV_VREF_AUTO_MODE = Ena

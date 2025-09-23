@@ -11,6 +11,7 @@ from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
+from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
     def await_ss(self):
@@ -67,6 +68,106 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     self.wv_validate_step(
                         env, eut, dct_label, lambda: eut.active_power(pu=step), timedelta(seconds=5),
                         lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
+
+    def vw_traverse_steps(self, env: Env, eut: Eut, vw_crv: VWCurve):
+        """
+        """
+        '''
+        g) Begin the adjustment towards VH. Step the ac test source voltage to av above VL.
+        h) Step the ac test source voltage to av below V1
+        i) Step the ac test source voltage to av above V1.
+        j) Step the ac test source voltage to (V1 + V2)/2.
+        k) Step the ac test source voltage to av below V2.
+        l) Step the ac test source voltage to av above V2.
+        m) Step the ac test source voltage to av below VH.
+        n) Step the ac test source voltage to av above V2.
+        o) Step the ac test source voltage to av below V2.
+        p) Step the ac test source voltage to (V1 + V2)/2.
+        q) Step the ac test source voltage to av above V1. 
+        r) Step the ac test source voltage to av below V1.
+        s) Step the ac test source voltage to av above VL.
+        '''
+        aV = eut.mra.static.V * 1.5
+        ret = {
+            'g': eut.VL + aV,
+            'h': vw_crv.V1 * eut.VN - aV,
+            'i': vw_crv.V1 * eut.VN + aV,
+            'j': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
+            'k': vw_crv.V2 * eut.VN - aV,
+            'm': eut.VH - aV,
+            'o': vw_crv.V2 * eut.VN - aV,
+            'p': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
+            'q': vw_crv.V1 * eut.VN + aV,
+            'r': vw_crv.V1 * eut.VN - aV,
+            's': eut.VL + aV
+        }
+        return ret
+
+    def vw_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.9.3, +SB amendments
+        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
+        new steady-state active power, Pfinal, and steady-state voltage Vfinal is measured. To obtain a steady-state
+        value, measurements shall be taken at a time period much larger than the open loop response, Tr, setting of
+        the volt-watt function. As a guideline, at 2 times the open loop response time setting, the steady-state state
+        error is 1%. In addition, instrumentation filtering may be used to reject any variation in ac test source
+        voltage during steady-state measurement.
+        
+        After each voltage or power step, the open loop response time, Tr, is evaluated. The expected active power
+        output, P(Tr), at one times the open loop response time, is calculated as 90% × (Pfinal – Pinitial) + Pinitial.
+        Pfinal shall meet the test result accuracy requirements specified in 4.2 where Pfinal is the Y parameter and
+        Vfinal is the X parameter.
+        
+        P(Tr) shall meet the test result accuracy requirements specified in 4.2 where P(Tr) is the Y parameter and Tr
+        is the X parameter.
+        
+        SB amendments:
+        The measured Pfinal shall be not more than P(Vfinal) + 1.5 * pMRA, where P(Vfinal) is the target power at 
+        Vfinal calculated according to the piecewise linear characteristic under test. There is no tolerance on the 
+        low side: Pfinal may be less than P(Vfinal) without limit.
+        
+        After each voltage or power step, the open loop response time Tr is evaluated. The measured active power output 
+        P(tr) at olrt +/- 1.5 tMRA shall be not more than 0.9 * (Pfinal - Pinitial) + Pinitial + 1.5 * pMRA.
+        '''
+        xMRA = eut.mra.static.V
+        yMRA = eut.mra.static.P
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'V', 'P'
+
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
+
+        # get y_init
+        y_init = df_meas.loc[df_meas.index[0], yarg]
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        # determine y_ss by average after olrt
+        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        '''
+        P(tr) at olrt +/- 1.5 tMRA [...] shall be not more than 0.9 * (Pfinal - Pinitial) + Pinitial + 1.5 * pMRA
+        '''
+        y_thresh = y_init + 0.9 * (y_ss - y_init) + 1.5 * yMRA
+        olrt_valid = y_olrt <= y_thresh
+
+        '''
+        Pfinal shall be not more than P(Vfinal) + 1.5 * pMRA
+        '''
+        # ss eval with 1741SB amendment
+        y_targ = y_of_x(x_ss)
+        y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        ss_valid = y_ss <= y_max
+        env.validate(dct_label={
+            **dct_label,
+            'y_init': y_init,
+            'y_olrt': y_olrt,
+            'y_ss': y_ss,
+            'y_olrt_target': y_thresh,
+            'y_ss_target': y_targ,
+            'olrt_valid': olrt_valid,
+            'ss_valid': ss_valid,
+            'data': df_meas
+        })
 
     def wv_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

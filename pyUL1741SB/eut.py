@@ -315,6 +315,9 @@ class Eut:
     def set_vt(self, **kwargs):
         pass
 
+    def set_vw(self, Ena: bool, crv=None):
+        pass
+
     def set_ft(self, **kwargs):
         pass
 
