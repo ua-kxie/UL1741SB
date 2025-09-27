@@ -2,44 +2,51 @@
 IEEE 1547.1-2020 5.15
 """
 from pyUL1741SB import Eut, Env
+from datetime import timedelta
+from typing import Callable
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
-class FW_OF:
-    def __init__(self, dbof_hz, kof, tr):
+class FWChar:
+    def __init__(self, dbof_hz, kof, dbuf_hz, kuf, tr):
         self.dbof_hz = dbof_hz
         self.kof = kof
-        self.tr = tr
-
-    @staticmethod
-    def CatI_CharI(): return FW_OF(dbof_hz=0.036, kof=0.05, tr=5)
-    @staticmethod
-    def CatII_CharI(): return FW_OF(dbof_hz=0.036, kof=0.05, tr=5)
-    @staticmethod
-    def CatIII_CharI(): return FW_OF(dbof_hz=0.036, kof=0.05, tr=5)
-    @staticmethod
-    def CatI_CharII(): return FW_OF(dbof_hz=0.017, kof=0.03, tr=1)
-    @staticmethod
-    def CatII_CharII(): return FW_OF(dbof_hz=0.017, kof=0.03, tr=1)
-    @staticmethod
-    def CatIII_CharII(): return FW_OF(dbof_hz=0.017, kof=0.02, tr=0.2)
-
-class FW_UF:
-    def __init__(self, dbuf_hz, kuf, tr):
         self.dbuf_hz = dbuf_hz
         self.kuf = kuf
         self.tr = tr
 
+    def y_of_x(self, x, xn, ymin, yn):
+        """
+        :param x: frequency in Hz
+        :param xn:
+        :param ymin: eut minimum capable y, p.u.
+        :param yn: y setpoint (p.u. at x within deadband)
+        :return: y (active power p.u.) at x (frequency, Hz)
+        """
+        df = x - xn
+        if df < 0:  # UF
+            df = abs(df)
+            if df < self.dbuf_hz:
+                return yn
+            else:
+                return min(yn + (df - self.dbuf_hz) * self.kuf, 1.0)
+        else:  # OF
+            if df < self.dbof_hz:
+                return yn
+            else:
+                return max(yn + (df - self.dbof_hz) * self.kof, ymin)
+
     @staticmethod
-    def CatI_CharI(): return FW_UF(dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatI_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
     @staticmethod
-    def CatII_CharI(): return FW_UF(dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatII_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
     @staticmethod
-    def CatIII_CharI(): return FW_UF(dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatIII_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
     @staticmethod
-    def CatI_CharII(): return FW_UF(dbuf_hz=0.017, kuf=0.03, tr=1)
+    def CatI_CharII(): return FWChar(dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
     @staticmethod
-    def CatII_CharII(): return FW_UF(dbuf_hz=0.017, kuf=0.03, tr=1)
+    def CatII_CharII(): return FWChar(dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
     @staticmethod
-    def CatIII_CharII(): return FW_UF(dbuf_hz=0.017, kuf=0.02, tr=0.2)
+    def CatIII_CharII(): return FWChar(dbof_hz=0.017, kof=0.02, dbuf_hz=0.017, kuf=0.02, tr=0.2)
 
 '''
 The manufacturer shall state the following parameters of the EUT for this test:
@@ -53,20 +60,21 @@ EUT’s abnormal operating performance category defined by IEEE Std 1547-2018
 The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
-class FW:
+class FW(IEEE1547Common):
     def fwo_proc(self, env: Env, eut: Eut):
         """"""
         # chars = char1, char2, char1 with Pmin if needed
         fw_crvs = {
-            Eut.AOPCat.I: [FW_OF.CatI_CharI(), FW_OF.CatI_CharII(), FW_OF.CatI_CharI()],
-            Eut.AOPCat.II: [FW_OF.CatII_CharI(), FW_OF.CatII_CharII(), FW_OF.CatII_CharI()],
-            Eut.AOPCat.III: [FW_OF.CatIII_CharI(), FW_OF.CatIII_CharII(), FW_OF.CatIII_CharI()],
+            Eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
+            Eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
+            Eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
         }[eut.aopCat]
         p_mins_pu = [eut.Pmin/eut.Prated, eut.Pmin/eut.Prated, eut.Pmin_prime/eut.Prated]
-        fw_crvs = list(zip(fw_crvs, p_mins_pu))
+        fw_crvs = list(zip(['charI', 'charII', 'charI'], fw_crvs, p_mins_pu))
         if not eut.Pmin_prime < 0:
-            # discard second CharI run if eut can not absorb active power
+            # discard second CharI run if eut cannot absorb active power
             fw_crvs = fw_crvs[:-1]
+        # fw_crvs = [[crv_key, crv, p_min_pu]
         '''
         IEEE 1547.1-2020 5.15.3.2:
         "Frequency is ramped at the ROCOF for the category of the EUT."
@@ -84,8 +92,11 @@ class FW:
         q) Repeat steps c) through p) for Characteristic 2.
         '''
         pwrs_pu = [1.0, 0.2, 0.66]
-        for crv, p_min_pu in fw_crvs:
-            eut.set_fw({'DbOf': crv.dbof_hz, 'KOf':crv.kof, 'RespTms': crv.tr, 'Pmin': p_min_pu})
+        for crv_key, crv, p_min_pu in fw_crvs:
+            eut.set_fw(Ena=True, crv=crv)
+            olrt = timedelta(seconds=crv.tr)
+            # TODO program eut's pmin
+
             '''
             p) Repeat test steps c) through o) with the EUT power set at 20% and 66% of rated power.
             '''
@@ -101,11 +112,13 @@ class FW:
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
+                y_of_x = lambda x: crv.y_of_x(x, eut.fN, p_min_pu, pwr_pu)
                 dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
-                for k, v in dct_steps.items():
-                    self.fwo_validate(env, eut)
+                for step_key, step_fcn in dct_steps.items():
+                    dct_label = {'proc': 'fwo', 'crv': crv_key, 'pmin': p_min_pu, 'pwr_pu': pwr_pu, 'step': step_key}
+                    self.fwo_validate(env, eut, dct_label, step_fcn, olrt, y_of_x)
 
-    def fwo_validate(self, env: Env, eut: Eut):
+    def fwo_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         5.15.2.3 Criteria
@@ -125,10 +138,48 @@ class FW:
         
         For the larger frequency ramps, the EUT shall reach steady state within 1/ ΔPlarge minutes.
         '''
-        # need to apply different validation depending on
-        raise NotImplementedError
+        xMRA = eut.mra.static.F
+        yMRA = eut.mra.static.P
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'F', 'P'
+        # need to apply different validation depending on DeltaPsmall/large
+        # assume criteria for deltaPsmall for all steps, more stringent criteria
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
 
-    def fwo_traverse_steps(self, env: Env, eut: Eut, crv: FW_OF, af):
+        # get y_init
+        y_init = df_meas.loc[df_meas.index[0], yarg]
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        # determine y_ss by average after olrt
+        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        '''
+        [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
+        '''
+        y_olrt_targ = y_init + 0.9 * (y_ss - y_init)
+        y_min, y_max = y_olrt_targ - 1.5 * yMRA, y_olrt_targ + 1.5 * yMRA
+        olrt_valid = y_min <= y_olrt <= y_max
+
+        '''
+        shall meet 4.2
+        '''
+        # ss eval with 1741SB amendment
+        y_targ = y_of_x(x_ss)
+        y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        ss_valid = y_min <= y_ss <= y_max
+        env.validate(dct_label={
+            **dct_label,
+            'y_init': y_init,
+            'y_olrt': y_olrt,
+            'y_olrt_target': y_olrt_targ,
+            'olrt_valid': olrt_valid,
+            'y_ss': y_ss,
+            'y_ss_target': y_targ,
+            'ss_valid': ss_valid,
+            'data': df_meas
+        })
+
+    def fwo_traverse_steps(self, env: Env, eut: Eut, crv: FWChar, af):
         """"""
         '''
         h) Begin the adjustment to fH. Ramp the frequency to af below (fN + dbOF).

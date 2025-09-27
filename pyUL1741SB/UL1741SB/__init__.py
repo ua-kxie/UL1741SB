@@ -1,8 +1,5 @@
 from datetime import timedelta
 from typing import Callable
-import statistics as stats
-import logging
-import numpy as np
 import pandas as pd
 
 from pyUL1741SB import Eut, Env

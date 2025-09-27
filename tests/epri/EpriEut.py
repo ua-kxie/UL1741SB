@@ -1,6 +1,7 @@
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
+from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
 import opender as der
 
@@ -159,26 +160,16 @@ class EpriEut(Eut):
     def has_tripped(self):
         return self.der.der_status == 'Trip'
 
-    def set_fw(self, **kwargs):
+    def set_fw(self, Ena: bool, crv: FWChar=None):
         """
         :param kwargs: Ena, DbOf, DbUf, KOf, KUf, RespTms, PMin
         :return:
         """
-        for k, v in kwargs.items():
-            if k == 'Ena':
-                self.der.der_file.PF_MODE_ENABLE = v
-            elif k == 'DbOf':
-                self.der.der_file.PF_DBOF = v
-            elif k == 'DbUf':
-                self.der.der_file.PF_DBUF = v
-            elif k == 'KOf':
-                self.der.der_file.PF_KOF = v
-            elif k == 'KUf':
-                self.der.der_file.PF_KUF = v
-            elif k == 'RespTms':
-                self.der.der_file.PF_OLRT = v
-            elif k == 'PMin_pu':
-                self.der.der_file.NP_P_MIN_PU = v
-            else:
-                raise NotImplementedError
+        self.der.der_file.PF_MODE_ENABLE = Ena
+        self.der.der_file.PF_DBOF = crv.dbof_hz
+        self.der.der_file.PF_DBUF = crv.dbuf_hz
+        self.der.der_file.PF_KOF = crv.kof
+        self.der.der_file.PF_KUF = crv.kuf
+        self.der.der_file.PF_OLRT = crv.tr
+        self.der.der_file.NP_P_MIN_PU = 0
 

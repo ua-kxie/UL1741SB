@@ -309,6 +309,9 @@ class Eut:
     def set_vv(self, Ena: bool, crv=None):
         pass
 
+    def set_fw(self, Ena: bool, crv=None):
+        pass
+
     def set_wv(self, Ena: bool, crv=None):
         pass
 
