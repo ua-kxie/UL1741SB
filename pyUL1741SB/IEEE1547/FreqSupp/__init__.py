@@ -14,26 +14,32 @@ class FWChar:
         self.kuf = kuf
         self.tr = tr
 
-    def y_of_x(self, x, xn, ymin, yn):
+    def y_of_x(self, x, ymin, yn, ymax):
         """
         :param x: frequency in Hz
-        :param xn:
         :param ymin: eut minimum capable y, p.u.
         :param yn: y setpoint (p.u. at x within deadband)
+        :param ymax: eut available y, p.u.
         :return: y (active power p.u.) at x (frequency, Hz)
         """
-        df = x - xn
+        def of_region():
+            crv = yn - ((x - 60 - self.dbof_hz) / 60 / self.kof)
+            return max(ymin, crv)
+        def uf_region():
+            crv = yn + ((60 - self.dbuf_hz - x) / 60 / self.kuf)
+            return min(ymax, crv)
+        df = x - 60
         if df < 0:  # UF
             df = abs(df)
             if df < self.dbuf_hz:
                 return yn
             else:
-                return min(yn + (df - self.dbuf_hz) * self.kuf, 1.0)
+                return uf_region()
         else:  # OF
             if df < self.dbof_hz:
                 return yn
             else:
-                return max(yn + (df - self.dbof_hz) * self.kof, ymin)
+                return of_region()
 
     @staticmethod
     def CatI_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
@@ -60,7 +66,7 @@ EUT’s abnormal operating performance category defined by IEEE Std 1547-2018
 The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
-class FW(IEEE1547Common):
+class FreqSupp(IEEE1547Common):
     def fwo_proc(self, env: Env, eut: Eut):
         """"""
         # chars = char1, char2, char1 with Pmin if needed
@@ -95,7 +101,7 @@ class FW(IEEE1547Common):
         for crv_key, crv, p_min_pu in fw_crvs:
             eut.set_fw(Ena=True, crv=crv)
             olrt = timedelta(seconds=crv.tr)
-            # TODO program eut's pmin
+            # TODO program eut's pmin - what means?
 
             '''
             p) Repeat test steps c) through o) with the EUT power set at 20% and 66% of rated power.
@@ -112,7 +118,8 @@ class FW(IEEE1547Common):
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                y_of_x = lambda x: crv.y_of_x(x, eut.fN, p_min_pu, pwr_pu)
+                eut.wlim(Ena=True, pu=pwr_pu)
+                y_of_x = lambda x: crv.y_of_x(x, p_min_pu, pwr_pu, pwr_pu) * eut.Prated
                 dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
                     dct_label = {'proc': 'fwo', 'crv': crv_key, 'pmin': p_min_pu, 'pwr_pu': pwr_pu, 'step': step_key}
@@ -212,9 +219,9 @@ class FW(IEEE1547Common):
         "Frequency is ramped at the ROCOF for the category of the EUT."
         '''
         fw_crvs = {
-            Eut.AOPCat.I: [FW_UF.CatI_CharI(), FW_UF.CatI_CharII(), FW_UF.CatI_CharI()],
-            Eut.AOPCat.II: [FW_UF.CatII_CharI(), FW_UF.CatII_CharII(), FW_UF.CatII_CharI()],
-            Eut.AOPCat.III: [FW_UF.CatIII_CharI(), FW_UF.CatIII_CharII(), FW_UF.CatIII_CharI()],
+            Eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
+            Eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
+            Eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
         }[eut.aopCat]
         p_mins_pu = [eut.Pmin / eut.Prated, eut.Pmin / eut.Prated, -0.5]
         fw_crvs = list(zip(fw_crvs, p_mins_pu))
@@ -270,7 +277,7 @@ class FW(IEEE1547Common):
         # need to apply different validation depending on
         raise NotImplementedError
 
-    def fwu_traverse_steps(self, env: Env, eut: Eut, crv: FW_OF, af):
+    def fwu_traverse_steps(self, env: Env, eut: Eut, crv: FWChar, af):
         """"""
         '''
         g) Begin the adjustment to fL. Ramp the frequency to af above (fN – dbUF).

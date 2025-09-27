@@ -8,7 +8,6 @@ import copy
 
 from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
-from pyUL1741SB.IEEE1547.FreqSupp import FW_OF, FW_UF
 from pyUL1741SB import Eut, Env
 from pyUL1741SB.eut import VoltShallTripValue
 
@@ -18,7 +17,6 @@ class OpMode(enum.Enum):
     MandOp = 2
     MandOpC = 3  # During this test condition, the EUT may stay in momentary cessation for voltages less than 0.5 p.u. but shall not trip
     MomCess = 4
-
 
 class LVRTSeq:
     def __init__(self, df_dset1, df_dset2, df_dset3, df_dset4):

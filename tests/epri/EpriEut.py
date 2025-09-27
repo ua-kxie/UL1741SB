@@ -7,9 +7,9 @@ import opender as der
 
 class EpriEut(Eut):
     def __init__(self, **kwargs):
-        self.der = der.DER()
+        self.der = der.DER_BESS()
         self.der.der_file.NP_PHASE = "SINGLE"
-        self.der.update_der_input(v_pu=1, f=60, p_dc_pu=1.0)
+        self.der.update_der_input(v_pu=1, f=60, p_dem_pu=1.0)
         self.der.run()
         super().__init__(
             Cat=Eut.Category.B,
@@ -18,7 +18,7 @@ class EpriEut(Eut):
             freqshalltrip_tbl=FreqShallTripTable.MaxRange(),
             vfo=False,
             Prated=self.der.der_file.NP_P_MAX,
-            Prated_prime=0,
+            Prated_prime=-self.der.der_file.NP_P_MAX_CHARGE,
             Srated=self.der.der_file.NP_P_MAX,
             Vin_nom=self.der.der_file.NP_V_DC,
             Vin_min=None,
@@ -27,7 +27,7 @@ class EpriEut(Eut):
             VL=self.der.der_file.NP_AC_V_NOM * 0.9,
             VH=self.der.der_file.NP_AC_V_NOM * 1.1,
             Pmin=0,
-            Pmin_prime=0,
+            Pmin_prime=-self.der.der_file.NP_P_MAX_CHARGE,
             Qrated_abs=self.der.der_file.NP_Q_MAX_ABS,
             Qrated_inj=-self.der.der_file.NP_Q_MAX_INJ,
             Comms=[Eut.Comms.SUNS],
@@ -60,7 +60,7 @@ class EpriEut(Eut):
     def active_power(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'pu':
-                self.der.update_der_input(p_dc_pu=v)
+                self.der.update_der_input(p_dem_pu=v)
             else:
                 raise NotImplementedError
 

@@ -22,6 +22,7 @@ class EpriEnv(Env):
         self.vv_vref_results = pd.DataFrame()
         self.wv_results = pd.DataFrame()
         self.vw_results = pd.DataFrame()
+        self.fwo_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -39,6 +40,7 @@ class EpriEnv(Env):
     def meas(self):
         data = {
             'time': self.time,
+            'F': self.eut.der.der_input.freq_hz,
             'P': self.eut.der.der_output.p_out_w,
             'Q': self.eut.der.der_output.q_out_var,
             'V': self.eut.der.der_input.v_meas_pu * self.eut.der.der_file.NP_AC_V_NOM
@@ -92,6 +94,8 @@ class EpriEnv(Env):
             self.wv_results = pd.concat([self.wv_results, df_row])
         elif proc == 'vw':
             self.vw_results = pd.concat([self.vw_results, df_row])
+        elif proc == 'fwo':
+            self.fwo_results = pd.concat([self.fwo_results, df_row])
         else:
             raise NotImplementedError(proc)
 
@@ -119,7 +123,7 @@ class EpriEnv(Env):
     def dc_config(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'pwr_watts':
-                self.eut.der.update_der_input(p_dc_w=v)
+                self.eut.der.update_der_input(p_dem_pu=v)
             elif k =='Vdc':
                 pass
             else:
