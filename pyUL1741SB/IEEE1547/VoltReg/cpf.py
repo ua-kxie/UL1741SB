@@ -166,13 +166,3 @@ class CPF:
                 # vars_ctrl = eut.reactive_power()['Ena']
                 # watts_ctrl = eut.active_power()['Ena']
                 # env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
-        '''
-        s) Repeat steps d) through p) for additional power factor settings: PFmin,ab, PFmid,inj, PFmid,ab.
-        t) For an EUT with an input voltage range, repeat steps d) through p) for Vin_min and Vin_max.
-        '''
-        '''
-        u) Steps d) through f) may be repeated to test additional communication protocols. 
-        '''
-        # do procedure
-        # make meas after each step
-        # validate

@@ -7,6 +7,8 @@ from pyUL1741SB.IEEE1547.FreqDistResp import FreqDist
 from pyUL1741SB.IEEE1547.VoltDistResp import VoltDist
 from pyUL1741SB.IEEE1547.FreqSupp import FreqSupp
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
+from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
-class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp):
+
+class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
     pass

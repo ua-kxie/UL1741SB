@@ -100,10 +100,10 @@ class EpriEnv(Env):
             raise NotImplementedError(proc)
 
     def pre_cbk(self, **kwargs):
-        print(f"pre: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
+        pass
 
     def post_cbk(self, **kwargs):
-        print(f"post: {''.join([f'{k}: {v}; ' for k, v in kwargs.items()])}")
+        pass
 
     def ac_config(self, **kwargs):
         """"""
