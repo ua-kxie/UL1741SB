@@ -11,15 +11,6 @@ from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 
 class UL1741SB(IEEE1547, IEEE1547Common):
-    def await_ss(self):
-        # for tests without a well-defined olrt, detect ss. Specifically SB correction for vv-vref
-
-        # get target range
-        # detect measurement is within range and not moving
-
-        # how to detect not moving in presence of noise? stationarity tests like augmented dickey-fuller
-        pass
-
     def wv_proc(self, env: Env, eut: Eut):
         """
         """
@@ -218,9 +209,11 @@ class UL1741SB(IEEE1547, IEEE1547Common):
                     e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
                     be turned off. Turn off the autonomously adjusting reference voltage.
                     f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
+                    g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
                     '''
                     eut.set_vv(Ena=True, crv=vv_crv)
                     dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
+                    env.sleep(timedelta(seconds=vv_crv.Tr * 2))
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
                         env.pre_cbk(**dct_label)
@@ -314,6 +307,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
             '''
             eut.set_vv(Ena=True, crv=crv)
             eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            env.sleep(timedelta(seconds=10))
             '''
             h) Step the ac test source voltage to (V3 + V4)/2.
             i) Step the ac test source voltage to (V2 + V1)/2.
