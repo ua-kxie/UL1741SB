@@ -27,7 +27,7 @@ class EpriEut(Eut):
             VL=self.der.der_file.NP_AC_V_NOM * 0.9,
             VH=self.der.der_file.NP_AC_V_NOM * 1.1,
             Pmin=0,
-            Pmin_prime=-self.der.der_file.NP_P_MAX_CHARGE,
+            Pmin_prime=0,
             Qrated_abs=self.der.der_file.NP_Q_MAX_ABS,
             Qrated_inj=-self.der.der_file.NP_Q_MAX_INJ,
             Comms=[Eut.Comms.SUNS],

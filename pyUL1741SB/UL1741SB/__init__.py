@@ -395,7 +395,7 @@ class UL1741SB(IEEE1547, IEEE1547Common):
 
         env.validate(dct_label={
             **dct_label,
-            'olrt_valid': crit1 and crit2,
+            'valid': crit1 and crit2,
             'data': df_meas
         })
 

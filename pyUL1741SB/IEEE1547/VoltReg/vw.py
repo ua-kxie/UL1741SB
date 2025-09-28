@@ -192,7 +192,6 @@ class VW:
             if eut.Prated_prime == 0:
                 # for euts incapable of absorption, do not test absorption curves
                 vw_crvs = vw_crvs[:3]
-            vw_crvs = vw_crvs[:1]
             for crv_name, vw_crv in vw_crvs:
                 '''
                 v) Test may be repeated for EUTs that can also absorb power using the P’ values in the characteristic definition. 
