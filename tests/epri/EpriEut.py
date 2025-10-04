@@ -44,12 +44,14 @@ class EpriEut(Eut):
             if k == 'Ena':
                 self.der.der_file.CONST_PF_MODE_ENABLE = v
             elif k == 'PF':
-                if v < 0:
+                self.der.der_file.CONST_PF = v
+            elif k == 'Ext':
+                if v.upper() == 'ABS':
                     self.der.der_file.CONST_PF_EXCITATION = 'ABS'
-                    self.der.der_file.CONST_PF = -v
-                else:
+                elif v.upper() == 'INJ':
                     self.der.der_file.CONST_PF_EXCITATION = 'INJ'
-                    self.der.der_file.CONST_PF = v
+                else:
+                    raise ValueError(f'Ext: {v}')
             else:
                 raise NotImplementedError
 

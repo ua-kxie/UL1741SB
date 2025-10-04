@@ -33,14 +33,15 @@ class CPF:
         PFmin,inj: Minimum injected power factor, 0.90 for both Category A and B equipment
         PFmin,ab: Minimum absorbed power factor, 0.97 for Category A, 0.90 for Category B
         PFmid,inj: A power factor setting chosen to be less than 1 and greater than PFmin,inj
-        PFmid,ab: Apower factor setting chosen to be less than 1 and greater than PFmin,ab
+        PFmid,ab: A power factor setting chosen to be less than 1 and greater than PFmin,ab
         '''
         if eut.Cat == Eut.Category.A:
-            targetPFs = [0.9, -0.97, 0.95, -0.98]  # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
+            targetPFs = [0.9, 0.97, 0.95, 0.98]  # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
         elif eut.Cat == Eut.Category.B:
-            targetPFs = [0.9, -0.9, 0.95, -0.95]
+            targetPFs = [0.9, 0.9, 0.95, 0.95]
         else:
             raise TypeError(f'unknown eut category {eut.Cat}')
+        targetPFs = list(zip(targetPFs, ['inj', 'abs', 'inj', 'abs']))
         '''
         5.14.2:
         The term av is used throughout these tests and is defined as 150% of the minimum required measurement accuracy
@@ -68,13 +69,15 @@ class CPF:
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """
-            for targetPF in targetPFs:
+            for PF, Ext in targetPFs:
                 def y_of_x(x):
-                    q = x * math.sqrt(1 / targetPF ** 2 - 1)
-                    if targetPF > 0:
+                    q = x * math.sqrt(1 / PF ** 2 - 1)
+                    if Ext == 'inj':
                         return q
-                    else:
+                    elif Ext == 'abs':
                         return -q
+                    else:
+                        raise ValueError(f'unknown Ext {Ext}')
                 '''
                 (c) - set to nominal and wait for steady state
                 '''
@@ -88,7 +91,7 @@ class CPF:
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
-                eut.fixed_pf(Ena=True, PF=targetPF)
+                eut.fixed_pf(Ena=True, PF=PF, Ext=Ext)
                 '''
                 f) Wait for steady state to be reached.		
                 '''
@@ -111,7 +114,7 @@ class CPF:
                     validate(
                         env=env,
                         eut=eut,
-                        dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
@@ -153,11 +156,11 @@ class CPF:
                 q) Disable constant power factor mode. Power factor should return to unity.
                 r) Verify all reactive/active power control functions are disabled.
                 '''
-                targetPF = 1
+                PF = 1
                 validate(
                     env=env,
                     eut=eut,
-                    dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{targetPF:.2f}', 'Step': f'q'},
+                    dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'q'},
                     perturbation=lambda: eut.fixed_pf(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
@@ -165,4 +168,4 @@ class CPF:
                 # step r: TODO
                 # vars_ctrl = eut.reactive_power()['Ena']
                 # watts_ctrl = eut.active_power()['Ena']
-                # env.log(msg=f'cpf Vin: {Vin}, PF: {targetPF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')
+                # env.log(msg=f'cpf Vin: {Vin}, PF: {PF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')

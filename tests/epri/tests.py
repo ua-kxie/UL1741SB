@@ -1,8 +1,8 @@
 from pyUL1741SB.UL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
-import pytest
 import pandas as pd
+pd.options.plotting.backend = "plotly"
 
 std = UL1741SB()
 eut = EpriEut()
