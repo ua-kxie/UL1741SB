@@ -247,7 +247,7 @@ class FreqSupp(IEEE1547Common):
             should be turned off.
             '''
             env.dc_config(pwr_watts=eut.Prated)
-            eut.active_power(pu=0.5)
+            eut.set_ap(Ena=True, pu=0.5)
             eut.set_fw({'DbUf': crv.dbof_hz, 'KUf': crv.kof, 'RespTms': crv.tr, 'Pmin': p_min_pu})
             '''
             f) Verify frequency-watt mode is reported as active and that the correct characteristic is reported.

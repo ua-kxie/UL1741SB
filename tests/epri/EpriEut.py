@@ -39,7 +39,7 @@ class EpriEut(Eut):
             delta_Plarge=0.5  # large power change threshold (p.u.)
         )
 
-    def fixed_pf(self, **kwargs):
+    def cpf(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':
                 self.der.der_file.CONST_PF_MODE_ENABLE = v
@@ -59,19 +59,19 @@ class EpriEut(Eut):
         self.der.der_file.AP_LIMIT_ENABLE = Ena
         self.der.der_file.AP_LIMIT = pu
 
-    def active_power(self, **kwargs):
+    def set_ap(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'pu':
                 self.der.update_der_input(p_dem_pu=v)
             else:
                 raise NotImplementedError
 
-    def reactive_power(self, **kwargs):
+    def crp(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':
                 self.der.der_file.CONST_Q_MODE_ENABLE = v
-            elif k == 'Q':
-                self.der.der_file.CONST_Q = v / self.der.der_file.NP_VA_MAX
+            elif k == 'pu':
+                self.der.der_file.CONST_Q = v
             else:
                 raise NotImplementedError
 

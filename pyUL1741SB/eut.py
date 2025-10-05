@@ -288,41 +288,38 @@ class Eut:
             Eut.AOPCat.III: 3.0,
         }[self.aopCat]
 
-    def reactive_power(self, **kwargs):
-        if len(kwargs) == 0:
-            # treat as query
-            return {'Ena': False}
-        pass
+    def cpf(self, **kwargs):
+        raise NotImplementedError
 
-    def active_power(self, **kwargs):
-        if len(kwargs) == 0:
-            # treat as query
-            return {'Ena': False}
-        pass
+    def wlim(self, Ena: bool, pu):
+        raise NotImplementedError
 
-    def fixed_pf(self, **kwargs):
-        pass
+    def set_ap(self, **kwargs):
+        raise NotImplementedError
 
-    def state(self):
-        pass
+    def crp(self, **kwargs):
+        raise NotImplementedError
 
     def set_vv(self, Ena: bool, crv=None):
-        pass
-
-    def set_fw(self, Ena: bool, crv=None):
-        pass
+        raise NotImplementedError
 
     def set_wv(self, Ena: bool, crv=None):
-        pass
-
-    def set_vt(self, **kwargs):
-        pass
+        raise NotImplementedError
 
     def set_vw(self, Ena: bool, crv=None):
-        pass
-
-    def set_ft(self, **kwargs):
-        pass
+        raise NotImplementedError
 
     def set_vv_vref(self, Ena: bool, Tref_s):
-        pass
+        raise NotImplementedError
+
+    def set_vt(self, **kwargs):
+        raise NotImplementedError
+
+    def set_ft(self, **kwargs):
+        raise NotImplementedError
+
+    def has_tripped(self):
+        raise NotImplementedError
+
+    def set_fw(self, Ena: bool, crv=None):
+        raise NotImplementedError

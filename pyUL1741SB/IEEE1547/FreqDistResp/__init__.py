@@ -212,8 +212,8 @@ class FreqDist(IEEE1547Common):
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            eut.active_power(pu=0.9)
-            eut.fixed_pf(PF=1.0)
+            eut.set_ap(Ena=True, pu=0.9)
+            eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
             g) Adjust the EUT frequency from PN to PU where PU is greater than or equal to 61.8 Hz. The EUT
@@ -286,8 +286,8 @@ class FreqDist(IEEE1547Common):
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            eut.active_power(pu=0.9)
-            eut.fixed_pf(PF=1.0)
+            eut.set_ap(Ena=True, pu=0.9)
+            eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
             g) Adjust the frequency of the EUT from PN to PU where PU is less than or equal to 57 Hz. The EUT

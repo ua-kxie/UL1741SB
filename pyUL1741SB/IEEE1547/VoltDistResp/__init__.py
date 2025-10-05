@@ -320,9 +320,9 @@ class VoltDist(IEEE1547Common):
         power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
         '''
         PF = 1.0  # 0.9-1.0
-        eut.fixed_pf(PF=PF)
+        eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            eut.active_power(pu=pwr_pu)
+            eut.set_ap(Ena=True, pu=pwr_pu)
             cond = True
             for df_set in lvrt_seq.df_dsets[:-1]:  # iterate over necessary sets
                 self.uvrt_validate(env, eut, df_set)

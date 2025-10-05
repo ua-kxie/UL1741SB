@@ -188,7 +188,7 @@ class VW:
             '''
             u) Repeat steps d) through s) for Characteristics 2 and 3.
             '''
-            eut.active_power(pu=pwr_pu)
+            eut.set_ap(Ena=True, pu=pwr_pu)
             if eut.Prated_prime == 0:
                 # for euts incapable of absorption, do not test absorption curves
                 vw_crvs = vw_crvs[:3]

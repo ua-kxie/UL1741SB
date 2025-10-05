@@ -53,7 +53,7 @@ class UL1741SB(IEEE1547):
                 for k, step in dct_steps.items():
                     dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
                     self.wv_validate_step(
-                        env, eut, dct_label, lambda: eut.active_power(pu=step), timedelta(seconds=5),
+                        env, eut, dct_label, lambda: eut.set_ap(Ena=True, pu=step), timedelta(seconds=5),
                         lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
 
     def vw_traverse_steps(self, env: Env, eut: Eut, vw_crv: VWCurve):
@@ -190,8 +190,8 @@ class UL1741SB(IEEE1547):
         requirements.
         '''
         eut.wlim(Ena=False, pu=1)
-        eut.reactive_power(Ena=False)
-        eut.fixed_pf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_cpf(Ena=False)
         '''
         ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
         '''

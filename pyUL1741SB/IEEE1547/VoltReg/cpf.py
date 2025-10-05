@@ -58,7 +58,7 @@ class CPF:
         control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
-        eut.reactive_power(Ena=False)
+        eut.set_crp(Ena=False)
         eut.wlim(Ena=False, pu=1)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
@@ -91,7 +91,7 @@ class CPF:
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
-                eut.fixed_pf(Ena=True, PF=PF, Ext=Ext)
+                eut.set_cpf(Ena=True, PF=PF, Ext=Ext)
                 '''
                 f) Wait for steady state to be reached.		
                 '''
@@ -161,11 +161,11 @@ class CPF:
                     env=env,
                     eut=eut,
                     dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'q'},
-                    perturbation=lambda: eut.fixed_pf(Ena=False),
+                    perturbation=lambda: eut.set_cpf(Ena=False),
                     olrt=olrt,
                     y_of_x=y_of_x,
                 )
                 # step r: TODO
-                # vars_ctrl = eut.reactive_power()['Ena']
-                # watts_ctrl = eut.active_power()['Ena']
+                # vars_ctrl = eut.set_ap()['Ena']
+                # watts_ctrl = eut.set_ap()['Ena']
                 # env.log(msg=f'cpf Vin: {Vin}, PF: {PF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')

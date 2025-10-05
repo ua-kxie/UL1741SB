@@ -94,7 +94,7 @@ class RespPri:
         voltage to Vin_nom.
         '''
         env.dc_config(Vdc=eut.VN)
-        eut.active_power(pu=1)
+        eut.set_ap(Ena=True, pu=1)
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and
         enable frequency-watt and volt-watt parameters. For volt-watt, set P2 = 0.2Prated.
@@ -134,14 +134,14 @@ class RespPri:
 
         def crp_cfg():
             # disable vvcrv
-            eut.reactive_power(Ena=True, Q=eut.Qrated_inj)
+            eut.set_crp(Ena=True, pu=1)
 
         def cpf_cfg():
-            eut.reactive_power(Ena=False)
-            eut.fixed_pf(Ena=True, PF=eut.PFmaxinj)
+            eut.set_crp(Ena=False)
+            eut.set_cpf(Ena=True, PF=eut.PFmaxinj)
 
         def wv_cfg():
-            eut.fixed_pf(Ena=False)
+            eut.set_cpf(Ena=False)
             if eut.Cat == Eut.Category.A:
                 wvcrv = WVCurve.Crv_1A(eut.Prated, eut.Pmin, eut.Srated, eut.Prated_prime, eut.Pmin_prime)
             elif eut.Cat == Eut.Category.B:
@@ -156,7 +156,7 @@ class RespPri:
             i) Allow the EUT to reach steady state.
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
-            eut.active_power(pu=0.5)
+            eut.set_ap(Ena=True, pu=0.5)
             '''
             n) Repeat steps k) through m) for the rest of the steps in Table 38 or Table 39, depending on the
             EUT’s normal operating performance category.

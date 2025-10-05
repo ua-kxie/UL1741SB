@@ -25,7 +25,7 @@ class CRP:
             )
             env.post_cbk(**dct_label)
         olrt = timedelta(seconds=10)
-        Qsets = [eut.Qrated_inj, eut.Qrated_abs, 0.5 * eut.Qrated_inj, 0.5 * eut.Qrated_abs]
+        Qpusets = [1, -1, 0.5, -0.5]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = eut.Pmin, eut.Prated, eut.multiphase
         VL, VN, VH = eut.VL, eut.VN, eut.VH
@@ -39,7 +39,7 @@ class CRP:
         '''
         t) Repeat steps d) through s) for additional reactive power settings: [Qmax,inj] Qmax,ab, 0.5Qmax,inj, 0.5Qmax,ab.
         '''
-        for Q in Qsets:
+        for Qpu in Qpusets:
             '''
             u) For an EUT with an input voltage range, repeat steps d) through t) for Vin_min and Vin_max
             '''
@@ -54,9 +54,9 @@ class CRP:
                 f) Verify constant var mode is reported as active and that the reactive power setting is reported as
                 Qmax,inj.
                 '''
-                eut.wlim(Ena=True, pu=1)
+                eut.set_ap(Ena=True, pu=1)
                 env.dc_config(Vdc=Vin)
-                eut.reactive_power(Ena=True, Q=Q)
+                eut.set_crp(Ena=True, pu=Qpu)
                 '''
                 g) Step the EUT’s active power to 20% of Prated, or Pmin, whichever is less.
                 h) Step the EUT’s active power to 5% of Prated, or Pmin, whichever is less.
@@ -66,9 +66,9 @@ class CRP:
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: eut.active_power(pu=max(0.2, Pmin/Prated)),  # TODO - epri doesnt work at min
-                    'h': lambda: eut.active_power(pu=max(0.05, Pmin/Prated)),
-                    'i': lambda: eut.active_power(pu=1),
+                    'g': lambda: eut.set_ap(Ena=True, pu=max(0.2, Pmin / Prated)),
+                    'h': lambda: eut.set_ap(Ena=True, pu=max(0.05, Pmin / Prated)),
+                    'i': lambda: eut.set_ap(Ena=True, pu=1),
                     'j': lambda: env.ac_config(Vac=VL + av),
                     'k': lambda: env.ac_config(Vac=VH - av),
                     'l': lambda: env.ac_config(Vac=VL + av),
@@ -77,10 +77,10 @@ class CRP:
                     validate(
                         env=env,
                         eut=eut,
-                        dct_label={'proc': 'crp', 'Qset': f'{Q:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': 'crp', 'Qset': f'{Qpu:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturbation=perturbation,
                         olrt=olrt,
-                        y_of_x=lambda x: Q,
+                        y_of_x=lambda x: Qpu * eut.Qrated_inj if Qpu > 0 else Qpu * eut.Qrated_abs,
                     )
                 if multiphase:
                     raise NotImplementedError
@@ -99,11 +99,11 @@ class CRP:
                     env=env,
                     eut=eut,
                     dct_label={'proc': 'crp', 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
-                    perturbation=lambda: eut.reactive_power(Ena=False),
+                    perturbation=lambda: eut.set_crp(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )
                 # step r TODO
-                # vars_ctrl = eut.reactive_power()['Ena']
-                # watts_ctrl = eut.active_power()['Ena']
+                # vars_ctrl = eut.set_crp()['Ena']
+                # watts_ctrl = eut.set_crp()['Ena']
                 # env.log(msg=f"crp Qset: {Q}, Vin: {Vin}, Step: s; vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}")

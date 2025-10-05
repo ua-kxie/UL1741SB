@@ -27,7 +27,7 @@ class WLim(IEEE1547Common):
                 command) the EUT to reach steady-state output at its rated active power. Begin recording EUT
                 active power.
                 '''
-                eut.active_power(pu=1)
+                eut.set_ap(Ena=True, pu=1)
                 env.sleep(timedelta(olrt * 1.5))
                 '''
                 In step c), the EUT steady-state active power shall be reduced to the commanded percentage of its rated
@@ -38,7 +38,7 @@ class WLim(IEEE1547Common):
                 c) Apply an active power limit to the EUT of 66% of its rated active power. Wait until the EUT active
                 power reaches a new steady state.
                 '''
-                eut.active_power(pu=wlim_pu)
+                eut.set_ap(Ena=True, pu=wlim_pu)
                 # wait for ss,
                 '''
                 In steps d) and e), the EUT steady-state active power shall be modulated in accordance with the equations
