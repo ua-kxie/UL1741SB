@@ -59,7 +59,7 @@ class CPF:
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
         eut.set_crp(Ena=False)
-        eut.wlim(Ena=False, pu=1)
+        eut.set_ap(Ena=False, pu=1)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
@@ -104,8 +104,8 @@ class CPF:
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 dct_steps = {
-                    'g': lambda: eut.wlim(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: eut.wlim(Ena=True, pu=1.0),
+                    'g': lambda: eut.set_ap_lim(Ena=True, pu=Pmin / Prated),
+                    'h': lambda: eut.set_ap_lim(Ena=True, pu=1.0),
                     'i': lambda: env.ac_config(Vac=VL + av),
                     'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),

@@ -118,7 +118,7 @@ class FreqSupp(IEEE1547Common):
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                eut.wlim(Ena=True, pu=pwr_pu)
+                eut.set_ap_lim(Ena=True, pu=pwr_pu)
                 y_of_x = lambda x: crv.y_of_x(x, p_min_pu, pwr_pu, pwr_pu) * eut.Prated
                 dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():

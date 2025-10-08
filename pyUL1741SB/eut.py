@@ -288,16 +288,16 @@ class Eut:
             Eut.AOPCat.III: 3.0,
         }[self.aopCat]
 
-    def cpf(self, **kwargs):
+    def set_cpf(self, **kwargs):
         raise NotImplementedError
 
-    def wlim(self, Ena: bool, pu):
+    def set_ap_lim(self, Ena: bool, pu):
         raise NotImplementedError
 
     def set_ap(self, **kwargs):
         raise NotImplementedError
 
-    def crp(self, **kwargs):
+    def set_crp(self, **kwargs):
         raise NotImplementedError
 
     def set_vv(self, Ena: bool, crv=None):

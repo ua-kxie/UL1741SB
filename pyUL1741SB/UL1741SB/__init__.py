@@ -189,7 +189,7 @@ class UL1741SB(IEEE1547):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
-        eut.wlim(Ena=False, pu=1)
+        eut.set_ap_lim(Ena=False, pu=1)
         eut.set_crp(Ena=False)
         eut.set_cpf(Ena=False)
         '''
