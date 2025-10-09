@@ -87,7 +87,7 @@ class CPF:
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
                 power requirements.
                 '''
-                env.dc_config(pwr_watts=Prated)
+                eut.set_ap(Ena=True, pu=1)
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
@@ -104,8 +104,8 @@ class CPF:
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 dct_steps = {
-                    'g': lambda: eut.set_ap_lim(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: eut.set_ap_lim(Ena=True, pu=1.0),
+                    'g': lambda: eut.set_ap(Ena=True, pu=Pmin / Prated),
+                    'h': lambda: eut.set_ap(Ena=True, pu=1.0),
                     'i': lambda: env.ac_config(Vac=VL + av),
                     'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),
