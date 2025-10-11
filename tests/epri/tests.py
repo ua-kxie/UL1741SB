@@ -58,6 +58,14 @@ def test_fwo():
     assert env.fwo_results.loc[:, 'ss_valid'].all()
     assert env.fwo_results.loc[:, 'olrt_valid'].all()
 
+def test_fwu():
+    # TODO deltaPlarge, wait for ss between traversals
+    std.fwu_proc(env=env, eut=eut)
+    results = env.fwu_results.iloc[:, :-1]
+    df = pd.concat(env.fwu_results.loc[:, 'data'].values)
+    assert env.fwu_results.loc[:, 'ss_valid'].all()
+    assert env.fwu_results.loc[:, 'olrt_valid'].all()
+
 def test_uvt():
     std.uvt_proc(env=env, eut=eut)
     results = env.uvt_results.iloc[:, :-1]

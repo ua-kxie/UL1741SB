@@ -96,6 +96,8 @@ class EpriEnv(Env):
             self.vw_results = pd.concat([self.vw_results, df_row])
         elif proc == 'fwo':
             self.fwo_results = pd.concat([self.fwo_results, df_row])
+        elif proc == 'fwu':
+            self.fwu_results = pd.concat([self.fwu_results, df_row])
         else:
             raise NotImplementedError(proc)
 
