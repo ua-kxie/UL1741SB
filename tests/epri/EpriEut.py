@@ -29,7 +29,7 @@ class EpriEut(Eut):
             Pmin=0,
             Pmin_prime=0,
             Qrated_abs=self.der.der_file.NP_Q_MAX_ABS,
-            Qrated_inj=-self.der.der_file.NP_Q_MAX_INJ,
+            Qrated_inj=self.der.der_file.NP_Q_MAX_INJ,
             Comms=[Eut.Comms.SUNS],
             multiphase=False,
             fL=59.0,  # minimum frequency in continuous operating region (Hz)
@@ -63,6 +63,8 @@ class EpriEut(Eut):
         for k, v in kwargs.items():
             if k == 'pu':
                 self.der.update_der_input(p_dem_pu=v)
+            elif k == 'Ena':
+                pass
             else:
                 raise NotImplementedError
 
@@ -71,6 +73,10 @@ class EpriEut(Eut):
             if k == 'Ena':
                 self.der.der_file.CONST_Q_MODE_ENABLE = v
             elif k == 'pu':
+                if v > 0:
+                    v = v * self.der.der_file.NP_Q_MAX_INJ / self.der.der_file.NP_VA_MAX
+                else:
+                    v = v * self.der.der_file.NP_Q_MAX_ABS / self.der.der_file.NP_VA_MAX
                 self.der.der_file.CONST_Q = v
             else:
                 raise NotImplementedError

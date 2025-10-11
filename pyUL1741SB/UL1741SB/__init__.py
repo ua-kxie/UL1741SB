@@ -175,7 +175,7 @@ class UL1741SB(IEEE1547):
         VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
         av = 1.5 * eut.mra.static.V
         if eut.Cat == Eut.Category.A:
-            vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment
+            vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
         elif eut.Cat == Eut.Category.B:
             vv_crvs = [('1B', VVCurve.Crv_1B())]
         else:
@@ -211,7 +211,7 @@ class UL1741SB(IEEE1547):
                     g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
                     '''
                     eut.set_vv(Ena=True, crv=vv_crv)
-                    dct_vvsteps = self.vv_traverse_steps(env, vv_crv, VL, VH, av)
+                    dct_vvsteps = self.vv_traverse_steps(env, eut, vv_crv, VL, VH, av)
                     env.sleep(timedelta(seconds=vv_crv.Tr * 2))
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
@@ -222,7 +222,7 @@ class UL1741SB(IEEE1547):
                             dct_label=dct_label,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
-                            y_of_x=vv_crv.y_of_x,
+                            y_of_x=lambda x: vv_crv.y_of_x(x / eut.VN) * eut.Srated,
                         )
                         env.post_cbk(**dct_label)
 

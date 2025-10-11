@@ -87,7 +87,7 @@ class VV:
         '''
         raise NotImplementedError
 
-    def vv_traverse_steps(self, env: Env, vv_crv: VVCurve, VL, VH, av):
+    def vv_traverse_steps(self, env: Env, eut:Eut, vv_crv: VVCurve, VL, VH, av):
         """
         """
         '''
@@ -117,30 +117,30 @@ class VV:
         dd) Step the ac test source voltage to VRef.
         '''
         ret = {
-            'g': lambda: env.ac_config(Vac=vv_crv.V3 - av),
-            'h': lambda: env.ac_config(Vac=vv_crv.V3 + av),
-            'i': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2.),
-            'j': lambda: env.ac_config(Vac=vv_crv.V4 - av),
-            'k': lambda: env.ac_config(Vac=vv_crv.V4 + av),
+            'g': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN - av),
+            'h': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN + av),
+            'i': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * eut.VN),
+            'j': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN - av),
+            'k': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN + av),
             'l': lambda: env.ac_config(Vac=VH - av),
-            'm': lambda: env.ac_config(Vac=vv_crv.V4 + av),
-            'n': lambda: env.ac_config(Vac=vv_crv.V4 - av),
-            'o': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2.),
-            'p': lambda: env.ac_config(Vac=vv_crv.V3 + av),
-            'q': lambda: env.ac_config(Vac=vv_crv.V3 - av),
-            'r': lambda: env.ac_config(Vac=vv_crv.VRef),
-            's': lambda: env.ac_config(Vac=vv_crv.V2 + av),
-            't': lambda: env.ac_config(Vac=vv_crv.V2 - av),
-            'u': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2.),
-            'v': lambda: env.ac_config(Vac=vv_crv.V1 + av),
-            'w': lambda: env.ac_config(Vac=vv_crv.V1 - av),
+            'm': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN + av),
+            'n': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN - av),
+            'o': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * eut.VN),
+            'p': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN + av),
+            'q': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN - av),
+            'r': lambda: env.ac_config(Vac=vv_crv.VRef * eut.VN),
+            's': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN + av),
+            't': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN - av),
+            'u': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * eut.VN),
+            'v': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN + av),
+            'w': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN - av),
             'x': lambda: env.ac_config(Vac=VL + av),
-            'y': lambda: env.ac_config(Vac=vv_crv.V1 - av),
-            'z': lambda: env.ac_config(Vac=vv_crv.V1 + av),
-            'aa': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2.),
-            'bb': lambda: env.ac_config(Vac=vv_crv.V2 - av),
-            'cc': lambda: env.ac_config(Vac=vv_crv.V2 + av),
-            'dd': lambda: env.ac_config(Vac=vv_crv.VRef)
+            'y': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN - av),
+            'z': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN + av),
+            'aa': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * eut.VN),
+            'bb': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN - av),
+            'cc': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN + av),
+            'dd': lambda: env.ac_config(Vac=vv_crv.VRef * eut.VN)
         }
         if VH < vv_crv.V4:
             env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4}]')
