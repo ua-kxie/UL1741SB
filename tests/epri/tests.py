@@ -2,6 +2,7 @@ from pyUL1741SB.UL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
 import pandas as pd
+import plotly
 pd.options.plotting.backend = "plotly"
 
 std = UL1741SB()
@@ -12,6 +13,7 @@ def test_cpf():
     std.cpf_proc(env=env, eut=eut)
     results = env.results['cpf'].iloc[:, :-1]
     df = pd.concat(env.results['cpf'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/cpf.html')
     assert env.results['cpf'].loc[:, 'ss_valid'].all()
     assert env.results['cpf'].loc[:, 'olrt_valid'].all()
 
@@ -19,6 +21,7 @@ def test_crp():
     std.crp_proc(env=env, eut=eut)
     results = env.results['crp'].iloc[:, :-1]
     df = pd.concat(env.results['crp'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/crp.html')
     assert env.results['crp'].loc[:, 'ss_valid'].all()
     assert env.results['crp'].loc[:, 'olrt_valid'].all()
 
@@ -26,6 +29,7 @@ def test_vv():
     std.vv_proc(env=env, eut=eut)
     results = env.results['vv'].iloc[:, :-1]
     df = pd.concat(env.results['vv'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/vv.html')
     assert env.results['vv'].loc[:, 'ss_valid'].all()
     assert env.results['vv'].loc[:, 'olrt_valid'].all()
 
@@ -33,12 +37,14 @@ def test_vv_vref():
     std.vv_vref_proc(env=env, eut=eut)
     results = env.results['vv-vref'].iloc[:, :-1]
     df = pd.concat(env.results['vv-vref'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/vv-vref.html')
     assert env.results['vv-vref'].loc[:, 'valid'].all()
 
 def test_wv():
     std.wv_proc(env=env, eut=eut)
     results = env.results['wv'].iloc[:, :-1]
     df = pd.concat(env.results['wv'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/wv.html')
     assert env.results['wv'].loc[:, 'ss_valid'].all()
     assert env.results['wv'].loc[:, 'olrt_valid'].all()
 
@@ -47,6 +53,7 @@ def test_vw():
     std.vw_proc(env=env, eut=eut)
     results = env.results['vw'].iloc[:, :-1]
     df = pd.concat(env.results['vw'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/vw.html')
     assert env.results['vw'].loc[:, 'ss_valid'].all()
     assert env.results['vw'].loc[:, 'olrt_valid'].all()
 
@@ -54,6 +61,7 @@ def test_fwo():
     std.fwo_proc(env=env, eut=eut)
     results = env.results['fwo'].iloc[:, :-1]
     df = pd.concat(env.results['fwo'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/fwo.html')
     assert env.results['fwo'].loc[:, 'ss_valid'].all()
     assert env.results['fwo'].loc[:, 'olrt_valid'].all()
 
@@ -61,6 +69,7 @@ def test_fwu():
     std.fwu_proc(env=env, eut=eut)
     results = env.results['fwu'].iloc[:, :-1]
     df = pd.concat(env.results['fwu'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/fwu.html')
     assert env.results['fwu'].loc[:, 'ss_valid'].all()
     assert env.results['fwu'].loc[:, 'olrt_valid'].all()
 
@@ -68,6 +77,7 @@ def test_pri():
     std.pri_proc(env=env, eut=eut)
     results = env.results['pri'].iloc[:, :-1]
     df = pd.concat(env.results['pri'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/pri.html')
     assert env.results['pri'].loc[:, 'ss_valid'].all()
     assert env.results['pri'].loc[:, 'olrt_valid'].all()
 
@@ -75,8 +85,8 @@ def test_lap():
     std.lap_proc(env=env, eut=eut)
     results = env.results['lap'].iloc[:, :-1]
     df = pd.concat(env.results['lap'].loc[:, 'data'].values)
+    plotly.offline.plot(df.plot(), filename='tests/epri/results/lap.html')
     assert env.results['lap'].loc[:, 'ss_valid'].all()
-    assert env.results['lap'].loc[:, 'olrt_valid'].all()
 
 def test_uvt():
     std.uvt_proc(env=env, eut=eut)

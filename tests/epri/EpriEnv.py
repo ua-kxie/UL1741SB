@@ -90,6 +90,9 @@ class EpriEnv(Env):
             else:
                 raise NotImplementedError(k)
 
+    def dc_config(self, **kwargs):
+        pass
+
     def reset_to_nominal(self):
         """"""
         """

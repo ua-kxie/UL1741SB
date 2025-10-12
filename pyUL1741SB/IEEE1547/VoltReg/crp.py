@@ -4,7 +4,7 @@ from pyUL1741SB import Eut, Env
 from typing import Callable
 
 class CRP:
-    def crp_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+    def crp_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
                           y_of_x: Callable[[float], float]
                           ):
         raise NotImplementedError("IEEE 1547 crp step validation")
@@ -15,7 +15,7 @@ class CRP:
         env.log(msg="cpf proc against 1547")
         def validate(env: Env, eut:Eut, dct_label: dict, perturbation, olrt, y_of_x):
             env.pre_cbk(**dct_label)
-            self.crp_validate_step(
+            self.crp_step_validate(
                 env=env,
                 eut=eut,
                 dct_label=dct_label,

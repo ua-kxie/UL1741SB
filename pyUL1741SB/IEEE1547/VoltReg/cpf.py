@@ -5,7 +5,7 @@ from typing import Callable
 import math
 
 class CPF:
-    def cpf_validate_step(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+    def cpf_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
                           y_of_x: Callable[[float], float]
                           ):
         raise NotImplementedError("IEEE 1547 cpf step validation")
@@ -15,7 +15,7 @@ class CPF:
         """
         def validate(env: Env, eut: Eut, dct_label: dict, perturbation, olrt, y_of_x):
             env.pre_cbk(**dct_label)
-            self.cpf_validate_step(
+            self.cpf_step_validate(
                 env=env,
                 eut=eut,
                 dct_label=dct_label,
