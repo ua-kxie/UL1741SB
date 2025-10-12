@@ -23,6 +23,7 @@ class EpriEnv(Env):
         self.wv_results = pd.DataFrame()
         self.vw_results = pd.DataFrame()
         self.fwo_results = pd.DataFrame()
+        self.fwu_results = pd.DataFrame()
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -52,6 +53,7 @@ class EpriEnv(Env):
         der.DER.t_s = 0.01
         df = pd.DataFrame([dct]).set_index('time').loc[:, [*args]]
         self.time += dt.timedelta(seconds=0.01)
+        self.eut.der.run()
         der.DER.t_s = DTS
         return df
 

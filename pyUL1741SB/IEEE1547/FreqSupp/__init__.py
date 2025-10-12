@@ -119,6 +119,7 @@ class FreqSupp(IEEE1547Common):
                 eut.set_ap(Ena=True, pu=pwr_pu)
                 eut.set_fw(Ena=True, crv=crv)
                 olrt = timedelta(seconds=crv.tr)
+                env.sleep(timedelta(seconds=30))  # wait for AP steady state
                 y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
                 dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
@@ -212,9 +213,10 @@ class FreqSupp(IEEE1547Common):
             f) Verify frequency-watt mode is reported as active and that the correct characteristic is reported.
             '''
             env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof)
-            eut.set_ap(Ena=True, pu=0.5)
+            eut.set_ap(Ena=True, pu=pwr_pu)
             eut.set_fw(Ena=True, crv=crv)
             olrt = timedelta(seconds=crv.tr)
+            env.sleep(timedelta(seconds=30))  # wait for AP steady state
             y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
             dct_steps = self.fwu_traverse_steps(env, eut, crv, af=eut.mra.static.F)
             for step_key, step_fcn in dct_steps.items():

@@ -179,5 +179,4 @@ class EpriEut(Eut):
         self.der.der_file.PF_KOF = crv.kof
         self.der.der_file.PF_KUF = crv.kuf
         self.der.der_file.PF_OLRT = crv.tr
-        self.der.der_file.NP_P_MIN_PU = 0
 
