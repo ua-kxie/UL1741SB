@@ -64,6 +64,13 @@ def test_fwu():
     assert env.fwu_results.loc[:, 'ss_valid'].all()
     assert env.fwu_results.loc[:, 'olrt_valid'].all()
 
+def test_lap():
+    std.lap_proc(env=env, eut=eut)
+    results = env.lap_results.iloc[:, :-1]
+    df = pd.concat(env.lap_results.loc[:, 'data'].values)
+    assert env.lap_results.loc[:, 'ss_valid'].all()
+    assert env.lap_results.loc[:, 'olrt_valid'].all()
+
 def test_uvt():
     std.uvt_proc(env=env, eut=eut)
     results = env.uvt_results.iloc[:, :-1]

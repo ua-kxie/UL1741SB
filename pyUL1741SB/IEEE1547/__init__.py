@@ -9,11 +9,29 @@ from pyUL1741SB.IEEE1547.FreqSupp import FreqSupp
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.base import IEEE1547Common
 
+from pyUL1741SB.IEEE1547.FreqSupp import FWChar
+from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
+
 from datetime import timedelta
 
 class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
-    def lap_proc(self, env: Env, eut: Eut, olrt: timedelta):
+    def lap_proc(self, env: Env, eut: Eut):
         """"""
+        dflt_fwchar = {
+            eut.aopCat.I: FWChar.CatI_CharI(),
+            eut.aopCat.II: FWChar.CatII_CharI(),
+            eut.aopCat.III: FWChar.CatIII_CharI(),
+        }[eut.aopCat]
+        if eut.Prated_prime < 0:
+            dflt_vwcrv = {
+                eut.Category.A: VWCurve.Crv_1A_abs(eut),
+                eut.Category.B: VWCurve.Crv_1B_abs(eut),
+            }[eut.Cat]
+        else:
+            dflt_vwcrv = {
+                eut.Category.A: VWCurve.Crv_1A_inj(eut),
+                eut.Category.B: VWCurve.Crv_1B_inj(eut),
+            }[eut.Cat]
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         Apply the default settings from IEEE Std 1547 for voltage-active power mode. Apply the default
@@ -25,8 +43,8 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
         g) Repeat steps b) through f) using active power limits of [66%] 33% and zero.
         h) Repeat steps b) through g) twice for a total of three repetitions.
         '''
-        for _ in range(3):
-            for aplim_pu in [0.66, 0.33, 9]:
+        for i in range(3):
+            for aplim_pu in [0.66, 0.33, 0]:
                 '''
                 b) Establish nominal operating conditions as specified by the manufacturer at the terminals of the
                 EUT. Make available sufficient input power for the EUT to reach its rated active power. Allow (or
@@ -50,20 +68,36 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
                 # b)
                 eut.set_ap(Ena=True, pu=1)  # TODO check appropriate setting for this step
                 # TODO wait for SS state
-                dct_steps = {
-                    ('c', lambda: eut.set_ap_lim(Ena=True, pu=aplim_pu),)
-                    ('d1', lambda: env.ac_config(freq=59, rocof=eut.rocof()),)
-                    ('d2', lambda: env.ac_config(freq=60, rocof=eut.rocof()),)
-                    ('e1', lambda: env.ac_config(freq=61, rocof=eut.rocof()),)
-                    ('e2', lambda: env.ac_config(freq=60, rocof=eut.rocof()),)
-                    ('f1', lambda: env.ac_config(Vac=1.08 * eut.VN),)
-                    ('f2', lambda: env.ac_config(Vac=eut.VN),)
+                dct_label = {
+                    'proc': 'lap',
+                    'iter': i,
+                    'aplim_pu': aplim_pu,
                 }
-                for step_label, step_fcn in dct_steps.items():
-                    self.lap_validation(env, eut, step_label, step_fcn)
-        pass
+                def y_of_fw(x):
+                    if eut.Prated_prime < 0:
+                        ymin_pu = -1
+                    else:
+                        ymin_pu = 0
+                    ymax_pu = 1
+                    fw_val = dflt_fwchar.y_of_x(x, ymin_pu, aplim_pu, ymax_pu) * eut.Prated
+                    return fw_val
+                def y_of_vw(x):
+                    vw_val = dflt_vwcrv.y_of_x(x) * eut.Prated
+                    return min(vw_val, aplim_pu * eut.Prated)
+                lst_tup_steps = [
+                    # step label, perturbation, y_ss_target, olrt
+                    ('c', lambda: eut.set_ap_lim(Ena=True, pu=aplim_pu), aplim_pu * eut.Prated, timedelta(seconds=30)),
+                    ('d1', lambda: env.ac_config(freq=59, rocof=eut.rocof()), y_of_fw(59), timedelta(seconds=dflt_fwchar.tr)),
+                    ('d2', lambda: env.ac_config(freq=60, rocof=eut.rocof()), y_of_fw(60), timedelta(seconds=dflt_fwchar.tr)),
+                    ('e1', lambda: env.ac_config(freq=61, rocof=eut.rocof()), y_of_fw(61), timedelta(seconds=dflt_fwchar.tr)),
+                    ('e2', lambda: env.ac_config(freq=60, rocof=eut.rocof()), y_of_fw(60), timedelta(seconds=dflt_fwchar.tr)),
+                    ('f1', lambda: env.ac_config(Vac=1.08 * eut.VN), y_of_vw(1.08), timedelta(seconds=dflt_vwcrv.Tr)),
+                    ('f2', lambda: env.ac_config(Vac=eut.VN), y_of_vw(1.0), timedelta(seconds=dflt_vwcrv.Tr))
+                ]
+                for tup in lst_tup_steps:
+                    self.lap_validation(env, eut, dct_label, *tup)
 
-    def lap_validation(self, env: Env, eut: Eut, step_label, step_fcn):
+    def lap_validation(self, env: Env, eut: Eut, dct_label, step_label, perturbation, y_ss_target, olrt: timedelta):
         """"""
         '''
         IEEE 1547.1-2018
@@ -95,17 +129,27 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
         where Prated is the EUT rated power, P2 is as defined in IEEE Std 1547-2018, Vmeas is the measured voltage
         at the RPA after the EUT power has reached steady state, and Vnom is the nominal voltage at the RPA. For
         the 33% and zero power levels, the EUT power is not expected to change.
+        
         Where the EUT is DER equipment that does not produce power such as a plant controller, the EUT’s
         commanded active power may be used to verify operation. In such cases a design evaluation and/or
         commissioning test may be needed to verify correct operation of the installed DER.
         '''
-        if step in ['c']:
-            pass  # reach setpoint within tolerance within 30s
-        elif step in ['d', 'e']:
-            pass  # modulate according to FW crv within tolerance and response time
-        elif step in ['f']:
-            pass  # modulate according to VW crv within tolerance and response time
-
+        yarg = 'P'
+        yMRA = eut.mra.static.P
+        df_meas = self.meas_perturb(env, eut, perturbation, olrt, 4 * olrt, (yarg,))
+        y_init = df_meas.loc[df_meas.index[0], yarg]
+        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        ss_valid = y_ss <= y_ss_target + 1.5 * yMRA
+        env.validate(dct_label={
+            **dct_label,
+            'step': step_label,
+            'y_init': y_init,
+            'olrt': olrt.total_seconds(),
+            'y_ss': y_ss,
+            'y_ss_target': y_ss_target + 1.5 * yMRA,
+            'ss_valid': ss_valid,
+            'data': df_meas
+        })
 
     def es_proc(self, env: Env, eut: Eut):
         pass
