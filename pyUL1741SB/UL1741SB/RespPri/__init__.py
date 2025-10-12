@@ -61,11 +61,11 @@ class RespPri1741(RespPri):
         if eut.Cat == Eut.Category.A:
             vwcrv = VWCurve.Crv_1A_inj(eut)
             vvcrv = VVCurve.Crv_1A()
-            wvcrv = WVCurve.Crv_1A(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)
+            wvcrv = WVCurve.Crv_1A(eut)
         elif eut.Cat == Eut.Category.B:
             vwcrv = VWCurve.Crv_1B_inj(eut)
             vvcrv = VVCurve.Crv_1B()
-            wvcrv = WVCurve.Crv_1B(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)
+            wvcrv = WVCurve.Crv_1B(eut)
         else:
             raise TypeError(eut.Cat)
         vwcrv.P2 = 0  # 1741 amendment

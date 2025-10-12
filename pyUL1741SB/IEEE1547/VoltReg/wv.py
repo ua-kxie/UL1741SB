@@ -27,66 +27,66 @@ class WVCurve:
         )
 
     @staticmethod
-    def Crv_1A(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_1A(eut: Eut):
         """Create WV Curve 1A using Category A values from Table 28 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.25, Q2=0, Q1=0,
             Q1_prime=0, Q2_prime=0, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_1B(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_1B(eut: Eut):
         """Create WV Curve 1B using Category B values from Table 28 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.44, Q2=0, Q1=0,
             Q1_prime=0, Q2_prime=0, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_2A(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_2A(eut: Eut):
         """Create WV Curve 2A using Category A values from Table 29 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.25, Q2=-0.13, Q1=-0.13,
             Q1_prime=0.22, Q2_prime=0.22, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_2B(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_2B(eut: Eut):
         """Create WV Curve 2B using Category B values from Table 29 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.44, Q2=-0.22, Q1=-0.22,
             Q1_prime=0.22, Q2_prime=0.22, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_3A(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_3A(eut: Eut):
         """Create WV Curve 3A using Category A values from Table 30 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.25, Q2=-0.25, Q1=0,
             Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
     @staticmethod
-    def Crv_3B(Prated, Pmin, Prated_prime, Pmin_prime):
+    def Crv_3B(eut: Eut):
         """Create WV Curve 3B using Category B values from Table 30 (per unit)"""
-        P1_prime = 0 if Prated_prime == 0 else min(-0.2, -Pmin_prime / Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
-            P3=1.0, P2=0.5, P1=max(0.2, Pmin / Prated),
+            P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
             Q3=-0.44, Q2=-0.44, Q1=0,
             Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44

@@ -16,15 +16,15 @@ class UL1741SB(RespPri1741, IEEE1547):
         env.log(msg="cpf proc against 1547")
         if eut.Cat == Eut.Category.A:
             wv_crvs = [
-                ('1A', WVCurve.Crv_1A(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
-                ('2A', WVCurve.Crv_2A(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
-                ('3A', WVCurve.Crv_3A(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
+                ('1A', WVCurve.Crv_1A(eut)),
+                ('2A', WVCurve.Crv_2A(eut)),
+                ('3A', WVCurve.Crv_3A(eut)),
             ]
         elif eut.Cat == Eut.Category.B:
             wv_crvs = [
-                ('1B', WVCurve.Crv_1B(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
-                ('2B', WVCurve.Crv_2B(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
-                ('3B', WVCurve.Crv_3B(eut.Prated, eut.Pmin, eut.Prated_prime, eut.Pmin_prime)),
+                ('1B', WVCurve.Crv_1B(eut)),
+                ('2B', WVCurve.Crv_2B(eut)),
+                ('3B', WVCurve.Crv_3B(eut)),
             ]
         else:
             raise TypeError(f'unknown eut category {eut.Cat}')
