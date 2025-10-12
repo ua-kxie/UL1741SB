@@ -3,13 +3,13 @@ from typing import Callable
 import pandas as pd
 
 from pyUL1741SB import Eut, Env
-
+from pyUL1741SB.UL1741SB.RespPri import RespPri1741
 from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 
-class UL1741SB(IEEE1547):
+class UL1741SB(RespPri1741, IEEE1547):
     def wv_proc(self, env: Env, eut: Eut):
         """
         """

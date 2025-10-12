@@ -10,88 +10,95 @@ env = EpriEnv(eut)
 
 def test_cpf():
     std.cpf_proc(env=env, eut=eut)
-    results = env.cpf_results.iloc[:, :-1]
-    df = pd.concat(env.cpf_results.loc[:, 'data'].values)
-    assert env.cpf_results.loc[:, 'ss_valid'].all()
-    assert env.cpf_results.loc[:, 'olrt_valid'].all()
+    results = env.results['cpf'].iloc[:, :-1]
+    df = pd.concat(env.results['cpf'].loc[:, 'data'].values)
+    assert env.results['cpf'].loc[:, 'ss_valid'].all()
+    assert env.results['cpf'].loc[:, 'olrt_valid'].all()
 
 def test_crp():
     std.crp_proc(env=env, eut=eut)
-    results = env.crp_results.iloc[:, :-1]
-    df = pd.concat(env.crp_results.loc[:, 'data'].values)
-    assert env.crp_results.loc[:, 'ss_valid'].all()
-    assert env.crp_results.loc[:, 'olrt_valid'].all()
+    results = env.results['crp'].iloc[:, :-1]
+    df = pd.concat(env.results['crp'].loc[:, 'data'].values)
+    assert env.results['crp'].loc[:, 'ss_valid'].all()
+    assert env.results['crp'].loc[:, 'olrt_valid'].all()
 
 def test_vv():
     std.vv_proc(env=env, eut=eut)
-    results = env.vv_results.iloc[:, :-1]
-    df = pd.concat(env.vv_results.loc[:, 'data'].values)
-    assert env.vv_results.loc[:, 'ss_valid'].all()
-    assert env.vv_results.loc[:, 'olrt_valid'].all()
+    results = env.results['vv'].iloc[:, :-1]
+    df = pd.concat(env.results['vv'].loc[:, 'data'].values)
+    assert env.results['vv'].loc[:, 'ss_valid'].all()
+    assert env.results['vv'].loc[:, 'olrt_valid'].all()
 
 def test_vv_vref():
     std.vv_vref_proc(env=env, eut=eut)
-    results = env.vv_vref_results.iloc[:, :-1]
-    df = pd.concat(env.vv_vref_results.loc[:, 'data'].values)
-    assert env.vv_vref_results.loc[:, 'valid'].all()
+    results = env.results['vv-vref'].iloc[:, :-1]
+    df = pd.concat(env.results['vv-vref'].loc[:, 'data'].values)
+    assert env.results['vv-vref'].loc[:, 'valid'].all()
 
 def test_wv():
     std.wv_proc(env=env, eut=eut)
-    results = env.wv_results.iloc[:, :-1]
-    df = pd.concat(env.wv_results.loc[:, 'data'].values)
-    assert env.wv_results.loc[:, 'ss_valid'].all()
-    assert env.wv_results.loc[:, 'olrt_valid'].all()
+    results = env.results['wv'].iloc[:, :-1]
+    df = pd.concat(env.results['wv'].loc[:, 'data'].values)
+    assert env.results['wv'].loc[:, 'ss_valid'].all()
+    assert env.results['wv'].loc[:, 'olrt_valid'].all()
 
 def test_vw():
     # TODO should meet criteria with 1.5 * tMRA accounted for for olrt validation
     std.vw_proc(env=env, eut=eut)
-    results = env.vw_results.iloc[:, :-1]
-    df = pd.concat(env.vw_results.loc[:, 'data'].values)
-    assert env.vw_results.loc[:, 'ss_valid'].all()
-    assert env.vw_results.loc[:, 'olrt_valid'].all()
+    results = env.results['vw'].iloc[:, :-1]
+    df = pd.concat(env.results['vw'].loc[:, 'data'].values)
+    assert env.results['vw'].loc[:, 'ss_valid'].all()
+    assert env.results['vw'].loc[:, 'olrt_valid'].all()
 
 def test_fwo():
     std.fwo_proc(env=env, eut=eut)
-    results = env.fwo_results.iloc[:, :-1]
-    df = pd.concat(env.fwo_results.loc[:, 'data'].values)
-    assert env.fwo_results.loc[:, 'ss_valid'].all()
-    assert env.fwo_results.loc[:, 'olrt_valid'].all()
+    results = env.results['fwo'].iloc[:, :-1]
+    df = pd.concat(env.results['fwo'].loc[:, 'data'].values)
+    assert env.results['fwo'].loc[:, 'ss_valid'].all()
+    assert env.results['fwo'].loc[:, 'olrt_valid'].all()
 
 def test_fwu():
     std.fwu_proc(env=env, eut=eut)
-    results = env.fwu_results.iloc[:, :-1]
-    df = pd.concat(env.fwu_results.loc[:, 'data'].values)
-    assert env.fwu_results.loc[:, 'ss_valid'].all()
-    assert env.fwu_results.loc[:, 'olrt_valid'].all()
+    results = env.results['fwu'].iloc[:, :-1]
+    df = pd.concat(env.results['fwu'].loc[:, 'data'].values)
+    assert env.results['fwu'].loc[:, 'ss_valid'].all()
+    assert env.results['fwu'].loc[:, 'olrt_valid'].all()
+
+def test_pri():
+    std.pri_proc(env=env, eut=eut)
+    results = env.results['pri'].iloc[:, :-1]
+    df = pd.concat(env.results['pri'].loc[:, 'data'].values)
+    assert env.results['pri'].loc[:, 'ss_valid'].all()
+    assert env.results['pri'].loc[:, 'olrt_valid'].all()
 
 def test_lap():
     std.lap_proc(env=env, eut=eut)
-    results = env.lap_results.iloc[:, :-1]
-    df = pd.concat(env.lap_results.loc[:, 'data'].values)
-    assert env.lap_results.loc[:, 'ss_valid'].all()
-    assert env.lap_results.loc[:, 'olrt_valid'].all()
+    results = env.results['lap'].iloc[:, :-1]
+    df = pd.concat(env.results['lap'].loc[:, 'data'].values)
+    assert env.results['lap'].loc[:, 'ss_valid'].all()
+    assert env.results['lap'].loc[:, 'olrt_valid'].all()
 
 def test_uvt():
     std.uvt_proc(env=env, eut=eut)
-    results = env.uvt_results.iloc[:, :-1]
+    results = env.results['uvt'].iloc[:, :-1]
     assert results.loc[:, 'ceased'].all()
     assert results.loc[:, 'tripped'].all()
 
 def test_ovt():
     std.ovt_proc(env=env, eut=eut)
-    results = env.uvt_results.iloc[:, :-1]
+    results = env.results['ovt'].iloc[:, :-1]
     assert results.loc[:, 'ceased'].all()
     assert results.loc[:, 'tripped'].all()
 
 def test_uft():
     std.uft_proc(env=env, eut=eut)
-    results = env.uft_results.iloc[:, :-1]
+    results = env.results['uft'].iloc[:, :-1]
     assert results.loc[:, 'ceased'].all()
     assert results.loc[:, 'tripped'].all()
 
 def test_oft():
     std.oft_proc(env=env, eut=eut)
-    results = env.uft_results.iloc[:, :-1]
+    results = env.results['oft'].iloc[:, :-1]
     assert results.loc[:, 'ceased'].all()
     assert results.loc[:, 'tripped'].all()
 

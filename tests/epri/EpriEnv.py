@@ -11,20 +11,7 @@ class EpriEnv(Env):
         super().__init__()
         self.time = dt.datetime.fromtimestamp(0)
         self.eut = eut
-        self.cpf_results = pd.DataFrame()
-        self.cpf_results = pd.DataFrame()
-        self.crp_results = pd.DataFrame()
-        self.vv_results = pd.DataFrame()
-        self.ovt_results = pd.DataFrame()
-        self.uvt_results = pd.DataFrame()
-        self.oft_results = pd.DataFrame()
-        self.uft_results = pd.DataFrame()
-        self.vv_vref_results = pd.DataFrame()
-        self.wv_results = pd.DataFrame()
-        self.vw_results = pd.DataFrame()
-        self.fwo_results = pd.DataFrame()
-        self.fwu_results = pd.DataFrame()
-        self.lap_results = pd.DataFrame()
+        self.results = {}  # dct of dataframes
 
     def elapsed_since(self, interval: dt.timedelta, start: dt.datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -77,34 +64,10 @@ class EpriEnv(Env):
     def validate(self, dct_label: dict):
         df_row = pd.DataFrame([dct_label])
         proc = dct_label.pop('proc')
-        if proc == 'cpf':
-            self.cpf_results = pd.concat([self.cpf_results, df_row])
-        elif proc == 'crp':
-            self.crp_results = pd.concat([self.crp_results, df_row])
-        elif proc == 'vv':
-            self.vv_results = pd.concat([self.vv_results, df_row])
-        elif proc == 'uvt':
-            self.uvt_results = pd.concat([self.uvt_results, df_row])
-        elif proc == 'ovt':
-            self.ovt_results = pd.concat([self.ovt_results, df_row])
-        elif proc == 'uft':
-            self.uft_results = pd.concat([self.uft_results, df_row])
-        elif proc == 'oft':
-            self.oft_results = pd.concat([self.oft_results, df_row])
-        elif proc == 'vv-vref':
-            self.vv_vref_results = pd.concat([self.vv_vref_results, df_row])
-        elif proc == 'wv':
-            self.wv_results = pd.concat([self.wv_results, df_row])
-        elif proc == 'vw':
-            self.vw_results = pd.concat([self.vw_results, df_row])
-        elif proc == 'fwo':
-            self.fwo_results = pd.concat([self.fwo_results, df_row])
-        elif proc == 'fwu':
-            self.fwu_results = pd.concat([self.fwu_results, df_row])
-        elif proc == 'lap':
-            self.lap_results = pd.concat([self.lap_results, df_row])
+        if proc in self.results.keys():
+            self.results[proc] = pd.concat([self.results[proc], df_row])
         else:
-            raise NotImplementedError(proc)
+            self.results[proc] = df_row
 
     def pre_cbk(self, **kwargs):
         pass
@@ -127,11 +90,12 @@ class EpriEnv(Env):
             else:
                 raise NotImplementedError(k)
 
-    def dc_config(self, **kwargs):
-        for k, v in kwargs.items():
-            if k == 'pwr_watts':
-                self.eut.der.update_der_input(p_dem_pu=v)
-            elif k =='Vdc':
-                pass
-            else:
-                raise NotImplementedError(k)
+    def reset_to_nominal(self):
+        """"""
+        """
+        Called for the following instructions:
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        b) Set all voltage and frequency trip parameters to the widest range of adjustability. Disable all
+        reactive/active power control functions.
+        """
+        self.eut.der.update_der_input(p_dem_pu=1, v_pu=1, f=60)

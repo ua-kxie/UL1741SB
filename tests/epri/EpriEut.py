@@ -175,9 +175,10 @@ class EpriEut(Eut):
         :return:
         """
         self.der.der_file.PF_MODE_ENABLE = Ena
-        self.der.der_file.PF_DBOF = crv.dbof_hz
-        self.der.der_file.PF_DBUF = crv.dbuf_hz
-        self.der.der_file.PF_KOF = crv.kof
-        self.der.der_file.PF_KUF = crv.kuf
-        self.der.der_file.PF_OLRT = crv.tr
+        if crv is not None:
+            self.der.der_file.PF_DBOF = crv.dbof_hz
+            self.der.der_file.PF_DBUF = crv.dbuf_hz
+            self.der.der_file.PF_KOF = crv.kof
+            self.der.der_file.PF_KUF = crv.kuf
+            self.der.der_file.PF_OLRT = crv.tr
 

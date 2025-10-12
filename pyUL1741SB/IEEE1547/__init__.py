@@ -14,6 +14,7 @@ from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 
 from datetime import timedelta
 
+
 class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
     def lap_proc(self, env: Env, eut: Eut):
         """"""
