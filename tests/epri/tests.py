@@ -125,3 +125,14 @@ def test_oft():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
+def test_uvrt():
+    std.uvrt_proc(env=env, eut=eut)
+    results = env.results['uvrt'].iloc[:, :-1]
+    df = pd.concat(env.results['uvrt'].loc[:, 'data'].values)
+
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/es-ramp.html')
+    assert env.results['uvrt'].loc[:, 'valid'].all()

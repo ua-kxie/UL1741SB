@@ -27,12 +27,15 @@ class EpriEnv(Env):
         der.DER.t_s = DTS
 
     def meas(self):
+        v = self.eut.der.der_input.v_meas_pu * self.eut.der.der_file.NP_AC_V_NOM
+        # s = (self.eut.der.der_output.p_out_w**2 + self.eut.der.der_output.q_out_var**2) ** 0.5
         data = {
             'time': self.time,
             'F': self.eut.der.der_input.freq_hz,
             'P': self.eut.der.der_output.p_out_w,
             'Q': self.eut.der.der_output.q_out_var,
-            'V': self.eut.der.der_input.v_meas_pu * self.eut.der.der_file.NP_AC_V_NOM
+            'V': v,
+            # 'I': s / v if v != 0 else s
         }
         return data
 

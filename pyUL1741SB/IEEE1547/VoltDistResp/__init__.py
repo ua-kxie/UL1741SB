@@ -6,13 +6,26 @@ import enum
 from datetime import timedelta
 import copy
 
+from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB import Eut, Env
-from pyUL1741SB.eut import VoltShallTripValue
 
-pwr_pu_hi = 1.0  # higher than 0.9
-pwr_pu_lo = 0.25  # 0.25 to 0.5
+
+"""
+IEEE 1547.1-2020
+4.5 Cease to energize performance requirement
+In the cease to energize state, the DER shall not deliver active power during steady-state or transient
+conditions. The requirements for cease to energize shall apply to the point of DER connection (PoC).
+For Local EPS with aggregate DER rating less than 500 kVA, the reactive power exchange in the cease to
+energize state shall be less than 10% of nameplate DER rating and shall exclusively result from passive
+devices. For Local EPS with aggregate DER rating 500 kVA and greater, the reactive power exchange in
+the cease to energize state shall be less than 3% of nameplate DER rating and shall exclusively result from
+passive devices.
+
+shall not deliver active power
+reactive power limited to 3 (10) % for DER rated less (more) than 500kVA
+"""
 
 class OpMode(enum.Enum):
     ContOp = 1
@@ -20,64 +33,47 @@ class OpMode(enum.Enum):
     MandOpC = 3  # During this test condition, the EUT may stay in momentary cessation for voltages less than 0.5 p.u. but shall not trip
     MomCess = 4
 
-class LVRTSeq:
-    def __init__(self, df_dset1, df_dset2, df_dset3, df_dset4):
-        self.df_dsets = [df_dset1, df_dset2, df_dset3, df_dset4]
+class CondName(enum.Enum):
+    A = 1
+    B = 2
+    C = 3
+    Cprime = 4
+    D = 5
+    E = 6
+    F = 7
+
+class LVRTCond:
+    def __init__(self, name: CondName, vpu, vpu_min, vpu_max, dur_s, opmd: OpMode):
+        self.name = name
+        self.vpu = vpu
+        self.vpu_min = vpu_min
+        self.vpu_max = vpu_max
+        self.dur_s = dur_s
+        self.opmd = opmd
+
     @staticmethod
-    def AOPCatI():
-        raise NotImplementedError
+    def catIIIcondA():
+        return LVRTCond(name=CondName.A, vpu=0.88, vpu_min=0.88, vpu_max=1.0, dur_s=5.0, opmd=OpMode.ContOp)
+
     @staticmethod
-    def AOPCatII():
-        raise NotImplementedError
+    def catIIIcondB():
+        return LVRTCond(name=CondName.B, vpu=0.02, vpu_min=0.0, vpu_max=0.05, dur_s=1.0, opmd=OpMode.MomCess)
+
     @staticmethod
-    def AOPCatIII():
-        """"""
-        '''
-        Based on sequences defined in IEEE 1547.1-2020 5.4.4.3
-        '''
-        # 0.88-1.00 for 5s, OpMode.ContOp
-        # 0.00-0.05 for 1s, OpMode.MomCess
-        # 0.00-0.50 for 9s, OpMode.MandOp
-        # 0.50-0.70 for 10s, OpMode.MandOp
-        df_dset1 = pd.DataFrame({
-            VoltDist.Vminkey: [0.88, 0.00, 0.00, 0.50],
-            VoltDist.Vmaxkey: [1.00, 0.05, 0.50, 0.70],
-            VoltDist.Durkey: [5, 1, 9, 10],
-            VoltDist.OpMdkey: [OpMode.ContOp, OpMode.MomCess, OpMode.MandOpC, OpMode.MandOp]
-        })
-        # 0.88-1.00 for 5s, OpMode.ContOp
-        # 0.00-0.05 for 1s, OpMode.MomCess
-        # 0.00-0.50 for 9s, OpMode.MandOp
-        # 0.50-0.70 for 10s, OpMode.MandOp
-        df_dset2 = pd.DataFrame({
-            VoltDist.Vminkey: [0.88, 0.00, 0.00, 0.50],
-            VoltDist.Vmaxkey: [1.00, 0.05, 0.50, 0.70],
-            VoltDist.Durkey: [5, 1, 9, 10],
-            VoltDist.OpMdkey: [OpMode.ContOp, OpMode.MomCess, OpMode.MandOpC, OpMode.MandOp]
-        })
-        # 0.88-1.00 for 5s, OpMode.ContOp
-        # 0.00-0.05 for 1s, OpMode.MomCess
-        # 0.00-0.50 for 9s, OpMode.MandOp
-        # 0.50-0.70 for 10s, OpMode.MandOp
-        # 0.88-1.00 for 120s, OpMode.ContOp
-        df_dset3 = pd.DataFrame({
-            VoltDist.Vminkey: [0.88, 0.00, 0.00, 0.50, 0.88],
-            VoltDist.Vmaxkey: [1.00, 0.05, 0.50, 0.70, 1.00],
-            VoltDist.Durkey: [5, 1, 9, 10, 120],
-            VoltDist.OpMdkey: [OpMode.ContOp, OpMode.MomCess, OpMode.MandOpC, OpMode.MandOp, OpMode.ContOp]
-        })
-        # required if restore output capability could not be evaluated in other sequences
-        # 0.88-1.00 for 5s, OpMode.ContOp
-        # 0.00-0.05 for 1s, OpMode.MomCess
-        # 0.52-0.70 for 19s, OpMode.MandOp
-        # 0.88-1.00 for 120s, OpMode.ContOp
-        df_dset4 = pd.DataFrame({
-            VoltDist.Vminkey : [0.88, 0.00, 0.52, 0.88],
-            VoltDist.Vmaxkey : [1.00, 0.05, 0.70, 1.00],
-            VoltDist.Durkey : [5, 1, 19, 120],
-            VoltDist.OpMdkey : [OpMode.ContOp, OpMode.MomCess, OpMode.MandOp, OpMode.ContOp]  # third step is used to eval restore output performance
-        })
-        return LVRTSeq(df_dset1, df_dset2, df_dset3, df_dset4)
+    def catIIIcondC():
+        return LVRTCond(name=CondName.C, vpu=0.48, vpu_min=0.0, vpu_max=0.5, dur_s=9.0, opmd=OpMode.MandOpC)
+
+    @staticmethod
+    def catIIIcondCprime():
+        return LVRTCond(name=CondName.Cprime, vpu=0.52, vpu_min=0.52, vpu_max=0.7, dur_s=9.0, opmd=OpMode.MandOp)
+
+    @staticmethod
+    def catIIIcondD():
+        return LVRTCond(name=CondName.D, vpu=0.52, vpu_min=0.5, vpu_max=0.7, dur_s=10.0, opmd=OpMode.MandOp)
+
+    @staticmethod
+    def catIIIcondE():
+        return LVRTCond(name=CondName.E, vpu=0.88, vpu_min=0.88, vpu_max=1.00, dur_s=120.0, opmd=OpMode.ContOp)
 
 class VoltDist(IEEE1547Common):
     Vminkey = 'Vmin'
@@ -290,27 +286,35 @@ class VoltDist(IEEE1547Common):
         if multiphase:
             raise NotImplementedError
 
-        if eut.Cat == Eut.Category.A:
-            vvcrv = VVCurve.Crv_1A(eut.Prated, eut.VN)
-        elif eut.Cat == Eut.Category.B:
-            vvcrv = VVCurve.Crv_1B(eut.Prated, eut.VN)
+        if eut.Cat == eut.Category.A:
+            vvcrv = VVCurve.Crv_1A()
+        elif eut.Cat == eut.Category.B:
+            vvcrv = VVCurve.Crv_1B()
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise ValueError(eut.Cat)
 
-        if eut.aopCat == Eut.AOPCat.I:
-            lvrt_seq = LVRTSeq.AOPCatI()
-            fw_of = FW_OF.CatI_CharI()
-            fw_uf = FW_UF.CatI_CharI()
-        elif eut.aopCat == Eut.AOPCat.II:
-            lvrt_seq = LVRTSeq.AOPCatII()
-            fw_of = FW_OF.CatII_CharI()
-            fw_uf = FW_UF.CatII_CharI()
-        elif eut.aopCat == Eut.AOPCat.III:
-            lvrt_seq = LVRTSeq.AOPCatIII()
-            fw_of = FW_OF.CatIII_CharI()
-            fw_uf = FW_UF.CatIII_CharI()
+        if eut.aopCat == eut.AOPCat.I:
+            fwchar = FWChar.CatI_CharI()
+            raise NotImplementedError
+        elif eut.aopCat == eut.AOPCat.II:
+            fwchar = FWChar.CatII_CharI()
+            raise NotImplementedError
+        elif eut.aopCat == eut.AOPCat.III:
+            fwchar = FWChar.CatIII_CharI()
+            seq = [
+                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(),
+                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(),
+                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(), LVRTCond.catIIIcondE(),
+                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondCprime(), LVRTCond.catIIIcondD(), LVRTCond.catIIIcondE(),
+            ]
         else:
-            raise TypeError(f'unknown eut aop category {eut.aopCat}')
+            raise ValueError(eut.Cat)
+        resptm = timedelta(seconds=LVRTCond.catIIIcondB().dur_s)
+        vt_tbl = eut.voltshalltrip_tbl
+        vt_args = {
+            'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
+            'UV2': {'cts': vt_tbl.UV2.cts_max, 'vpu': vt_tbl.UV2.volt_pu_min}
+        }
         '''
         The settings for magnitude and duration of undervoltage tripping functions shall be
         disabled or set so as not to influence the outcome of the test. 
@@ -319,7 +323,10 @@ class VoltDist(IEEE1547Common):
         If the EUT provides a voltage-active power control mode, that mode shall be disabled. 
         The frequency-active power control mode of the EUT shall be set to the default settings.
         '''
-        # disable uv trip, set vvcrv, disable vw, set vwcrv
+        eut.set_vt(**vt_args)
+        eut.set_vv(Ena=True, crv=vvcrv)
+        eut.set_vw(Ena=False)
+        eut.set_fw(Ena=True, crv=fwchar)
         '''
         The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
         power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
@@ -328,17 +335,18 @@ class VoltDist(IEEE1547Common):
         eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
             eut.set_ap(Ena=True, pu=pwr_pu)
-            cond = True
-            for df_set in lvrt_seq.df_dsets[:-1]:  # iterate over necessary sets
-                self.uvrt_validate(env, eut, df_set)
-                cond = True  # TODO required if restore output capability could not be evaluated in other sequences
-            if cond:
-                df_set = lvrt_seq.df_dsets[-1]
-                self.uvrt_validate(env, eut, df_set)
+            for cond in seq:
+                dct_label = {
+                    'proc': 'uvrt',
+                    'pwr_pu': pwr_pu,
+                    'cond': str(cond.name)
+                }
+                self.uvrt_validate(env, eut, dct_label, resptm, pwr_pu * eut.Prated, cond)
 
-    def uvrt_validate(self, env: Env, eut: Eut, df_set):
+    def uvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, p_targ, cond: LVRTCond):
         """"""
         '''
+        IEEE 1547.1-2020 5.4.4.5
         Where the operating mode is specified as Mandatory Operation, the EUT shall not trip, shall
         maintain synchronism and maintain its total apparent current during the disturbance period at or
         above 80% of the pre-disturbance value.
@@ -353,11 +361,46 @@ class VoltDist(IEEE1547Common):
         the ac test source. Following the momentary cessation event, the EUT shall comply with the
         Restore Output requirements of 6.4.2.7 of IEEE Std 1547-2018.
         '''
-        for _, row in df_set.iterrows():
-            vpu = (row[self.Vminkey] + row[self.Vmaxkey]) / 2
-            dur = row[self.Durkey]
-            opmd = row[self.OpMdkey]
-            env.ac_config(Vac=vpu*eut.VN)
-            # wait dur duration
-            # eut behavior match opmd
-            # TODO
+        meas_args = ('V', 'P', 'Q')
+        ntrvl = timedelta(seconds=cond.dur_s)
+        def perturb():
+            env.ac_config(Vac=cond.vpu * eut.VN)
+        df_meas = self.meas_perturb(env, eut, perturb, ntrvl, ntrvl, meas_args)
+        resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
+
+        def contop_valid():
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
+            v = df_meas.loc[resp_idx:, 'V'].mean()
+            self.predist_apparent_current = s/v
+            return s > eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+
+        def momcess_valid():
+            p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
+            q = df_meas.loc[resp_idx:, 'Q'].mean()
+            p_thresh = 0.01 * eut.Srated / eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
+            q_thresh = 0.1 * eut.Srated if eut.Srated < 500e3 else 0.03 * eut.Srated # IEEE 1547.1-2018 4.5
+            return p < p_thresh and q < q_thresh
+
+        def mandop_valid():
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[resp_idx:, 'Q'] ** 2) ** 0.5).mean()
+            v = df_meas.loc[resp_idx:, 'V'].mean()
+            return s / v > 0.8 * self.predist_apparent_current
+
+        if cond.opmd == OpMode.ContOp:
+            valid = contop_valid()
+        elif cond.opmd == OpMode.MomCess:
+            valid = momcess_valid()
+        elif cond.opmd == OpMode.MandOpC:
+            momcess_valid = momcess_valid()
+            mandop_valid = mandop_valid()
+            valid = momcess_valid or mandop_valid
+        elif cond.opmd == OpMode.MandOp:
+            valid = mandop_valid()
+        else:
+            raise ValueError(cond.opmd)
+
+        env.validate(dct_label={
+            **dct_label,
+            'valid': valid,
+            'data': df_meas
+        })
