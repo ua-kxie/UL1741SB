@@ -125,14 +125,28 @@ def test_oft():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
-def test_uvrt():
-    std.uvrt_proc(env=env, eut=eut)
-    results = env.results['uvrt'].iloc[:, :-1]
-    df = pd.concat(env.results['uvrt'].loc[:, 'data'].values)
+def test_lvrt():
+    std.lvrt_proc(env=env, eut=eut)
+    results = env.results['lvrt'].iloc[:, :-1]
+    df = pd.concat(env.results['lvrt'].loc[:, 'data'].values)
 
     fig = make_subplots(rows=2, cols=1)
     fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
     fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
     fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
-    plotly.offline.plot(fig, filename='tests/epri/results/es-ramp.html')
-    assert env.results['uvrt'].loc[:, 'valid'].all()
+    plotly.offline.plot(fig, filename='tests/epri/results/lvrt.html')
+    assert env.results['lvrt'].loc[:, 'valid'].all()
+
+def test_hvrt():
+    std.hvrt_proc(env=env, eut=eut)
+    results = env.results['hvrt'].iloc[:, :-1]
+    df = pd.concat(env.results['hvrt'].loc[:, 'data'].values)
+
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/hvrt.html')
+    assert env.results['hvrt'].loc[:, 'valid'].all()
+
+

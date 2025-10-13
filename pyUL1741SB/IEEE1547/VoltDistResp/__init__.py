@@ -42,7 +42,7 @@ class CondName(enum.Enum):
     E = 6
     F = 7
 
-class LVRTCond:
+class VrtCond:
     def __init__(self, name: CondName, vpu, vpu_min, vpu_max, dur_s, opmd: OpMode):
         self.name = name
         self.vpu = vpu
@@ -52,28 +52,44 @@ class LVRTCond:
         self.opmd = opmd
 
     @staticmethod
-    def catIIIcondA():
-        return LVRTCond(name=CondName.A, vpu=0.88, vpu_min=0.88, vpu_max=1.0, dur_s=5.0, opmd=OpMode.ContOp)
+    def catIII_lvrt_condA():
+        return VrtCond(name=CondName.A, vpu=0.88, vpu_min=0.88, vpu_max=1.0, dur_s=5.0, opmd=OpMode.ContOp)
 
     @staticmethod
-    def catIIIcondB():
-        return LVRTCond(name=CondName.B, vpu=0.02, vpu_min=0.0, vpu_max=0.05, dur_s=1.0, opmd=OpMode.MomCess)
+    def catIII_lvrt_condB():
+        return VrtCond(name=CondName.B, vpu=0.02, vpu_min=0.0, vpu_max=0.05, dur_s=1.0, opmd=OpMode.MomCess)
 
     @staticmethod
-    def catIIIcondC():
-        return LVRTCond(name=CondName.C, vpu=0.48, vpu_min=0.0, vpu_max=0.5, dur_s=9.0, opmd=OpMode.MandOpC)
+    def catIII_lvrt_condC():
+        return VrtCond(name=CondName.C, vpu=0.48, vpu_min=0.0, vpu_max=0.5, dur_s=9.0, opmd=OpMode.MandOpC)
 
     @staticmethod
-    def catIIIcondCprime():
-        return LVRTCond(name=CondName.Cprime, vpu=0.52, vpu_min=0.52, vpu_max=0.7, dur_s=9.0, opmd=OpMode.MandOp)
+    def catIII_lvrt_condCprime():
+        return VrtCond(name=CondName.Cprime, vpu=0.52, vpu_min=0.52, vpu_max=0.7, dur_s=9.0, opmd=OpMode.MandOp)
 
     @staticmethod
-    def catIIIcondD():
-        return LVRTCond(name=CondName.D, vpu=0.52, vpu_min=0.5, vpu_max=0.7, dur_s=10.0, opmd=OpMode.MandOp)
+    def catIII_lvrt_condD():
+        return VrtCond(name=CondName.D, vpu=0.52, vpu_min=0.5, vpu_max=0.7, dur_s=10.0, opmd=OpMode.MandOp)
 
     @staticmethod
-    def catIIIcondE():
-        return LVRTCond(name=CondName.E, vpu=0.88, vpu_min=0.88, vpu_max=1.00, dur_s=120.0, opmd=OpMode.ContOp)
+    def catIII_lvrt_condE():
+        return VrtCond(name=CondName.E, vpu=0.88, vpu_min=0.88, vpu_max=1.00, dur_s=120.0, opmd=OpMode.ContOp)
+
+    @staticmethod
+    def catIII_hvrt_condA():
+        return VrtCond(name=CondName.A, vpu=1.1, vpu_min=1.0, vpu_max=1.1, dur_s=5.0, opmd=OpMode.ContOp)
+
+    @staticmethod
+    def catIII_hvrt_condB():
+        return VrtCond(name=CondName.B, vpu=1.18, vpu_min=1.18, vpu_max=1.2, dur_s=12.0, opmd=OpMode.MomCess)
+
+    @staticmethod
+    def catIII_hvrt_condBprime():
+        return VrtCond(name=CondName.Cprime, vpu=1.12, vpu_min=1.12, vpu_max=1.2, dur_s=12.0, opmd=OpMode.MomCess)
+
+    @staticmethod
+    def catIII_hvrt_condC():
+        return VrtCond(name=CondName.D, vpu=1.1, vpu_min=1.0, vpu_max=1.1, dur_s=120.0, opmd=OpMode.ContOp)
 
 class VoltDist(IEEE1547Common):
     Vminkey = 'Vmin'
@@ -270,17 +286,7 @@ class VoltDist(IEEE1547Common):
         env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
         # TODO communication based check for trip state?
 
-    def ovrt_proc(self, env: Env, eut: Eut):
-        """"""
-        multiphase = eut.multiphase
-        if multiphase:
-            raise NotImplementedError
-        '''
-        
-        '''
-        pass
-
-    def uvrt_proc(self, env: Env, eut: Eut):
+    def lvrt_proc(self, env: Env, eut: Eut):
         """"""
         multiphase = eut.multiphase
         if multiphase:
@@ -302,14 +308,14 @@ class VoltDist(IEEE1547Common):
         elif eut.aopCat == eut.AOPCat.III:
             fwchar = FWChar.CatIII_CharI()
             seq = [
-                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(),
-                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(),
-                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondC(), LVRTCond.catIIIcondD(), LVRTCond.catIIIcondE(),
-                LVRTCond.catIIIcondA(), LVRTCond.catIIIcondB(), LVRTCond.catIIIcondCprime(), LVRTCond.catIIIcondD(), LVRTCond.catIIIcondE(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condCprime(), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
             ]
         else:
             raise ValueError(eut.Cat)
-        resptm = timedelta(seconds=LVRTCond.catIIIcondB().dur_s)
+        resptm = timedelta(seconds=VrtCond.catIII_lvrt_condB().dur_s)
         vt_tbl = eut.voltshalltrip_tbl
         vt_args = {
             'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
@@ -341,9 +347,9 @@ class VoltDist(IEEE1547Common):
                     'pwr_pu': pwr_pu,
                     'cond': str(cond.name)
                 }
-                self.uvrt_validate(env, eut, dct_label, resptm, pwr_pu * eut.Prated, cond)
+                self.lvrt_validate(env, eut, dct_label, resptm, cond)
 
-    def uvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, p_targ, cond: LVRTCond):
+    def lvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, cond: VrtCond):
         """"""
         '''
         IEEE 1547.1-2020 5.4.4.5
@@ -388,14 +394,120 @@ class VoltDist(IEEE1547Common):
 
         if cond.opmd == OpMode.ContOp:
             valid = contop_valid()
+            self.prev_st = OpMode.ContOp
         elif cond.opmd == OpMode.MomCess:
             valid = momcess_valid()
+            self.prev_st = OpMode.MomCess
         elif cond.opmd == OpMode.MandOpC:
             momcess_valid = momcess_valid()
             mandop_valid = mandop_valid()
-            valid = momcess_valid or mandop_valid
+            valid = (momcess_valid and self.prev_st == OpMode.MomCess) or mandop_valid
+            self.prev_st = OpMode.MandOp
         elif cond.opmd == OpMode.MandOp:
             valid = mandop_valid()
+            self.prev_st = OpMode.MandOp
+        else:
+            raise ValueError(cond.opmd)
+
+        env.validate(dct_label={
+            **dct_label,
+            'valid': valid,
+            'data': df_meas
+        })
+
+    def hvrt_proc(self, env: Env, eut: Eut):
+        """"""
+        multiphase = eut.multiphase
+        if multiphase:
+            raise NotImplementedError
+
+        if eut.Cat == eut.Category.A:
+            vvcrv = VVCurve.Crv_1A()
+        elif eut.Cat == eut.Category.B:
+            vvcrv = VVCurve.Crv_1B()
+        else:
+            raise ValueError(eut.Cat)
+
+        if eut.aopCat == eut.AOPCat.I:
+            raise NotImplementedError
+        elif eut.aopCat == eut.AOPCat.II:
+            raise NotImplementedError
+        elif eut.aopCat == eut.AOPCat.III:
+            seq = [
+                VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condB(),
+                VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condB(),
+                VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condB(), VrtCond.catIII_hvrt_condC(),
+                VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condBprime(), VrtCond.catIII_hvrt_condC(),
+            ]
+        else:
+            raise ValueError(eut.Cat)
+        resptm = timedelta(seconds=VrtCond.catIII_lvrt_condB().dur_s)
+        vt_tbl = eut.voltshalltrip_tbl
+        vt_args = {
+            'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
+            'UV2': {'cts': vt_tbl.UV2.cts_max, 'vpu': vt_tbl.UV2.volt_pu_min}
+        }
+        '''
+        The voltage-reactive power control mode of the EUT shall be set to the default settings specified in Table 8
+        of IEEE Std 1547-2018 for the applicable performance category, and enabled.
+        '''
+        eut.set_vv(Ena=True, crv=vvcrv)
+        eut.set_vw(Ena=False)  # not specified but helps identify cont.op
+        '''
+        The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
+        power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
+        '''
+        PF = 1.0  # 0.9-1.0
+        eut.set_cpf(PF=PF)
+        for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
+            eut.set_ap(Ena=True, pu=pwr_pu)
+            for cond in seq:
+                dct_label = {
+                    'proc': 'hvrt',
+                    'pwr_pu': pwr_pu,
+                    'cond': str(cond.name)
+                }
+                self.hvrt_validate(env, eut, dct_label, resptm, cond)
+
+    def hvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, cond: VrtCond):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.4.7.6
+        Where the operating mode is specified as Permissive Operation, the EUT may Cease to Energize or may
+        continue to exchange current with the ac test source. The EUT shall ride through and shall not trip during
+        Permissive Operation. If the operating mode of the EUT during Permissive Operation is Cease to Energize,
+        the EUT shall comply with the Restore Output requirements 6.4.2.7 of IEEE Std 1547-2018.
+        
+        Where the operating mode is specified as Momentary Cessation, the EUT shall cease to exchange current
+        with the resistive load bank or ac test source. Following the momentary cessation event the EUT shall
+        comply with the Restore Output requirements of 6.4.2.7 of IEEE Std 1547-2018.
+        '''
+        meas_args = ('V', 'P', 'Q')
+        ntrvl = timedelta(seconds=cond.dur_s)
+
+        def perturb():
+            env.ac_config(Vac=cond.vpu * eut.VN)
+
+        df_meas = self.meas_perturb(env, eut, perturb, ntrvl, ntrvl, meas_args)
+        resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
+
+        def contop_valid():
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
+            v = df_meas.loc[resp_idx:, 'V'].mean()
+            self.predist_apparent_current = s/v
+            return s > eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+
+        def momcess_valid():
+            p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
+            q = df_meas.loc[resp_idx:, 'Q'].mean()
+            p_thresh = 0.01 * eut.Srated / eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
+            q_thresh = 0.1 * eut.Srated if eut.Srated < 500e3 else 0.03 * eut.Srated # IEEE 1547.1-2018 4.5
+            return p < p_thresh and q < q_thresh
+
+        if cond.opmd == OpMode.ContOp:
+            valid = contop_valid()
+        elif cond.opmd == OpMode.MomCess:
+            valid = momcess_valid()
         else:
             raise ValueError(cond.opmd)
 
