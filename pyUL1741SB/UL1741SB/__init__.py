@@ -228,15 +228,15 @@ class UL1741SB(RespPri1741, IEEE1547):
 
     def vv_wv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb:Callable, xarg, yarg, y_of_x: Callable, olrt: timedelta, xMRA, yMRA):
         df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
-        self.vv_wv_validate(env, eut, dct_label, df_meas, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+        self.vv_wv_validate(env, eut, dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
 
-    def vv_wv_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, xarg, yarg, y_of_x: Callable, olrt: timedelta, xMRA, yMRA):
+    def vv_wv_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg, yarg, xMRA, yMRA):
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
         # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
@@ -409,14 +409,15 @@ class UL1741SB(RespPri1741, IEEE1547):
     def cpf_crp_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable[[float], float]):
         xarg, yarg = 'P', 'Q'
         yMRA = eut.mra.static.Q
-        # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
 
         # # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
         # y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
         # y_init = max(y_init, key=lambda x: abs(x - y_ss))
         y_init = df_meas.loc[df_meas.index[0], yarg]
+        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
+        # determine y_ss by average after olrt
+        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
+        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
          - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
@@ -426,7 +427,6 @@ class UL1741SB(RespPri1741, IEEE1547):
         # interpret as require y within 10% of y_ss after olrt, or 1.5*MRA, whichever is greater
         # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
         y_thresh = max(abs(y_ss - y_init) * 0.1, 1.5 * yMRA)
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
         olrt_valid = (abs(df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss) < y_thresh).all()
 
         '''

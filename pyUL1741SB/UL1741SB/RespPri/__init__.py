@@ -4,33 +4,35 @@ IEEE 1547.1-2020 5.16
 import pandas as pd
 
 from pyUL1741SB import Eut, Env
+from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.RespPri import RespPri
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 
+from datetime import timedelta
+from typing import Callable
+
 class RespPri1741(RespPri):
     """"""
-    class PriTbl(RespPri.PriTbl):
-        """"""
-        @staticmethod
-        def catB():
-            data = {
-                'step': [1, 2, 3, 4, 5, 6, 7, 8],
-                'vpu_ac': [1, 1.09, 1.09, 1.09, 1.09, 1, 1, 1],
-                'fhz_ac': [60, 60, 60.33, 60, 59.36, 59.36, 60, 59.36],
-                'e_ap_pu': [0.5, 0.25, 0.15, 0.25, 0.25, 0.5, 0.5, 0.7],
-                'e_vv_rp_pu': [0, -0.44, -0.44, -0.44, -0.44, 0, 0, 0],
-                'e_crp_rp_pu': [0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44],
-                'e_cpf_pf': [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
-                'e_wv_rp_pu': [0, 0, 0, 0, 0, 0, 0, -0.18]
-            }
-            return RespPri1741.PriTbl(pd.DataFrame(data).set_index('step'))
+    @staticmethod
+    def catB():
+        data = {
+            'step': [1, 2, 3, 4, 5, 6, 7, 8],
+            'vpu_ac': [1, 1.09, 1.09, 1.09, 1.09, 1, 1, 1],
+            'fhz_ac': [60, 60, 60.33, 60, 59.36, 59.36, 60, 59.36],
+            'e_ap_pu': [0.5, 0.25, 0.15, 0.25, 0.25, 0.5, 0.5, 0.7],
+            'e_vv_rp_pu': [0, -0.44, -0.44, -0.44, -0.44, 0, 0, 0],
+            'e_crp_rp_pu': [0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44, 0.44],
+            'e_cpf_pf': [0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9, 0.9],
+            'e_wv_rp_pu': [0, 0, 0, 0, 0, 0, 0, -0.18]
+        }
+        return pd.DataFrame(data).set_index('step')
 
     def pri_proc(self, env: Env, eut: Eut):
         """"""
-        df_steps = self.PriTbl.catA() if eut.Cat == Eut.Category.A else self.PriTbl.catB()
+        df_steps = self.catA() if eut.Cat == Eut.Category.A else self.catB()
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage and frequency trip parameters to the widest range of adjustability. Disable all
@@ -46,7 +48,6 @@ class RespPri1741(RespPri):
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and
         enable frequency-watt and volt-watt parameters. For volt-watt, set P2 = 0.2Prated. (P2 = 0.0 1741 amendment)
-
         [...]
         '''
         if eut.aopCat == Eut.AOPCat.I:
@@ -107,27 +108,40 @@ class RespPri1741(RespPri):
             i) Allow the EUT to reach steady state.
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
-            # TODO wait for ss
             eut.set_ap(Ena=True, pu=0.5)
-            # TODO wait for ss
+            env.sleep(timedelta(seconds=30))
             # meas vac, fac, p, q
             '''
             n) Repeat steps k) through m) for the rest of the steps in Table 38 or Table 39, depending on the
             EUT’s normal operating performance category.
             '''
-            for step, stepvals in df_steps.itertuples():
+            for step, row in df_steps.iterrows():
                 '''
                 k) Set the ac test source voltage and frequency to the values in step (n) of Table 38 or Table 39,
                 depending on the EUT’s normal operating performance category.
                 l) Allow the EUT to reach steady state.
                 m) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
                 '''
-                env.ac_config(Vac=stepvals['vpu_ac'], Freq=stepvals['fhz_ac'])
-                stepvals['e_ap_pu']  # expected active power
-                stepvals[vars_key]  # expected reactive power
-                raise NotImplementedError
+                # tr, x, xMRA, y_of_x(tbl38/39 values)
+                def pf_of_x(x):
+                    return x * (1 / (row['e_cpf_pf'])**2 - 1) ** 0.5
 
-    def pri_validation(self):
+                dct_q_tup = {
+                    'e_vv_rp_pu': (vvcrv.Tr, 'V', eut.mra.static.V, lambda x: row['e_vv_rp_pu'] * eut.Prated),
+                    'e_crp_rp_pu': (10, 'Q', eut.mra.static.Q, lambda x: row['e_crp_rp_pu'] * eut.Prated),
+                    'e_cpf_pf': (10, 'P', eut.mra.static.P, pf_of_x),
+                    'e_wv_rp_pu': (10, 'V', eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * eut.Prated),
+                }
+                olrt = timedelta(seconds=max(fwchar.tr, vwcrv.Tr, dct_q_tup[vars_key][0]))
+                perturbation = lambda: env.ac_config(Vac=row['vpu_ac'] * eut.VN, freq=row['fhz_ac'])
+                dct_label = {
+                    'proc': 'pri',
+                    'vars_ctrl': vars_key,
+                    'step': step,
+                }
+                self.pri_validation(env, eut, dct_label, row, olrt, perturbation, dct_q_tup[vars_key][3], dct_q_tup[vars_key][1], dct_q_tup[vars_key][2])
+
+    def pri_validation(self, env: Env, eut: Eut, dct_label, df_steprow, olrt, perturb, q_of_x, qx, qxMRA):
         """"""
         """
         5.16.1.4 Criteria
@@ -162,7 +176,39 @@ class RespPri1741(RespPri):
         With watt-var enabled, Qfinal shall meet the test result accuracy requirements specified in 4.2 where Qfinal is
         the Y parameter and Psteady is the X parameter.
         """
-        # vv
-        # crp
-        # cpf
-        # wv
+        # meas vac, fac, p, q
+        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, ('V', 'F', 'P', 'Q'))
+        row_ss = df_meas.loc[df_meas.index[0] + olrt:, :].mean()
+        p_target = df_steprow['e_ap_pu'] * eut.Prated
+
+        # ap validation
+        fwmin, fwmax = self.range_4p2(lambda x: p_target, 0, eut.mra.static.F, eut.mra.static.P)
+        vwmin, vwmax = self.range_4p2(lambda x: p_target, 0, eut.mra.static.V, eut.mra.static.P)
+        pmin, pmax = min(fwmin, vwmin), max(fwmax, vwmax)
+        p_valid = pmin < row_ss['P'] < pmax
+
+        # vv, crp, cpf, wv
+        # vv: x is V
+        # crp: x is Qset
+        # cpf: x is P
+        # wv: x is P
+        q_target = q_of_x(row_ss[qx])
+        qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, eut.mra.static.Q)
+        q_valid = qmin < row_ss['Q'] < qmax
+
+        env.validate(dct_label={
+            **dct_label,
+            'p_meas': row_ss['P'],
+            'p_target': p_target,
+            'p_valid': p_valid,
+            'q_meas': row_ss['Q'],
+            'q_target': q_target,
+            'q_valid': q_valid,
+            'data': df_meas
+        })
+
+    def vv_wv_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg, yarg, xMRA, yMRA):
+        raise NotImplementedError
+
+    def cpf_crp_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable[[float], float]):
+        raise NotImplementedError

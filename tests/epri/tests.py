@@ -78,8 +78,8 @@ def test_pri():
     results = env.results['pri'].iloc[:, :-1]
     df = pd.concat(env.results['pri'].loc[:, 'data'].values)
     plotly.offline.plot(df.plot(), filename='tests/epri/results/pri.html')
-    assert env.results['pri'].loc[:, 'ss_valid'].all()
-    assert env.results['pri'].loc[:, 'olrt_valid'].all()
+    assert env.results['pri'].loc[:, 'p_valid'].all()
+    assert env.results['pri'].loc[:, 'q_valid'].all()
 
 def test_lap():
     std.lap_proc(env=env, eut=eut)
