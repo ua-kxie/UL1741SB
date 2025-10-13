@@ -39,31 +39,43 @@ class VVCurve:
                        Tr=5)
 
     @staticmethod
-    def Crv_2A():
+    def Crv_2A(eut: Eut):
+        # defined around NP_Q_ABS / INJ
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=1.05,
-                       V2=1.04, Q2=0.5, V3=1.07, Q3=0.5,
-                       V1=0.88, Q1=1.0, V4=1.1, Q4=-1.0,
+                       V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
+                       V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=1)
 
     @staticmethod
-    def Crv_2B():
+    def Crv_2B(eut: Eut):
+        # defined around NP_Q_ABS / INJ
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=1.05,
-                       V2=1.04, Q2=0.5, V3=1.07, Q3=0.5,
-                       V1=0.88, Q1=1.0, V4=1.1, Q4=-1.0,
+                       V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
+                       V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=1)
 
     @staticmethod
-    def Crv_3A():
+    def Crv_3A(eut: Eut):
+        # defined around NP_Q_ABS / INJ
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=0.95,
-                       V2=0.93, Q2=-0.5, V3=0.96, Q3=-0.5,
-                       V1=0.9, Q1=1.0, V4=1.1, Q4=-1.0,
+                       V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
+                       V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=90)
 
     @staticmethod
-    def Crv_3B():
+    def Crv_3B(eut: Eut):
+        # defined around NP_Q_ABS / INJ
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=0.95,
-                       V2=0.93, Q2=-0.5, V3=0.96, Q3=-0.5,
-                       V1=0.9, Q1=1.0, V4=1.1, Q4=-1.0,
+                       V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
+                       V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=90)
 
 class VV:

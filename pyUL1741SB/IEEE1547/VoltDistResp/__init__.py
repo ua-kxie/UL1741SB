@@ -11,6 +11,8 @@ from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB import Eut, Env
 from pyUL1741SB.eut import VoltShallTripValue
 
+pwr_pu_hi = 1.0  # higher than 0.9
+pwr_pu_lo = 0.25  # 0.25 to 0.5
 
 class OpMode(enum.Enum):
     ContOp = 1
@@ -29,6 +31,10 @@ class LVRTSeq:
         raise NotImplementedError
     @staticmethod
     def AOPCatIII():
+        """"""
+        '''
+        Based on sequences defined in IEEE 1547.1-2020 5.4.4.3
+        '''
         # 0.88-1.00 for 5s, OpMode.ContOp
         # 0.00-0.05 for 1s, OpMode.MomCess
         # 0.00-0.50 for 9s, OpMode.MandOp
@@ -86,7 +92,6 @@ class VoltDist(IEEE1547Common):
         shalltrip_tbl = eut.voltshalltrip_tbl
         VN = eut.VN
         vMRA = eut.mra.static.V
-
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all source parameters to the nominal operating conditions for the EUT.
