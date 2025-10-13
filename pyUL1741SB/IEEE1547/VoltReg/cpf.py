@@ -25,7 +25,7 @@ class CPF:
             )
             env.post_cbk(**dct_label)
         env.log(msg="cpf proc against 1547")
-        olrt = timedelta(seconds=10)
+        olrt = timedelta(seconds=eut.olrt.cpf)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
         av = 1.5 * eut.mra.static.V
         '''

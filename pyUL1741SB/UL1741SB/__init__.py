@@ -13,7 +13,8 @@ class UL1741SB(RespPri1741, IEEE1547):
     def wv_proc(self, env: Env, eut: Eut):
         """
         """
-        env.log(msg="cpf proc against 1547")
+        env.log(msg="wv proc against 1547")
+        olrt = timedelta(seconds=eut.olrt.wv)
         if eut.Cat == Eut.Category.A:
             wv_crvs = [
                 ('1A', WVCurve.Crv_1A(eut)),
@@ -53,7 +54,7 @@ class UL1741SB(RespPri1741, IEEE1547):
                 for k, step in dct_steps.items():
                     dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
                     self.wv_step_validate(
-                        env, eut, dct_label, lambda: eut.set_ap(Ena=True, pu=step), timedelta(seconds=5),
+                        env, eut, dct_label, lambda: eut.set_ap(Ena=True, pu=step), olrt,
                         lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
 
     def vw_traverse_steps(self, env: Env, eut: Eut, vw_crv: VWCurve):

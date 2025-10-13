@@ -12,7 +12,9 @@ class EpriEut(Eut):
         self.der.der_file.PV_MODE_ENABLE = True  # needed by LAP, which doesnt explicitly turn it on
         self.der.update_der_input(v_pu=1, f=60, p_dem_pu=1.0)
         self.der.run()
+        olrt = super().Olrt(crp=10, cpf=10, wv=10, lap=1)
         super().__init__(
+            olrt=olrt,
             Cat=Eut.Category.B,
             aopCat=Eut.AOPCat.III,
             voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(240),

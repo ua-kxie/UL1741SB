@@ -109,7 +109,7 @@ class RespPri1741(RespPri):
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
             eut.set_ap(Ena=True, pu=0.5)
-            env.sleep(timedelta(seconds=30))
+            env.sleep(timedelta(seconds=eut.olrt.lap))
             # meas vac, fac, p, q
             '''
             n) Repeat steps k) through m) for the rest of the steps in Table 38 or Table 39, depending on the
@@ -128,9 +128,9 @@ class RespPri1741(RespPri):
 
                 dct_q_tup = {
                     'e_vv_rp_pu': (vvcrv.Tr, 'V', eut.mra.static.V, lambda x: row['e_vv_rp_pu'] * eut.Prated),
-                    'e_crp_rp_pu': (10, 'Q', eut.mra.static.Q, lambda x: row['e_crp_rp_pu'] * eut.Prated),
-                    'e_cpf_pf': (10, 'P', eut.mra.static.P, pf_of_x),
-                    'e_wv_rp_pu': (10, 'V', eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * eut.Prated),
+                    'e_crp_rp_pu': (eut.olrt.crp, 'Q', eut.mra.static.Q, lambda x: row['e_crp_rp_pu'] * eut.Prated),
+                    'e_cpf_pf': (eut.olrt.cpf, 'P', eut.mra.static.P, pf_of_x),
+                    'e_wv_rp_pu': (eut.olrt.wv, 'V', eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * eut.Prated),
                 }
                 olrt = timedelta(seconds=max(fwchar.tr, vwcrv.Tr, dct_q_tup[vars_key][0]))
                 perturbation = lambda: env.ac_config(Vac=row['vpu_ac'] * eut.VN, freq=row['fhz_ac'])

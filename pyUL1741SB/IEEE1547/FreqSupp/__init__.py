@@ -100,6 +100,7 @@ class FreqSupp(IEEE1547Common):
         '''
         for crv_key, crv, ap_sgn in fw_crvs:
             pwrs_pu = ap_sgn * np.array([1.0, 0.2, 0.66])
+            olrt = timedelta(seconds=crv.tr)
             '''
             p) Repeat test steps c) through o) with the EUT power set at 20% and 66% of rated power.
             '''
@@ -118,8 +119,7 @@ class FreqSupp(IEEE1547Common):
                 env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof)
                 eut.set_ap(Ena=True, pu=pwr_pu)
                 eut.set_fw(Ena=True, crv=crv)
-                olrt = timedelta(seconds=crv.tr)
-                env.sleep(timedelta(seconds=30))  # wait for AP steady state
+                env.sleep(timedelta(seconds=eut.olrt.lap))  # wait for AP steady state
                 y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
                 dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
@@ -203,6 +203,7 @@ class FreqSupp(IEEE1547Common):
         # chars = char1, char2, char1 with Pmin if needed
         for crv_key, crv, ap_sgn in fw_crvs:
             pwr_pu = ap_sgn * 0.5
+            olrt = timedelta(seconds=crv.tr)
             '''
             c) Set all ac test source parameters to the nominal operating voltage and frequency.
             d) Adjust the EUT’s available active power to Prated. Set the EUT’s output power to 50% of Prated.
@@ -215,8 +216,7 @@ class FreqSupp(IEEE1547Common):
             env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof)
             eut.set_ap(Ena=True, pu=pwr_pu)
             eut.set_fw(Ena=True, crv=crv)
-            olrt = timedelta(seconds=crv.tr)
-            env.sleep(timedelta(seconds=30))  # wait for AP steady state
+            env.sleep(timedelta(seconds=eut.olrt.lap))  # wait for AP steady state
             y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
             dct_steps = self.fwu_traverse_steps(env, eut, crv, af=eut.mra.static.F)
             for step_key, step_fcn in dct_steps.items():

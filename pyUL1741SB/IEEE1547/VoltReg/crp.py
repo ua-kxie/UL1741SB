@@ -24,7 +24,7 @@ class CRP:
                 y_of_x=y_of_x,
             )
             env.post_cbk(**dct_label)
-        olrt = timedelta(seconds=10)
+        olrt = timedelta(seconds=eut.olrt.crp)
         Qpusets = [1, -1, 0.5, -0.5]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = eut.Pmin, eut.Prated, eut.multiphase

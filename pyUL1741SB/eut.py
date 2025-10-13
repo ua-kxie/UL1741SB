@@ -225,6 +225,12 @@ class Eut:
         def __init__(self, v_nominal, s_rated):
             self.static = self.Static(v_nominal, s_rated)
             self.dynamic = self.Dynamic(v_nominal)
+    class Olrt:
+        def __init__(self, crp, cpf, wv, lap):
+            self.crp = min(crp, 10)  # max 10 seconds
+            self.cpf = min(cpf, 10)  # max 10 seconds
+            self.wv = min(wv, 10)  # max 10 seconds
+            self.lap = min(lap, 30)  # max 30 seconds
     def __init__(self, **kwargs):
         # general params
         k, t = 'Cat', self.Category
@@ -276,6 +282,12 @@ class Eut:
         self.delta_Plarge = kwargs['delta_Plarge']
         # post
         self.mra = self.MRA(self.VN, self.Prated)
+        # olrts
+        k, t = 'olrt', self.Olrt
+        if isinstance(kwargs[k], t):
+            self.olrt = kwargs[k]
+        else:
+            raise TypeError(f"{k} must be of type {t.__name__}.")
 
     def rocof(self):
         """
