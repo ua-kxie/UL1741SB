@@ -38,8 +38,6 @@ class EpriEut(Eut):
             fL=59.0,  # minimum frequency in continuous operating region (Hz)
             fN=60.0,  # nominal frequency (Hz)
             fH=61.0,  # maximum frequency in continuous operating region (Hz)
-            delta_Psmall=0.1,  # small power change threshold (p.u.)
-            delta_Plarge=0.5  # large power change threshold (p.u.)
         )
 
     def set_cpf(self, **kwargs):
@@ -183,4 +181,23 @@ class EpriEut(Eut):
             self.der.der_file.PF_KOF = crv.kof
             self.der.der_file.PF_KUF = crv.kuf
             self.der.der_file.PF_OLRT = crv.tr
+
+    def set_es(self, **kwargs):
+        for k, v in kwargs.items():
+            if k == 'Ena':
+                self.der.der_file.ES_PERMIT_SERVICE = v
+            elif k == 'esDelay':
+                self.der.der_file.ES_DELAY = v
+            elif k == 'esPeriod':
+                self.der.der_file.ES_RAMP_RATE = v
+            elif k == 'esVpuHi':
+                self.der.der_file.ES_V_HIGH = v
+            elif k == 'esVpuLo':
+                self.der.der_file.ES_V_LOW = v
+            elif k == 'esfHzHi':
+                self.der.der_file.ES_F_HIGH = v
+            elif k == 'esfHzLo':
+                self.der.der_file.ES_F_LOW = v
+            else:
+                raise NotImplementedError
 

@@ -278,8 +278,6 @@ class Eut:
         self.fL = kwargs['fL']
         self.fN = kwargs['fN']
         self.fH = kwargs['fH']
-        self.delta_Psmall = kwargs['delta_Psmall']
-        self.delta_Plarge = kwargs['delta_Plarge']
         # post
         self.mra = self.MRA(self.VN, self.Prated)
         # olrts

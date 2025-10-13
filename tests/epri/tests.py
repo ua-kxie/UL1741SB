@@ -4,6 +4,8 @@ from EpriEut import EpriEut
 import pandas as pd
 import plotly
 pd.options.plotting.backend = "plotly"
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 std = UL1741SB()
 eut = EpriEut()
@@ -87,6 +89,17 @@ def test_lap():
     df = pd.concat(env.results['lap'].loc[:, 'data'].values)
     plotly.offline.plot(df.plot(), filename='tests/epri/results/lap.html')
     assert env.results['lap'].loc[:, 'ss_valid'].all()
+
+def test_es_ramp():
+    std.es_ramp_proc(env=env, eut=eut)
+    results = env.results['es-ramp'].iloc[:, :-1]
+    df = pd.concat(env.results['es-ramp'].loc[:, 'data'].values)
+
+    fig = make_subplots(rows=4, cols=1)
+    for i, col in enumerate(df.columns):
+        fig.add_trace(go.Trace(x=df.index, y=df[col], name=col), row=i+1, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/es-ramp.html')
+    assert env.results['es-ramp'].loc[:, 'valid'].all()
 
 def test_uvt():
     std.uvt_proc(env=env, eut=eut)
