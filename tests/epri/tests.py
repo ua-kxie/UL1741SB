@@ -32,7 +32,7 @@ def test_vv():
     results = env.results['vv'].iloc[:, :-1]
     df = pd.concat(env.results['vv'].loc[:, 'data'].values)
 
-    fig = make_subplots(rows=2, cols=1)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
     fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
     fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
     plotly.offline.plot(fig, filename='tests/epri/results/vv.html')
@@ -44,7 +44,7 @@ def test_vv_vref():
     results = env.results['vv-vref'].iloc[:, :-1]
     df = pd.concat(env.results['vv-vref'].loc[:, 'data'].values)
 
-    fig = make_subplots(rows=1, cols=1)
+    fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
     fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
     plotly.offline.plot(fig, filename='tests/epri/results/vv-vref.html')
     assert env.results['vv-vref'].loc[:, 'valid'].all()
@@ -70,7 +70,11 @@ def test_fwo():
     std.fwo_proc(env=env, eut=eut)
     results = env.results['fwo'].iloc[:, :-1]
     df = pd.concat(env.results['fwo'].loc[:, 'data'].values)
-    plotly.offline.plot(df.plot(), filename='tests/epri/results/fwo.html')
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['F'], name='F'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/fwo.html')
     assert env.results['fwo'].loc[:, 'ss_valid'].all()
     assert env.results['fwo'].loc[:, 'olrt_valid'].all()
 
@@ -78,7 +82,11 @@ def test_fwu():
     std.fwu_proc(env=env, eut=eut)
     results = env.results['fwu'].iloc[:, :-1]
     df = pd.concat(env.results['fwu'].loc[:, 'data'].values)
-    plotly.offline.plot(df.plot(), filename='tests/epri/results/fwu.html')
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['F'], name='F'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/fwu.html')
     assert env.results['fwu'].loc[:, 'ss_valid'].all()
     assert env.results['fwu'].loc[:, 'olrt_valid'].all()
 
@@ -86,7 +94,13 @@ def test_pri():
     std.pri_proc(env=env, eut=eut)
     results = env.results['pri'].iloc[:, :-1]
     df = pd.concat(env.results['pri'].loc[:, 'data'].values)
-    plotly.offline.plot(df.plot(), filename='tests/epri/results/pri.html')
+
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['F'], name='F'), row=3, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/pri.html')
     assert env.results['pri'].loc[:, 'p_valid'].all()
     assert env.results['pri'].loc[:, 'q_valid'].all()
 

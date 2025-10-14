@@ -88,7 +88,7 @@ class RespPri1741(RespPri):
 
         def crp_cfg():
             eut.set_vv(Ena=False)
-            eut.set_crp(Ena=True, pu=1)
+            eut.set_crp(Ena=True, pu=0.44 * eut.Prated / eut.Srated)
 
         def cpf_cfg():
             eut.set_crp(Ena=False)

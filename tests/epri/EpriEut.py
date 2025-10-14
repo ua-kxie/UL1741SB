@@ -9,6 +9,14 @@ class EpriEut(Eut):
     def __init__(self, **kwargs):
         self.der = der.DER_BESS()
         self.der.der_file.NP_PHASE = "SINGLE"
+        self.der.der_file.NP_P_MAX = 5e3
+        self.der.der_file.NP_P_MAX_CHARGE = 5e3
+        self.der.der_file.NP_APPARENT_POWER_CHARGE_MAX = 5e3
+        self.der.der_file.NP_P_MAX_OVER_PF = 4.5e3
+        self.der.der_file.NP_P_MAX_UNDER_PF = 4.5e3
+        self.der.der_file.NP_Q_MAX_ABS = 5e3
+        self.der.der_file.NP_Q_MAX_INJ = 5e3
+        self.der.der_file.NP_VA_MAX = 5e3
         self.der.der_file.PV_MODE_ENABLE = True  # needed by LAP, which doesnt explicitly turn it on
         self.der.update_der_input(v_pu=1, f=60, p_dem_pu=1.0)
         self.der.run()
@@ -38,6 +46,8 @@ class EpriEut(Eut):
             fN=60.0,  # nominal frequency (Hz)
             fH=61.0,  # maximum frequency in continuous operating region (Hz)
             vfo_capable=False,
+            demonstrable_rocof=10,
+            delta_Psmall=0.1,
         )
 
     def dc_config(self, **kwargs):

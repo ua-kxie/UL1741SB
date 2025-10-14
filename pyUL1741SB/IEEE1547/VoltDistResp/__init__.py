@@ -343,7 +343,7 @@ class VoltDist(IEEE1547Common):
             eut.set_ap(Ena=True, pu=pwr_pu)
             for cond in seq:
                 dct_label = {
-                    'proc': 'uvrt',
+                    'proc': 'lvrt',
                     'pwr_pu': pwr_pu,
                     'cond': str(cond.name)
                 }

@@ -14,7 +14,10 @@ class CRP:
         """
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=eut.olrt.crp)
-        Qpusets = [1, -1, 0.5, -0.5]
+        Qpusets = [
+            1 * eut.Qrated_inj / eut.Srated, -1 * eut.Qrated_abs / eut.Srated,
+            0.5 * eut.Qrated_inj / eut.Srated, -0.5 * eut.Qrated_abs / eut.Srated
+        ]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = eut.Pmin, eut.Prated, eut.multiphase
         VL, VN, VH = eut.VL, eut.VN, eut.VH

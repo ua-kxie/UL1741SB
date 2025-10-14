@@ -279,17 +279,20 @@ class Eut:
             raise TypeError(f"{k} must be of type {t.__name__}.")
         # vfo
         self.vfo_capable = kwargs['vfo_capable']  # (see frt tests)
+        self.demonstrable_rocof = kwargs['demonstrable_rocof']  # der capable rocof, should exceed required value from aopCat
+        self.delta_Psmall = kwargs['delta_Psmall']  # see fw tests
 
     def rocof(self):
         """
         IEEE 1547.1-2018 6.5.2.5
         returns rocof in hz/s
         """
-        return {
+        required_rocof = {
             Eut.AOPCat.I: 0.5,
             Eut.AOPCat.II: 2.0,
             Eut.AOPCat.III: 3.0,
         }[self.aopCat]
+        return max(self.demonstrable_rocof, required_rocof)
 
     def set_cpf(self, **kwargs):
         raise NotImplementedError
