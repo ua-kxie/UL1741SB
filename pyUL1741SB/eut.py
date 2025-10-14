@@ -16,7 +16,6 @@ class VoltShallTripValue:
     @volt_pu.setter
     def volt_pu(self, value):
         self.__volt_pu = np.clip(value, self.__volt_min, self.__volt_max)
-
     @property
     def cts(self):
         return self.__cts
@@ -95,7 +94,6 @@ class FreqShallTripValue:
     @hertz.setter
     def hertz(self, value):
         self.__hertz = np.clip(value, self.__hertz_min, self.__hertz_max)
-
     @property
     def cts(self):
         return self.__cts
@@ -103,12 +101,6 @@ class FreqShallTripValue:
     def cts(self, value):
         self.__cts = np.clip(value, self.__cts_min, self.__cts_max)
 
-    @property
-    def volt_pu_min(self):
-        return self.__hertz_min
-    @property
-    def volt_pu_max(self):
-        return self.__hertz_max
     @property
     def cts_min(self):
         return self.__cts_min
@@ -256,7 +248,6 @@ class Eut:
             self.freqshalltrip_tbl = kwargs[k]
         else:
             raise TypeError(f"{k} must be of type {t.__name__}.")
-        self.vfo = kwargs['vfo']  # variable frequency output capable (see frt tests)
         self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
         self.Prated = kwargs['Prated']  # output power rating (W)
@@ -286,6 +277,8 @@ class Eut:
             self.olrt = kwargs[k]
         else:
             raise TypeError(f"{k} must be of type {t.__name__}.")
+        # vfo
+        self.vfo_capable = kwargs['vfo_capable']  # (see frt tests)
 
     def rocof(self):
         """

@@ -19,7 +19,6 @@ class EpriEut(Eut):
             aopCat=Eut.AOPCat.III,
             voltshalltrip_tbl=VoltShallTripTable.AOPCatIII(240),
             freqshalltrip_tbl=FreqShallTripTable.MaxRange(),
-            vfo=False,
             Prated=self.der.der_file.NP_P_MAX,
             Prated_prime=-self.der.der_file.NP_P_MAX_CHARGE,
             Srated=self.der.der_file.NP_P_MAX,
@@ -38,6 +37,7 @@ class EpriEut(Eut):
             fL=59.0,  # minimum frequency in continuous operating region (Hz)
             fN=60.0,  # nominal frequency (Hz)
             fH=61.0,  # maximum frequency in continuous operating region (Hz)
+            vfo_capable=False,
         )
 
     def set_cpf(self, **kwargs):

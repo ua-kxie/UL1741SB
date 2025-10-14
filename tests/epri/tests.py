@@ -149,4 +149,26 @@ def test_hvrt():
     plotly.offline.plot(fig, filename='tests/epri/results/hvrt.html')
     assert env.results['hvrt'].loc[:, 'valid'].all()
 
+def test_lfrt():
+    std.lfrt_proc(env=env, eut=eut)
+    results = env.results['lfrt'].iloc[:, :-1]
+    df = pd.concat(env.results['lfrt'].loc[:, 'data'].values)
 
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['F'], name='F'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/lfrt.html')
+    assert env.results['lfrt'].loc[:, 'valid'].all()
+
+def test_hfrt():
+    std.hfrt_proc(env=env, eut=eut)
+    results = env.results['hfrt'].iloc[:, :-1]
+    df = pd.concat(env.results['hfrt'].loc[:, 'data'].values)
+
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['P'], name='P'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['F'], name='F'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/hfrt.html')
+    assert env.results['hfrt'].loc[:, 'valid'].all()

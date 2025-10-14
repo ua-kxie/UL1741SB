@@ -183,14 +183,26 @@ class FreqDist(IEEE1547Common):
 
     def hfrt_proc(self, env: Env, eut: Eut):
         """"""
+        ft_tbl = eut.freqshalltrip_tbl
+        ft_args = {
+            'OF1': {'cts': ft_tbl.OF1.cts_max, 'freq': ft_tbl.OF1.hertz_min},
+            'OF2': {'cts': ft_tbl.OF2.cts_max, 'freq': ft_tbl.OF2.hertz_min}
+        }
         '''
+        VFO CAPABLE:
         a) Connect the EUT to a load bank according to manufacturer’s instructions.
+        VFO INCAPABLE:
+        a) Connect the EUT to ac test source according to manufacturer’s instructions.
+        '''
+        '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
         frequency as small as possible.
         d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
         '''
-        # TODO
+        # TODO verify default settings
+        eut.set_fw(Ena=False)
+        eut.set_ft(**ft_args)
         '''
         VFO CAPABLE:
         e) Operate the EUT at nominal frequency ± 0.6 Hz into a load bank load capable of absorbing 100%
@@ -199,20 +211,20 @@ class FreqDist(IEEE1547Common):
         VFO INCAPABLE:
         e) Operate the ac test source at nominal frequency ± 0.1 Hz.
         '''
-        if eut.vfo:
-            pass
-        else:
+        if eut.vfo_capable:
             raise NotImplementedError
+        else:
+            env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
 
         '''
         i) Repeat steps f) and g) twice for a total of three tests.
         '''
-        for _ in range(3):
+        for iteration in range(3):
             '''
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            eut.set_ap(Ena=True, pu=0.9)
+            eut.set_ap(Ena=True, pu=1.0)
             eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
@@ -229,43 +241,67 @@ class FreqDist(IEEE1547Common):
             capability of the EUT.
             h) Decrease the frequency of the ac test source to the nominal frequency ± 0.1 Hz.
             '''
-            if eut.vfo:
-                pass
-            else:
+            if eut.vfo_capable:
                 raise NotImplementedError
+            else:
+                self.hfrt_validate(
+                    env, eut,
+                    {'proc': 'hfrt', 'iter': iteration, 'step': 'g'},
+                    lambda: env.ac_config(freq=62, rocof=eut.rocof()),
+                    timedelta(seconds=299)
+                )
+                self.hfrt_validate(
+                    env, eut,
+                    {'proc': 'hfrt', 'iter': iteration, 'step': 'h'},
+                    lambda: env.ac_config(freq=eut.fN, rocof=eut.rocof()),
+                    timedelta(seconds=1)
+                )
         '''
         j) During all frequency transitions in steps f) through h), the ROCOF shall be greater than or equal to
         the ROCOF limit in Table 21 of IEEE Std 1547-2018 and shall be within the demonstrated ROCOF
         capability of the EUT.
         '''
-    def hfrt_validate(self):
+
+    def hfrt_validate(self, env: Env, eut: Eut, dct_label, perturbation, ntrvl):
         """"""
         '''
         j) During all frequency transitions in steps f) through h), the ROCOF shall be greater than or equal to
         the ROCOF limit in Table 21 of IEEE Std 1547-2018 and shall be within the demonstrated ROCOF
         capability of the EUT.
-        
+
         IEEE 1547-2020 5.5.4.6
         An EUT shall be considered in compliance when the EUT rides through the abnormal frequency excursions
         with a magnitude and duration not less than those specified in 6.5.2 of IEEE Std 1547-2018.
-        
+
         When varying the frequency of the ac test source or EUT, the ROCOF should be kept below the ROCOF
         capability of the EUT to avoid nuisance tripping. The ROCOF used in the ride-through tests shall exceed
         the minimum ROCOF capability required in 6.5.2.5 of IEEE Std 1547-2018, to satisfy the ROCOF ridethrough
         test requirements for the EUT’s Abnormal Operating Performance Category.
         '''
-        pass
+        self.frt_validate(env, eut, dct_label, perturbation, ntrvl)
 
     def lfrt_proc(self, env: Env, eut: Eut):
         """"""
+        ft_tbl = eut.freqshalltrip_tbl
+        ft_args = {
+            'UF1': {'cts': ft_tbl.UF1.cts_max, 'freq': ft_tbl.UF1.hertz_min},
+            'UF2': {'cts': ft_tbl.UF2.cts_max, 'freq': ft_tbl.UF2.hertz_min}
+        }
         '''
+        VFO CAPABLE:
         a) Connect the EUT to a load bank according to manufacturer’s instructions.
+        VFO INCAPABLE:
+        a) Connect the EUT to ac test source according to manufacturer’s instructions.
+        '''
+        '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
         frequency as small as possible.
         d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
         '''
-        # TODO
+        # TODO verify default settings
+        eut.set_fw(Ena=False)
+        eut.set_ft(**ft_args)
         '''
         VFO CAPABLE:
         e) Operate the EUT at nominal frequency ± 0.6 Hz into a load bank load capable of absorbing 100%
@@ -274,19 +310,19 @@ class FreqDist(IEEE1547Common):
         VFO INCAPABLE:
         e) Operate the ac test source at nominal frequency ± 0.1 Hz.
         '''
-        if eut.vfo:
-            pass
-        else:
+        if eut.vfo_capable:
             raise NotImplementedError
+        else:
+            env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
         '''
         i) Repeat steps f) and g) twice for a total of three tests. 
         '''
-        for _ in range(3):
+        for iteration in range(3):
             '''
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            eut.set_ap(Ena=True, pu=0.9)
+            eut.set_ap(Ena=True, pu=1.0)
             eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
@@ -303,17 +339,28 @@ class FreqDist(IEEE1547Common):
             capability of the EUT.
             h) Increase the frequency of the ac test source to the nominal frequency ± 0.1 Hz.
             '''
-            if eut.vfo:
-                pass
-            else:
+            if eut.vfo_capable:
                 raise NotImplementedError
+            else:
+                self.lfrt_validate(
+                    env, eut,
+                    {'proc': 'lfrt', 'iter': iteration, 'step': 'g'},
+                    lambda: env.ac_config(freq=56.8, rocof=eut.rocof()),
+                    timedelta(seconds=299)
+                )
+                self.lfrt_validate(
+                    env, eut,
+                    {'proc': 'lfrt', 'iter': iteration, 'step': 'h'},
+                    lambda: env.ac_config(freq=eut.fN, rocof=eut.rocof()),
+                    timedelta(seconds=1)
+                )
         '''
         j) During all frequency transitions in steps f) through h) the absolute ROCOF shall be 
         greater than or equal to the ROCOF limit in Table 21 of IEEE Std 1547-2018 and shall be within the 
         demonstrated ROCOF capability of the EUT.
         '''
 
-    def lfrt_validate(self):
+    def lfrt_validate(self, env: Env, eut: Eut, dct_label, perturbation, ntrvl):
         """"""
         '''
         j) During all frequency transitions in steps f) through h) the absolute ROCOF shall be 
@@ -329,5 +376,15 @@ class FreqDist(IEEE1547Common):
         the minimum ROCOF capability required in 6.5.2.5 of IEEE Std 1547-2018, to satisfy the ROCOF ridethrough
         test requirements for the EUT’s Abnormal Operating Performance Category.
         '''
-        pass
+        self.frt_validate(env, eut, dct_label, perturbation, ntrvl)
 
+    def frt_validate(self, env: Env, eut: Eut, dct_label, perturbation, ntrvl):
+        """"""
+        df_meas = self.meas_perturb(env, eut, perturbation, ntrvl, ntrvl, ('P', 'Q', 'F'))
+        valid = ((df_meas.loc[:, 'P'] - eut.Prated) < 1.5 * eut.mra.static.P).all()
+
+        env.validate(dct_label={
+            **dct_label,
+            'valid': valid,
+            'data': df_meas,
+        })
