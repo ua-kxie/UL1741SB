@@ -13,17 +13,6 @@ class CPF:
     def cpf_proc(self, env: Env, eut: Eut):
         """
         """
-        def validate(env: Env, eut: Eut, dct_label: dict, perturbation, olrt, y_of_x):
-            env.pre_cbk(**dct_label)
-            self.cpf_step_validate(
-                env=env,
-                eut=eut,
-                dct_label=dct_label,
-                perturb=perturbation,
-                olrt=olrt,
-                y_of_x=y_of_x,
-            )
-            env.post_cbk(**dct_label)
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=eut.olrt.cpf)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
@@ -111,11 +100,11 @@ class CPF:
                     'k': lambda: env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():
-                    validate(
+                    self.cpf_step_validate(
                         env=env,
                         eut=eut,
                         dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'{k}'},
-                        perturbation=perturbation,
+                        perturb=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
                     )
@@ -156,16 +145,11 @@ class CPF:
                 q) Disable constant power factor mode. Power factor should return to unity.
                 r) Verify all reactive/active power control functions are disabled.
                 '''
-                PF = 1
-                validate(
+                self.cpf_step_validate(
                     env=env,
                     eut=eut,
-                    dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'q'},
-                    perturbation=lambda: eut.set_cpf(Ena=False),
+                    dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'off', 'Step': f'q'},
+                    perturb=lambda: eut.set_cpf(Ena=False),
                     olrt=olrt,
-                    y_of_x=y_of_x,
+                    y_of_x=lambda x: 0,
                 )
-                # step r: TODO
-                # vars_ctrl = eut.set_ap()['Ena']
-                # watts_ctrl = eut.set_ap()['Ena']
-                # env.log(msg=f'cpf Vin: {Vin}, PF: {PF}, vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}')

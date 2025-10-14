@@ -294,7 +294,7 @@ class Eut:
     def set_cpf(self, **kwargs):
         raise NotImplementedError
 
-    def set_ap_lim(self, Ena: bool, pu):
+    def set_lap(self, Ena: bool, pu):
         raise NotImplementedError
 
     def set_ap(self, **kwargs):

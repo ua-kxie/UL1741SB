@@ -31,7 +31,11 @@ def test_vv():
     std.vv_proc(env=env, eut=eut)
     results = env.results['vv'].iloc[:, :-1]
     df = pd.concat(env.results['vv'].loc[:, 'data'].values)
-    plotly.offline.plot(df.plot(), filename='tests/epri/results/vv.html')
+
+    fig = make_subplots(rows=2, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['V'], name='V'), row=2, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/vv.html')
     assert env.results['vv'].loc[:, 'ss_valid'].all()
     assert env.results['vv'].loc[:, 'olrt_valid'].all()
 
@@ -39,7 +43,10 @@ def test_vv_vref():
     std.vv_vref_proc(env=env, eut=eut)
     results = env.results['vv-vref'].iloc[:, :-1]
     df = pd.concat(env.results['vv-vref'].loc[:, 'data'].values)
-    plotly.offline.plot(df.plot(), filename='tests/epri/results/vv-vref.html')
+
+    fig = make_subplots(rows=1, cols=1)
+    fig.add_trace(go.Trace(x=df.index, y=df['Q'], name='Q'), row=1, col=1)
+    plotly.offline.plot(fig, filename='tests/epri/results/vv-vref.html')
     assert env.results['vv-vref'].loc[:, 'valid'].all()
 
 def test_wv():

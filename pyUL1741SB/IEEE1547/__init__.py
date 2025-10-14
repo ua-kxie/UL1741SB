@@ -102,7 +102,7 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
                     return min(vw_val, aplim_pu * eut.Prated)
                 lst_tup_steps = [
                     # step label, perturbation, y_ss_target, olrt
-                    ('c', lambda: eut.set_ap_lim(Ena=True, pu=aplim_pu), aplim_pu * eut.Prated, timedelta(seconds=30)),
+                    ('c', lambda: eut.set_lap(Ena=True, pu=aplim_pu), aplim_pu * eut.Prated, timedelta(seconds=30)),
                     ('d1', lambda: env.ac_config(freq=59, rocof=eut.rocof()), y_of_fw(59), timedelta(seconds=dflt_fwchar.tr)),
                     ('d2', lambda: env.ac_config(freq=60, rocof=eut.rocof()), y_of_fw(60), timedelta(seconds=dflt_fwchar.tr)),
                     ('e1', lambda: env.ac_config(freq=61, rocof=eut.rocof()), y_of_fw(61), timedelta(seconds=dflt_fwchar.tr)),

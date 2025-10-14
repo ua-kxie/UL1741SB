@@ -13,17 +13,6 @@ class CRP:
         """
         """
         env.log(msg="cpf proc against 1547")
-        def validate(env: Env, eut:Eut, dct_label: dict, perturbation, olrt, y_of_x):
-            env.pre_cbk(**dct_label)
-            self.crp_step_validate(
-                env=env,
-                eut=eut,
-                dct_label=dct_label,
-                perturb=perturbation,
-                olrt=olrt,
-                y_of_x=y_of_x,
-            )
-            env.post_cbk(**dct_label)
         olrt = timedelta(seconds=eut.olrt.crp)
         Qpusets = [1, -1, 0.5, -0.5]
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
@@ -74,11 +63,11 @@ class CRP:
                     'l': lambda: env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():
-                    validate(
+                    self.crp_step_validate(
                         env=env,
                         eut=eut,
                         dct_label={'proc': 'crp', 'Qset': f'{Qpu:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
-                        perturbation=perturbation,
+                        perturb=perturbation,
                         olrt=olrt,
                         y_of_x=lambda x: Qpu * eut.Qrated_inj if Qpu > 0 else Qpu * eut.Qrated_abs,
                     )
@@ -95,15 +84,11 @@ class CRP:
                 r) Disable constant reactive power mode. Reactive power should return to zero.
                 s) Verify all reactive/active power control functions are disabled.
                 '''
-                validate(
+                self.crp_step_validate(
                     env=env,
                     eut=eut,
                     dct_label={'proc': 'crp', 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
-                    perturbation=lambda: eut.set_crp(Ena=False),
+                    perturb=lambda: eut.set_crp(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )
-                # step r TODO
-                # vars_ctrl = eut.set_crp()['Ena']
-                # watts_ctrl = eut.set_crp()['Ena']
-                # env.log(msg=f"crp Qset: {Q}, Vin: {Vin}, Step: s; vars_ctrl_en: {vars_ctrl}, watts_ctrl_en: {watts_ctrl}")

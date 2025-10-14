@@ -56,7 +56,7 @@ class EpriEut(Eut):
             else:
                 raise NotImplementedError
 
-    def set_ap_lim(self, Ena: bool, pu):
+    def set_lap(self, Ena: bool, pu):
         self.der.der_file.AP_LIMIT_ENABLE = Ena
         self.der.der_file.AP_LIMIT = pu
 

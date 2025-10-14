@@ -72,9 +72,3 @@ class Env:  # step voltage, power, sleep, etc.
 
     def validate(self, dct_label: dict):
         print(''.join([f'{k}: {v}; ' for k, v in dct_label.items()]))
-
-    def pre_cbk(self, **kwargs):
-        pass
-
-    def post_cbk(self, **kwargs):
-        pass

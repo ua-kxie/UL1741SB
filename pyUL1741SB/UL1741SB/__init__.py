@@ -37,6 +37,19 @@ class UL1741SB(RespPri1741, IEEE1547):
         e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
         be turned off.
         '''
+        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
+        vttbl = eut.voltshalltrip_tbl
+        eut.set_vt(**{
+            'OV1': {'cts': vttbl.OV1.cts, 'vpu': vttbl.OV1.volt_pu},
+            'OV2': {'cts': vttbl.OV2.cts, 'vpu': vttbl.OV2.volt_pu},
+            'UV1': {'cts': vttbl.UV1.cts, 'vpu': vttbl.UV1.volt_pu},
+            'UV2': {'cts': vttbl.UV2.cts, 'vpu': vttbl.UV2.volt_pu},
+        })
+        eut.set_lap(Ena=False, pu=1)
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
         '''
         bb) Repeat steps f) through aa) for characteristics 2 and 3.
         '''
@@ -190,7 +203,7 @@ class UL1741SB(RespPri1741, IEEE1547):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
-        eut.set_ap_lim(Ena=False, pu=1)
+        eut.set_lap(Ena=False, pu=1)
         eut.set_crp(Ena=False)
         eut.set_cpf(Ena=False)
         '''
@@ -216,7 +229,6 @@ class UL1741SB(RespPri1741, IEEE1547):
                     env.sleep(timedelta(seconds=vv_crv.Tr * 2))
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
-                        env.pre_cbk(**dct_label)
                         self.vv_step_validate(
                             env,
                             eut,
@@ -225,7 +237,6 @@ class UL1741SB(RespPri1741, IEEE1547):
                             olrt=timedelta(seconds=vv_crv.Tr),
                             y_of_x=lambda x: vv_crv.y_of_x(x / eut.VN) * eut.Srated,
                         )
-                        env.post_cbk(**dct_label)
 
     def vv_wv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb:Callable, xarg, yarg, y_of_x: Callable, olrt: timedelta, xMRA, yMRA):
         df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))

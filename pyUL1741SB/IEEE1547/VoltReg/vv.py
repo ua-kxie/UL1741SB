@@ -154,12 +154,12 @@ class VV:
             'cc': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN + av),
             'dd': lambda: env.ac_config(Vac=vv_crv.VRef * eut.VN)
         }
-        if VH < vv_crv.V4:
-            env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4}]')
+        if VH < vv_crv.V4 * eut.VN:
+            env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4 * eut.VN}]')
             for step in ['j', 'k', 'm', 'n']:
                 ret.pop(step)
-        if VL > vv_crv.V1:
-            env.log(msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1}]')
+        if VL > vv_crv.V1 * eut.VN:
+            env.log(msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1 * eut.VN}]')
             for step in ['v', 'w', 'y', 'z']:
                 ret.pop(step)
         return ret

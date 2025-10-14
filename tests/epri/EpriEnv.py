@@ -72,12 +72,6 @@ class EpriEnv(Env):
         else:
             self.results[proc] = df_row
 
-    def pre_cbk(self, **kwargs):
-        pass
-
-    def post_cbk(self, **kwargs):
-        pass
-
     def ac_config(self, **kwargs):
         """"""
         '''
@@ -92,9 +86,6 @@ class EpriEnv(Env):
                 pass
             else:
                 raise NotImplementedError(k)
-
-    def dc_config(self, **kwargs):
-        pass
 
     def reset_to_nominal(self):
         """"""
