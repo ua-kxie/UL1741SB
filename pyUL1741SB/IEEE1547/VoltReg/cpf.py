@@ -54,7 +54,7 @@ class CPF:
         """
         Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
         for Vin in Vins:
-            env.dc_config(Vdc=Vin)
+            eut.dc_config(Vdc=Vin)
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """

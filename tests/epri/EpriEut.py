@@ -40,6 +40,9 @@ class EpriEut(Eut):
             vfo_capable=False,
         )
 
+    def dc_config(self, **kwargs):
+        pass
+
     def set_cpf(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Ena':

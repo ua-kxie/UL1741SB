@@ -50,11 +50,11 @@ class IEEE1547Common:
         # TODO reset the inverter for next test
         # set VDC, (Vg) to 0
         env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
-        env.dc_config(Vdc=0)
+        eut.dc_config(Vdc=0)
         # wait 1 second
         env.sleep(timedelta(seconds=1))
         # set VDC to nominal
-        env.dc_config(Vdc=eut.Vin_nom)
+        eut.dc_config(Vdc=eut.Vin_nom)
         env.log(msg='waiting for re-energization...')
         while env.meas_single('P').iloc[0, 0] < eut.Prated * 0.5:
             env.sleep(timedelta(seconds=1))

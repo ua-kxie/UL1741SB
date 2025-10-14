@@ -44,7 +44,7 @@ class CRP:
                 Qmax,inj.
                 '''
                 eut.set_ap(Ena=True, pu=1)
-                env.dc_config(Vdc=Vin)
+                eut.dc_config(Vdc=Vin)
                 eut.set_crp(Ena=True, pu=Qpu)
                 '''
                 g) Step the EUT’s active power to 20% of Prated, or Pmin, whichever is less.
