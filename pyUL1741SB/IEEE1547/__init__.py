@@ -186,7 +186,7 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
             ntrvl = timedelta(seconds=1)
             df_meas = self.meas_perturb(
                 env, eut,
-                env.reset_to_nominal,
+                env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof()),
                 ntrvl, ntrvl, meas_args
             )
             self.es_ramp_validate(eut, env, dct_label, step='c', df_meas=df_meas)

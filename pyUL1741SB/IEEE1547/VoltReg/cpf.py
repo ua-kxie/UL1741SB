@@ -13,6 +13,7 @@ class CPF:
     def cpf_proc(self, env: Env, eut: Eut):
         """
         """
+        appu_max = 0.2  # should be 1
         env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=eut.olrt.cpf)
         VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
@@ -48,7 +49,7 @@ class CPF:
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
         eut.set_crp(Ena=False)
-        eut.set_ap(Ena=False, pu=1)
+        eut.set_ap(Ena=False, pu=appu_max)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
@@ -76,7 +77,7 @@ class CPF:
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
                 power requirements.
                 '''
-                eut.set_ap(Ena=True, pu=1)
+                eut.set_ap(Ena=True, pu=appu_max)
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
@@ -94,7 +95,7 @@ class CPF:
                 '''
                 dct_steps = {
                     'g': lambda: eut.set_ap(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: eut.set_ap(Ena=True, pu=1.0),
+                    'h': lambda: eut.set_ap(Ena=True, pu=appu_max),
                     'i': lambda: env.ac_config(Vac=VL + av),
                     'j': lambda: env.ac_config(Vac=VH - av),
                     'k': lambda: env.ac_config(Vac=VL + av),

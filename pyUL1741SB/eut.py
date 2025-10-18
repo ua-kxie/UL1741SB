@@ -282,6 +282,9 @@ class Eut:
         self.demonstrable_rocof = kwargs['demonstrable_rocof']  # der capable rocof, should exceed required value from aopCat
         self.delta_Psmall = kwargs['delta_Psmall']  # see fw tests
 
+    def dc_config(self, **kwargs):
+        pass
+
     def rocof(self):
         """
         IEEE 1547.1-2018 6.5.2.5

@@ -57,16 +57,6 @@ class Env:  # step voltage, power, sleep, etc.
     def ac_config(self, **kwargs):
         pass
 
-    def reset_to_nominal(self):
-        """"""
-        """
-        Called for the following instructions:
-        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all voltage and frequency trip parameters to the widest range of adjustability. Disable all
-        reactive/active power control functions.
-        """
-        pass
-
     def log(self, **kwargs):
         print(kwargs['msg'])
 
