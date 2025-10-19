@@ -158,6 +158,7 @@ class UL1741SB(RespPri1741, IEEE1547):
         y_targ = y_of_x(x_ss)
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_ss <= y_max
+        df_meas['y_target'] = y_targ
         env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
@@ -263,6 +264,8 @@ class UL1741SB(RespPri1741, IEEE1547):
         y_targ = y_of_x(x_ss)
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_min <= y_ss <= y_max
+
+        df_meas['y_target'] = y_targ
         env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
@@ -456,6 +459,8 @@ class UL1741SB(RespPri1741, IEEE1547):
         y_min = y_targ - 1.5 * yMRA
         y_max = y_targ + 1.5 * yMRA
         ss_valid = y_min <= y_ss <= y_max
+
+        df_meas['y_target'] = y_targ
         env.validate(dct_label={
             **dct_label,
             'y_init': y_init,

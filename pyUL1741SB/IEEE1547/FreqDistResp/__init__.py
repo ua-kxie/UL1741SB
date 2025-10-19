@@ -49,9 +49,7 @@ class FreqDist(IEEE1547Common):
                         range of adjustment specified by the manufacturer.
                         '''
                         dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
-                        env.pre_cbk(**dct_label)
                         self.oft_validate(env, eut, dct_label, trip_fpu, trip_cts, tMRA)
-                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
     def oft_validate(self, env: Env, eut: Eut, dct_label, trip_fpu, trip_cts, tMRA):
@@ -140,9 +138,7 @@ class FreqDist(IEEE1547Common):
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
                         dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
-                        env.pre_cbk(**dct_label)
                         self.uft_validate(env, eut, dct_label, trip_fpu, trip_cts, tMRA)
-                        env.post_cbk(**dct_label)
 
     def uft_validate(self, env: Env, eut: Eut, dct_label, trip_fpu, trip_cts, tMRA):
         """"""

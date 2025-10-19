@@ -1,6 +1,7 @@
-from opender import DER, DER_PV, DER_BESS
-
+from opender import DER_BESS
 der_obj = DER_BESS()
+derfile = der_obj.der_file
+default = {key: getattr(derfile, key) for key in dir(derfile) if 'ENABLE' in key}
 # der_obj.der_file.CONST_PF_MODE_ENABLE=True
 # der_obj.der_file.CONST_PF=0.9
 # der_obj.der_file.QV_MODE_ENABLE=True

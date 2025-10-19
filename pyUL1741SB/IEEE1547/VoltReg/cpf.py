@@ -59,15 +59,15 @@ class CPF:
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """
-            for PF, Ext in targetPFs:
+            for PF, Exct in targetPFs:
                 def y_of_x(x):
                     q = x * math.sqrt(1 / PF ** 2 - 1)
-                    if Ext == 'inj':
+                    if Exct == 'inj':
                         return q
-                    elif Ext == 'abs':
+                    elif Exct == 'abs':
                         return -q
                     else:
-                        raise ValueError(f'unknown Ext {Ext}')
+                        raise ValueError(f'unknown Ext {Exct}')
                 '''
                 (c) - set to nominal and wait for steady state
                 '''
@@ -81,7 +81,7 @@ class CPF:
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
-                eut.set_cpf(Ena=True, PF=PF, Ext=Ext)
+                eut.set_cpf(Ena=True, PF=PF, Exct=Exct)
                 '''
                 f) Wait for steady state to be reached.		
                 '''
@@ -104,7 +104,7 @@ class CPF:
                     self.cpf_step_validate(
                         env=env,
                         eut=eut,
-                        dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}{Exct}', 'Step': f'{k}'},
                         perturb=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,

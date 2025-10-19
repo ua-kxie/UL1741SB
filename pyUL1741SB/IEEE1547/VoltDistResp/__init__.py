@@ -143,9 +143,7 @@ class VoltDist(IEEE1547Common):
                         e), f)
                         '''
                         dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
-                        env.pre_cbk(**dct_label)
                         self.ovt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
-                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
     def ovt_validate(self, env: Env, eut: Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
@@ -248,9 +246,7 @@ class VoltDist(IEEE1547Common):
                         f) Record all voltage magnitudes when the unit trips.
                         '''
                         dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
-                        env.pre_cbk(**dct_label)
                         self.uvt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
-                        env.post_cbk(**dct_label)
                         self.trip_rst(env, eut)
 
     def uvt_validate(self, env: Env, eut:Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):

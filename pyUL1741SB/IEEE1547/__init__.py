@@ -156,6 +156,7 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
         y_init = df_meas.loc[df_meas.index[0], yarg]
         y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
         ss_valid = y_ss <= y_ss_target + 1.5 * yMRA
+        df_meas['y_target'] = y_ss_target
         env.validate(dct_label={
             **dct_label,
             'step': step_label,
@@ -186,7 +187,7 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
             ntrvl = timedelta(seconds=1)
             df_meas = self.meas_perturb(
                 env, eut,
-                env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof()),
+                lambda: env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof()),
                 ntrvl, ntrvl, meas_args
             )
             self.es_ramp_validate(eut, env, dct_label, step='c', df_meas=df_meas)

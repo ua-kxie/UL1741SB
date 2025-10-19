@@ -39,7 +39,7 @@ class RespPri1741(RespPri):
         reactive/active power control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
-        env.reset_to_nominal()
+        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
         '''
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.
@@ -196,6 +196,8 @@ class RespPri1741(RespPri):
         qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, eut.mra.static.Q)
         q_valid = qmin < row_ss['Q'] < qmax
 
+        df_meas['p_target'] = p_target
+        df_meas['q_target'] = q_target
         env.validate(dct_label={
             **dct_label,
             'p_meas': row_ss['P'],
