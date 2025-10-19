@@ -181,6 +181,12 @@ class VW:
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
         '''

@@ -48,7 +48,12 @@ class CPF:
         control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
+        eut.set_cpf(Ena=False)
         eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         eut.set_ap(Ena=False, pu=appu_max)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		

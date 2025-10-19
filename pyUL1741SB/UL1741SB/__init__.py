@@ -45,11 +45,12 @@ class UL1741SB(RespPri1741, IEEE1547):
             'UV1': {'cts': vttbl.UV1.cts, 'vpu': vttbl.UV1.volt_pu},
             'UV2': {'cts': vttbl.UV2.cts, 'vpu': vttbl.UV2.volt_pu},
         })
-        eut.set_lap(Ena=False, pu=1)
         eut.set_cpf(Ena=False)
         eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
         eut.set_vv(Ena=False)
         eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         bb) Repeat steps f) through aa) for characteristics 2 and 3.
         '''
@@ -204,9 +205,12 @@ class UL1741SB(RespPri1741, IEEE1547):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
-        eut.set_lap(Ena=False, pu=1)
-        eut.set_crp(Ena=False)
         eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
         '''
@@ -303,6 +307,12 @@ class UL1741SB(RespPri1741, IEEE1547):
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         j) Repeat test steps b) through i) with Tref set at 5000 s.
         '''

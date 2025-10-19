@@ -91,6 +91,12 @@ class FreqSupp(IEEE1547Common):
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         r) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
         programming a negative Pmin.
@@ -195,6 +201,12 @@ class FreqSupp(IEEE1547Common):
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         o) Repeat steps b) through n) for Characteristic 2.
         p) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by

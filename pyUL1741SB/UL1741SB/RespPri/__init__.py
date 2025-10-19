@@ -40,6 +40,12 @@ class RespPri1741(RespPri):
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
         env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.

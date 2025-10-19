@@ -55,6 +55,13 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
         category of the DER. Enable voltage-active power mode.
         '''
         env.ac_config(freq=eut.fN, Vac=eut.VN)
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+
+        eut.set_fw(Ena=True, crv=dflt_fwchar)
+        eut.set_vw(Ena=True, crv=dflt_vwcrv)
         '''
         g) Repeat steps b) through f) using active power limits of [66%] 33% and zero.
         h) Repeat steps b) through g) twice for a total of three repetitions.
@@ -82,8 +89,8 @@ class IEEE1547(VoltReg, FreqDist, VoltDist, FreqSupp, IEEE1547Common):
                 reaches steady state. Return ac test source voltage to nominal.
                 '''
                 # b)
-                eut.set_ap(Ena=True, pu=1)  # TODO check appropriate setting for this step
-                # TODO wait for SS state
+                eut.set_ap(Ena=True, pu=1)
+                env.sleep(timedelta(seconds=eut.olrt.lap))
                 dct_label = {
                     'proc': 'lap',
                     'iter': i,

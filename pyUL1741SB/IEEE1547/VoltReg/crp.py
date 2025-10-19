@@ -28,6 +28,12 @@ class CRP:
         control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
         '''
         t) Repeat steps d) through s) for additional reactive power settings: [Qmax,inj] Qmax,ab, 0.5Qmax,inj, 0.5Qmax,ab.
         '''
