@@ -17,7 +17,6 @@ class EpriEut(Eut):
         self.der.der_file.NP_Q_MAX_ABS = 5e3
         self.der.der_file.NP_Q_MAX_INJ = 5e3
         self.der.der_file.NP_VA_MAX = 5e3
-        self.der.der_file.PV_MODE_ENABLE = True  # needed by LAP, which doesnt explicitly turn it on
         self.der.update_der_input(v_pu=1, f=60, p_dem_pu=1.0)
         self.der.run()
         olrt = super().Olrt(crp=10, cpf=10, wv=10, lap=1)
