@@ -6,7 +6,6 @@ import plotly
 pd.options.plotting.backend = "plotly"
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-import itertools
 
 std = UL1741SB()
 eut = EpriEut()

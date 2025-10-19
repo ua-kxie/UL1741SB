@@ -98,7 +98,7 @@ class RespPri1741(RespPri):
 
         def cpf_cfg():
             eut.set_crp(Ena=False)
-            eut.set_cpf(Ena=True, PF=0.9)  # always 0.9
+            eut.set_cpf(Ena=True, PF=0.9, Exct='inj')  # always 0.9
 
         def wv_cfg():
             eut.set_cpf(Ena=False)
