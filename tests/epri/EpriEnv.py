@@ -9,7 +9,7 @@ DTS = 0.1
 class EpriEnv(Env):
     def __init__(self, eut: EpriEut):
         super().__init__()
-        self.time = dt.datetime.fromtimestamp(0)
+        self.time = dt.datetime.fromtimestamp(0, tz=dt.timezone.utc)
         self.eut = eut
         self.results = {}  # dct of dataframes
 
