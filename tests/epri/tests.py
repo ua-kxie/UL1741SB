@@ -1,3 +1,5 @@
+import pytest
+
 from pyUL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
@@ -7,9 +9,7 @@ pd.options.plotting.backend = "plotly"
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
-std = UL1741SB()
-eut = EpriEut()
-env = EpriEnv(eut)
+
 
 palette = {
     False: 'rgba(155, 55, 55, 0.05)',
@@ -29,7 +29,39 @@ def drawfig(fig, df, dct_traces, labelfcn, pfcols, epoch=False):
                           annotation_position='top left', fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
     return fig
 
-def test_cpf():
+@pytest.fixture
+def setup():
+    std = UL1741SB()
+    eut = EpriEut()
+    env = EpriEnv(eut)
+    return std, eut, env
+
+# def test_pri_corruption(setup):
+#     std = setup[0]
+#     eut = setup[1]
+#     env = setup[2]
+#     std.vv_vref_proc(env=env, eut=eut)
+#     std.vw_proc(env=env, eut=eut)
+#     std.pri_proc(env=env, eut=eut)
+#     proc = 'pri'
+#     lst_labels = ['vars_ctrl', 'step']
+#     pfcols = ['p_valid', 'q_valid']
+#     fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
+#     dct_traces = {'P': 1, 'Q': 1, 'V': 2, 'F': 3, 'p_target': 1, 'q_target': 1}
+#
+#     results = env.results[proc].iloc[:, :-1]
+#     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+#     fig = drawfig(fig, env.results[proc], dct_traces, labelfcn, pfcols, epoch=True)
+#     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
+#     results.to_csv(f'tests/epri/results/{proc}.csv')
+#
+#     for pfcol in pfcols:
+#         assert env.results[proc].loc[:, pfcol].all()
+
+def test_cpf(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.cpf_proc(env=env, eut=eut)
     proc = 'cpf'
     lst_labels = ['Vin', 'PF', 'Step']
@@ -46,7 +78,10 @@ def test_cpf():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_crp():
+def test_crp(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.crp_proc(env=env, eut=eut)
     proc = 'crp'
     lst_labels = ['Qset', 'Vin', 'Step']
@@ -63,7 +98,10 @@ def test_crp():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_vv():
+def test_vv(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.vv_proc(env=env, eut=eut)
     proc = 'vv'
     lst_labels = ['crv', 'step']
@@ -80,7 +118,10 @@ def test_vv():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_vv_vref():
+def test_vv_vref(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.vv_vref_proc(env=env, eut=eut)
     proc = 'vv-vref'
     lst_labels = ['Tref', 'step']
@@ -97,7 +138,10 @@ def test_vv_vref():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_wv():
+def test_wv(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.wv_proc(env=env, eut=eut)
     proc = 'wv'
     lst_labels = ['crv', 'dir', 'step']
@@ -114,7 +158,10 @@ def test_wv():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_vw():
+def test_vw(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     # TODO should meet criteria with 1.5 * tMRA accounted for for olrt validation
     std.vw_proc(env=env, eut=eut)
     proc = 'vw'
@@ -132,7 +179,10 @@ def test_vw():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_fwo():
+def test_fwo(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.fwo_proc(env=env, eut=eut)
     proc = 'fwo'
     lst_labels = ['crv', 'pwr_pu', 'step']
@@ -149,7 +199,10 @@ def test_fwo():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_fwu():
+def test_fwu(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.fwu_proc(env=env, eut=eut)
     proc = 'fwu'
     lst_labels = ['crv', 'pwr_pu', 'step']
@@ -166,7 +219,10 @@ def test_fwu():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_pri():
+def test_pri(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.pri_proc(env=env, eut=eut)
     proc = 'pri'
     lst_labels = ['vars_ctrl', 'step']
@@ -183,7 +239,10 @@ def test_pri():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_lap():
+def test_lap(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.lap_proc(env=env, eut=eut)
     proc = 'lap'
     lst_labels = ['iter', 'aplim_pu', 'step']
@@ -200,7 +259,10 @@ def test_lap():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_es_ramp():
+def test_es_ramp(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.es_ramp_proc(env=env, eut=eut)
     proc = 'es-ramp'
     lst_labels = ['case', 'step']
@@ -217,7 +279,10 @@ def test_es_ramp():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_uvt():
+def test_uvt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.uvt_proc(env=env, eut=eut)
     proc = 'uvt'
     results = env.results[proc].iloc[:, :-1]
@@ -225,7 +290,10 @@ def test_uvt():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
-def test_ovt():
+def test_ovt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.ovt_proc(env=env, eut=eut)
     proc = 'ovt'
     results = env.results[proc].iloc[:, :-1]
@@ -233,7 +301,10 @@ def test_ovt():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
-def test_uft():
+def test_uft(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.uft_proc(env=env, eut=eut)
     proc = 'uft'
     results = env.results[proc].iloc[:, :-1]
@@ -241,7 +312,10 @@ def test_uft():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
-def test_oft():
+def test_oft(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.oft_proc(env=env, eut=eut)
     proc = 'oft'
     results = env.results[proc].iloc[:, :-1]
@@ -249,7 +323,10 @@ def test_oft():
     assert results.loc[:, 'ceased'].all()
     # assert results.loc[:, 'tripped'].all()
 
-def test_lvrt():
+def test_lvrt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.lvrt_proc(env=env, eut=eut)
     proc = 'lvrt'
     lst_labels = ['pwr_pu', 'cond']
@@ -266,7 +343,10 @@ def test_lvrt():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_hvrt():
+def test_hvrt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.hvrt_proc(env=env, eut=eut)
     proc = 'hvrt'
     lst_labels = ['pwr_pu', 'cond']
@@ -283,7 +363,10 @@ def test_hvrt():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_lfrt():
+def test_lfrt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.lfrt_proc(env=env, eut=eut)
     proc = 'lfrt'
     lst_labels = ['iter', 'step']
@@ -300,7 +383,10 @@ def test_lfrt():
     for pfcol in pfcols:
         assert env.results[proc].loc[:, pfcol].all()
 
-def test_hfrt():
+def test_hfrt(setup):
+    std = setup[0]
+    eut = setup[1]
+    env = setup[2]
     std.hfrt_proc(env=env, eut=eut)
     proc = 'hfrt'
     lst_labels = ['iter', 'step']

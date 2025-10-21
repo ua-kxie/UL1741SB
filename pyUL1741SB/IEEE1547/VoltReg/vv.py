@@ -21,6 +21,9 @@ class VVCurve:
         self.Q4 = kwargs['Q4']
         self.Tr = kwargs['Tr']
 
+    def __str__(self):
+        str(self.__dict__)
+
     def y_of_x(self, x):
         return np.interp(
             x,
