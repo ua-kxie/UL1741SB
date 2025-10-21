@@ -212,8 +212,7 @@ class VW(VoltReg):
         }
         return ret
 
-    def vw_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
-                    y_of_x: Callable[[float], float]):
+    def vw_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.9.3, +SB amendments

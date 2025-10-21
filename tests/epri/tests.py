@@ -8,7 +8,7 @@ import plotly
 pd.options.plotting.backend = "plotly"
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-
+import datetime
 
 
 palette = {
@@ -36,24 +36,36 @@ def std():
     std = UL1741SB(env, eut)
     return std
 
-# def test_pri_corruption(std):
-#     std.vv_vref_proc()
-#     std.vw_proc()
-#     std.pri_proc()
-#     proc = 'pri'
-#     lst_labels = ['vars_ctrl', 'step']
-#     pfcols = ['p_valid', 'q_valid']
-#     fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
-#     dct_traces = {'P': 1, 'Q': 1, 'V': 2, 'F': 3, 'p_target': 1, 'q_target': 1}
-#
-#     results = self.c_env.results[proc].iloc[:, :-1]
-#     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-#     fig = drawfig(fig, self.c_env.results[proc], dct_traces, labelfcn, pfcols, epoch=True)
-#     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
-#     results.to_csv(f'tests/epri/results/{proc}.csv')
-#
-#     for pfcol in pfcols:
-#         assert self.c_env.results[proc].loc[:, pfcol].all()
+def test_pri_corruption(std):
+    std.vv_vref_proc()
+    std.vw_proc()
+    std.pri_proc()
+    proc = 'pri'
+    lst_labels = ['vars_ctrl', 'step']
+    pfcols = ['p_valid', 'q_valid']
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
+    dct_traces = {'P': 1, 'Q': 1, 'V': 2, 'F': 3, 'p_target': 1, 'q_target': 1}
+
+    results = std.c_env.results[proc].iloc[:, :-1]
+    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+    fig = drawfig(fig, std.c_env.results[proc], dct_traces, labelfcn, pfcols, epoch=True)
+    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
+    results.to_csv(f'tests/epri/results/{proc}.csv')
+
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
+
+def test_uvt_nrst(std):
+    std.lap_proc()
+    ts = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S")
+    print('\n')
+    print(ts)
+    std.uvt_proc()
+    proc = 'uvt'
+    results = std.c_env.results[proc].iloc[:, :-1]
+    results.to_csv(f'tests/epri/results/{proc}.csv')
+    assert results.loc[:, 'ceased'].all()
+    # assert results.loc[:, 'tripped'].all()
 
 def test_cpf(std):
     std.cpf_proc()
