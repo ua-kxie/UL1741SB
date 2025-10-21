@@ -48,7 +48,7 @@ class EpriEut(Eut):
             fN=60.0,  # nominal frequency (Hz)
             fH=61.0,  # maximum frequency in continuous operating region (Hz)
             vfo_capable=False,
-            demonstrable_rocof=10,
+            demonstrable_rocof=float('inf'),
             delta_Psmall=0.1,
         )
 

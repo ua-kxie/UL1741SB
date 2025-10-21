@@ -27,6 +27,7 @@ def drawfig(fig, df, dct_traces, labelfcn, pfcols, epoch=False):
             label = labelfcn(row)
             fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
                           annotation_position='top left', fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+    fig.update_xaxes(tickformat="%H:%M:%S.%2f")
     return fig
 
 @pytest.fixture
