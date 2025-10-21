@@ -2,8 +2,11 @@ from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
-from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
+from pyUL1741SB import Eut, Env
 import opender as der
+
+from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
+
 
 class EpriEut(Eut):
     def __init__(self, **kwargs):

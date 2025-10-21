@@ -1,4 +1,4 @@
-from pyUL1741SB.UL1741SB import UL1741SB
+from pyUL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
 import pandas as pd

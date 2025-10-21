@@ -2,6 +2,10 @@ from datetime import timedelta
 from typing import Callable
 from pyUL1741SB import Eut, Env
 import numpy as np
+import pandas as pd
+
+from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+
 
 class VVCurve:
     '''IEEE 1547.1-2020 Tables 25-27'''
@@ -78,7 +82,7 @@ class VVCurve:
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=90)
 
-class VV:
+class VV(VoltReg):
     def vv_step_validate(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         '''
         Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage, a new steady
@@ -167,27 +171,14 @@ class VV:
     def vv_proc(self, env: Env, eut: Eut):
         """
         """
-        raise NotImplementedError
-
-    def vv_vref_proc(self, env: Env, eut: Eut):
-        raise NotImplementedError
-
-    def vv_vref_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, is_valid: Callable[[float], bool]):
-        """"""
-        '''
-        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
-        new steady-state reactive power, Qfinal, shall be determined. To obtain a steady-state value, Qfinal may be
-        measured at a time period much larger than the voltage reference low-pass filter time constant, Tref, setting
-        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state state
-        error is 1%. In addition, filtering may be used to reject any variation in ac test source voltage during
-        steady-state measurement.
-        
-        The reactive power output at 1 times the voltage reference low-pass filter time constant, Tref, Q(Tref), shall
-        be less than 10% of Q4 for increasing voltage and shall be less than 10% of Q1 for decreasing voltage.
-        '''
-        raise NotImplementedError
-
-    def vv_imbal(self):
+        VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
+        av = 1.5 * eut.mra.static.V
+        if eut.Cat == Eut.Category.A:
+            vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
+        elif eut.Cat == Eut.Category.B:
+            vv_crvs = [('1B', VVCurve.Crv_1B())]
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
@@ -196,15 +187,179 @@ class VV:
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
-        e) Set EUT volt-var parameters to the values specified by the default volt-var settings in Characteristic
-        1. All other function should be turned off. Turn off the autonomously adjusting reference voltage.
-        f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
-        g) Once steady state is reached, begin the adjustment of phase voltages.
-        h) For multiphase units, step the ac test source voltage to Case A from Table 24.
-        i) For multiphase units, step the ac test source voltage to VN.
-        j) For multiphase units, step the ac test source voltage to Case B from Table 24.
-        k) For multiphase units, step the ac test source voltage to VN.
-        l) Where an EUT has more than one setting for the response to unbalanced voltages, repeat steps a)
-        through k) to verify each setting.
         '''
-        raise NotImplementedError("IEEE 1547 vv_imbal")
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
+        '''
+        ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
+        '''
+        for vref in [VN]:  # 1741SB amendment
+            '''
+            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
+            '''
+            for pwr in [Prated]:  # 1741SB amendment
+                '''
+                gg) Repeat steps e) through ee) for characteristics 2 and 3.
+                '''
+                for crv_name, vv_crv in vv_crvs:
+                    '''
+                    e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
+                    be turned off. Turn off the autonomously adjusting reference voltage.
+                    f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
+                    g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
+                    '''
+                    eut.set_vv(Ena=True, crv=vv_crv)
+                    dct_vvsteps = self.vv_traverse_steps(env, eut, vv_crv, VL, VH, av)
+                    env.sleep(timedelta(seconds=vv_crv.Tr * 2))
+                    for stepname, perturbation in dct_vvsteps.items():
+                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
+                        self.vv_step_validate(
+                            env,
+                            eut,
+                            dct_label=dct_label,
+                            perturb=perturbation,
+                            olrt=timedelta(seconds=vv_crv.Tr),
+                            y_of_x=lambda x: vv_crv.y_of_x(x / eut.VN) * eut.Srated,
+                        )
+
+    def vv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
+        xMRA = eut.mra.static.V
+        yMRA = eut.mra.static.Q
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'V', 'Q'
+
+        self.vv_wv_step_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+
+    def vv_vref_proc(self, env: Env, eut: Eut):
+        """
+        """
+        if eut.Cat == Eut.Category.A:
+            crv = VVCurve.Crv_1A()  # just char1 curve, UL1741 amendment
+        elif eut.Cat == Eut.Category.B:
+            crv = VVCurve.Crv_1B()
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        '''
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
+        '''
+        j) Repeat test steps b) through i) with Tref set at 5000 s.
+        '''
+        for Tref_s in [300, 5000]:
+            '''
+            b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
+            control functions.
+            c) Set all ac test source parameters to the nominal operating voltage and frequency.
+            d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
+            voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
+            requirements.
+            e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other functions should
+            be turned off. Enable the autonomously adjusting VRef and set Tref to 300 s.
+            f) Verify volt-var mode is reported as active and that the correct characteristic is reported. Verify Tref
+            is reported back correctly.
+            g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
+            current measurements.
+            '''
+            eut.set_vv(Ena=True, crv=crv)
+            eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            env.sleep(timedelta(seconds=10))
+            '''
+            h) Step the ac test source voltage to (V3 + V4)/2.
+            i) Step the ac test source voltage to (V2 + V1)/2.
+            '''
+            for step, perturbation, is_valid in [
+                ('h', lambda: env.ac_config(Vac=eut.VN * (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
+                ('i', lambda: env.ac_config(Vac=eut.VN * (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
+            ]:
+                dct_label = {'proc': 'vv-vref', 'Tref': Tref_s, 'step': step}
+                self.vv_vref_validate(env, eut, dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
+
+    def vv_vref_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+                         is_valid: Callable[[float], bool]):
+        """"""
+        '''
+        IEEE 1547-2020 5.14.5.3
+        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage or power step, a
+        new steady-state reactive power, Qfinal, shall be determined. To obtain a steady-state value, Qfinal may be
+        measured at a time period much larger than the voltage reference low-pass filter time constant, Tref, setting
+        of the volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state
+        error is 1%. In addition, filtering may be used to reject any variation in ac test source voltage during
+        steady-state measurement.
+
+        The reactive power output at 1 times the voltage reference low-pass filter time constant, Tref, Q(Tref), shall
+        be less than 10% of Q4 for increasing voltage and shall be less than 10% of Q1 for decreasing voltage.
+        '''
+        '''
+        SB Correction:
+        In IEEE 1547.1-2020 5.14.5.2, the procedure requires measuring for at least 4 times Tref. 
+        As the test settings for Tref are 300 and 5000s, the requirement to measure for 4 times that long greatly 
+        extends testing time, and is not necessary in all cases. It is acceptable to stop measuring sooner, 
+        if Q has reached steady state at a value compliant with the magnitude criteria, in a shorter time.
+
+        In IEEE 1547.1-2020 5.14.5.3, revise the criteria as follows:
+            a) it is not required to measure Qfinal at a "time period much larger than ... Tref". Disregard the 
+            statement that "at 2 times the open loop response time setting, the steady-state error is 1%". It is 
+            acceptable to stop measuring sooner if Q has reached steady state faster
+
+            b) After each step (h) and (i), Qfinal shall have an absolute value:
+                - Less than 10% of the absolute value of Q1 for decreasing voltage, or
+                - Less than 10% of the absolute value of Q4 for increasing voltage,
+                in a time not more than 4x Tref
+
+        For this test, it is acceptable for the AC source to require longer than 1 cycle requirement stated in 
+        IEEE 15476.1-2020 to produce the required test voltage at the EUT terminals, but not more than 1s. This 
+        allowance is based on the time constants used in this test, and on some potential difficulties AC sources will 
+        face when performing this test with some EUT's (e.g. very large EUT's with external transformers). An 
+        alternative is to use signal injection for this test, as allowed by IEEE 1547.1-2020 Section 5.14.2.
+        '''
+        # measure init
+        # perturb
+        # measure until Q is valid, up to 1x Tr (4x Tr looks like an error)
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        yarg = 'Q'
+        meas_args = (yarg,)
+
+        t_step = timedelta(seconds=eut.mra.static.T(olrt.total_seconds()))
+        resp, valids = [], []
+        resp.append(env.meas_single(*meas_args))
+        ts = env.time_now()
+        perturb()
+        while not env.elapsed_since(4 * olrt, ts):
+            env.sleep(t_step)
+            meas = env.meas_single(*meas_args)
+            if is_valid(meas.loc[meas.index[0], 'Q']):
+                valids.append(True)
+            else:
+                valids = []
+            resp.append(meas)
+            if len(valids) > 10:  # 30 seconds at 300s Tr, 60 seconds at 5000s Tr
+                break
+        df_meas = pd.concat(resp)
+
+        crit1 = df_meas.loc[df_meas.index[-10]:, 'Q'].apply(is_valid).all()
+        crit2 = (df_meas.index[-10] - df_meas.index[0]).total_seconds() < olrt.total_seconds() * 4
+        # get last 10 meas, check all values in last 10 meas are valid
+        # get first of last 10 meas, check time is not more than olrt
+        # seem dubious, validation similar to vv test would make more sense
+
+        env.validate(dct_label={
+            **dct_label,
+            'valid': crit1 and crit2,
+            'data': df_meas
+        })

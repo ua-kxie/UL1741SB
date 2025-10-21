@@ -4,11 +4,11 @@ from pyUL1741SB import Eut, Env
 from typing import Callable
 import math
 
-class CPF:
-    def cpf_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
-                          y_of_x: Callable[[float], float]
-                          ):
-        raise NotImplementedError("IEEE 1547 cpf step validation")
+from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+
+class CPF(VoltReg):
+    def cpf_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_meas_validate(env, eut, dct_label, perturb, olrt, y_of_x)
 
     def cpf_proc(self, env: Env, eut: Eut):
         """

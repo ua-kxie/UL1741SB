@@ -4,7 +4,6 @@ IEEE 1547.1-2020 5.15
 from pyUL1741SB import Eut, Env
 from datetime import timedelta
 from typing import Callable
-from pyUL1741SB.IEEE1547.base import IEEE1547Common
 import numpy as np
 
 class FWChar:
@@ -67,7 +66,7 @@ EUT’s abnormal operating performance category defined by IEEE Std 1547-2018
 The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
-class FreqSupp(IEEE1547Common):
+class FreqSupp:
     def fwo_proc(self, env: Env, eut: Eut):
         """"""
         # chars = char1, char2, char1 with Pmin if needed

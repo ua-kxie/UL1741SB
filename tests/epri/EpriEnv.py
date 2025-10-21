@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime as dt
-from pyUL1741SB import Eut, Env, VoltShallTripTable, FreqShallTripTable
+from pyUL1741SB import Eut, Env
 from EpriEut import EpriEut
 import opender as der
 

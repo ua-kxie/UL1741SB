@@ -4,9 +4,9 @@ IEEE 1547.1-2020 5.5
 from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
-from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
+from pyUL1741SB.IEEE1547 import IEEE1547, TRIP_RPT
 
-class FreqDist(IEEE1547Common):
+class FreqDist:
     def oft_proc(self, env: Env, eut: Eut):
         '''
         '''

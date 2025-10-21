@@ -1,7 +1,9 @@
 import numpy as np
 from datetime import timedelta
-
+from typing import Callable
 from pyUL1741SB import Eut, Env
+from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+
 
 class WVCurve:
     '''IEEE 1547.1-2020 Tables 28-30'''
@@ -92,7 +94,68 @@ class WVCurve:
             Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
-class WV:
+class WV(VoltReg):
+    def wv_proc(self, env: Env, eut: Eut):
+        """
+        """
+        env.log(msg="wv proc against 1547")
+        olrt = timedelta(seconds=eut.olrt.wv)
+        if eut.Cat == Eut.Category.A:
+            wv_crvs = [
+                ('1A', WVCurve.Crv_1A(eut)),
+                ('2A', WVCurve.Crv_2A(eut)),
+                ('3A', WVCurve.Crv_3A(eut)),
+            ]
+        elif eut.Cat == Eut.Category.B:
+            wv_crvs = [
+                ('1B', WVCurve.Crv_1B(eut)),
+                ('2B', WVCurve.Crv_2B(eut)),
+                ('3B', WVCurve.Crv_3B(eut)),
+            ]
+        else:
+            raise TypeError(f'unknown eut category {eut.Cat}')
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        b) Set all ac test source parameters to the nominal operating voltage and frequency.
+        c) Set all EUT parameters to the rated active power conditions for the EUT.
+        d) Set all voltage trip parameters to default settings.
+        e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
+        be turned off.
+        '''
+        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
+        vttbl = eut.voltshalltrip_tbl
+        eut.set_vt(**{
+            'OV1': {'cts': vttbl.OV1.cts, 'vpu': vttbl.OV1.volt_pu},
+            'OV2': {'cts': vttbl.OV2.cts, 'vpu': vttbl.OV2.volt_pu},
+            'UV1': {'cts': vttbl.UV1.cts, 'vpu': vttbl.UV1.volt_pu},
+            'UV2': {'cts': vttbl.UV2.cts, 'vpu': vttbl.UV2.volt_pu},
+        })
+        eut.set_cpf(Ena=False)
+        eut.set_crp(Ena=False)
+        eut.set_wv(Ena=False)
+        eut.set_vv(Ena=False)
+        eut.set_vw(Ena=False)
+        eut.set_lap(Ena=False, pu=1)
+        '''
+        bb) Repeat steps f) through aa) for characteristics 2 and 3.
+        '''
+        for crv_key, wv_crv in wv_crvs:
+            eut.set_wv(Ena=True, crv=wv_crv)
+            lst_dct_steps = [('inj', self.wv_traverse_steps_inj(env, eut, wv_crv))]
+            '''
+            z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
+            '''
+            if eut.Prated_prime < 0:
+                lst_dct_steps.append(('abs', self.wv_traverse_steps_abs(env, eut, wv_crv)))
+
+            # validate for all steps
+            for direction, dct_steps in lst_dct_steps:
+                for k, step in dct_steps.items():
+                    dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
+                    self.wv_step_validate(
+                        env, eut, dct_label, lambda: eut.set_ap(Ena=True, pu=step), olrt,
+                        lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
+
     def wv_traverse_steps_inj(self, env: Env, eut: Eut, wv_crv: WVCurve):
         """
         """
@@ -173,7 +236,15 @@ class WV:
         ret = {k: v for k, v in zip(step_keys, pwrs_abs)}
         return ret
 
-    def wv_proc(self, env: Env, eut: Eut):
-        """
-        """
-        raise NotImplementedError
+    def wv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        """"""
+        '''
+        IEEE 1547.1-2020 5.14.3.3
+        '''
+        xMRA = eut.mra.static.P
+        yMRA = eut.mra.static.Q
+        slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
+        env.log(msg=f"1741SB {slabel}")
+        xarg, yarg = 'P', 'Q'
+
+        self.vv_wv_step_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)

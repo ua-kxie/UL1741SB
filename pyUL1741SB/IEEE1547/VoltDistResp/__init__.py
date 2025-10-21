@@ -7,7 +7,7 @@ from datetime import timedelta
 import copy
 
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
-from pyUL1741SB.IEEE1547.base import IEEE1547Common, TRIP_RPT
+from pyUL1741SB.IEEE1547 import IEEE1547, TRIP_RPT
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB import Eut, Env
 
@@ -91,7 +91,7 @@ class VrtCond:
     def catIII_hvrt_condC():
         return VrtCond(name=CondName.D, vpu=1.1, vpu_min=1.0, vpu_max=1.1, dur_s=120.0, opmd=OpMode.ContOp)
 
-class VoltDist(IEEE1547Common):
+class VoltDist:
     Vminkey = 'Vmin'
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
