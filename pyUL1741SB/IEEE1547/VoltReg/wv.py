@@ -95,68 +95,68 @@ class WVCurve:
         )
 
 class WV(VoltReg):
-    def wv_proc(self, env: Env, eut: Eut):
+    def wv_proc(self):
         """
         """
-        env.log(msg="wv proc against 1547")
-        olrt = timedelta(seconds=eut.olrt.wv)
-        if eut.Cat == Eut.Category.A:
+        self.c_env.log(msg="wv proc against 1547")
+        olrt = timedelta(seconds=self.c_eut.olrt.wv)
+        if self.c_eut.Cat == self.c_eut.Category.A:
             wv_crvs = [
-                ('1A', WVCurve.Crv_1A(eut)),
-                ('2A', WVCurve.Crv_2A(eut)),
-                ('3A', WVCurve.Crv_3A(eut)),
+                ('1A', WVCurve.Crv_1A(self.c_eut)),
+                ('2A', WVCurve.Crv_2A(self.c_eut)),
+                ('3A', WVCurve.Crv_3A(self.c_eut)),
             ]
-        elif eut.Cat == Eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             wv_crvs = [
-                ('1B', WVCurve.Crv_1B(eut)),
-                ('2B', WVCurve.Crv_2B(eut)),
-                ('3B', WVCurve.Crv_3B(eut)),
+                ('1B', WVCurve.Crv_1B(self.c_eut)),
+                ('2B', WVCurve.Crv_2B(self.c_eut)),
+                ('3B', WVCurve.Crv_3B(self.c_eut)),
             ]
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source parameters to the nominal operating voltage and frequency.
-        c) Set all EUT parameters to the rated active power conditions for the EUT.
+        c) Set all EUT parameters to the rated active power conditions for the self.c_eut.
         d) Set all voltage trip parameters to default settings.
         e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
         be turned off.
         '''
-        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
-        vttbl = eut.voltshalltrip_tbl
-        eut.set_vt(**{
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        vttbl = self.c_eut.voltshalltrip_tbl
+        self.c_eut.set_vt(**{
             'OV1': {'cts': vttbl.OV1.cts, 'vpu': vttbl.OV1.volt_pu},
             'OV2': {'cts': vttbl.OV2.cts, 'vpu': vttbl.OV2.volt_pu},
             'UV1': {'cts': vttbl.UV1.cts, 'vpu': vttbl.UV1.volt_pu},
             'UV2': {'cts': vttbl.UV2.cts, 'vpu': vttbl.UV2.volt_pu},
         })
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         bb) Repeat steps f) through aa) for characteristics 2 and 3.
         '''
         for crv_key, wv_crv in wv_crvs:
-            eut.set_wv(Ena=True, crv=wv_crv)
-            lst_dct_steps = [('inj', self.wv_traverse_steps_inj(env, eut, wv_crv))]
+            self.c_eut.set_wv(Ena=True, crv=wv_crv)
+            lst_dct_steps = [('inj', self.wv_traverse_steps_inj(wv_crv))]
             '''
             z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
             '''
-            if eut.Prated_prime < 0:
-                lst_dct_steps.append(('abs', self.wv_traverse_steps_abs(env, eut, wv_crv)))
+            if self.c_eut.Prated_prime < 0:
+                lst_dct_steps.append(('abs', self.wv_traverse_steps_abs(wv_crv)))
 
             # validate for all steps
             for direction, dct_steps in lst_dct_steps:
                 for k, step in dct_steps.items():
                     dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
                     self.wv_step_validate(
-                        env, eut, dct_label, lambda: eut.set_ap(Ena=True, pu=step), olrt,
-                        lambda x: wv_crv.y_of_x(x / eut.Prated) * eut.Prated)
+                        dct_label, lambda: self.c_eut.set_ap(Ena=True, pu=step), olrt,
+                        lambda x: wv_crv.y_of_x(x / self.c_eut.Prated) * self.c_eut.Prated)
 
-    def wv_traverse_steps_inj(self, env: Env, eut: Eut, wv_crv: WVCurve):
+    def wv_traverse_steps_inj(self, wv_crv: WVCurve):
         """
         """
         '''
@@ -181,10 +181,10 @@ class WV(VoltReg):
         x) Step the EUT’s available active power to aP below P1.
         y) Step the EUT’s available active power to Pmin.
         '''
-        aP = 1.5 * eut.mra.static.P / eut.Prated
+        aP = 1.5 * self.c_eut.mra.static.P / self.c_eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_inj = [
-            eut.Pmin/eut.Prated,
+            self.c_eut.Pmin/self.c_eut.Prated,
             wv_crv.P1 - aP,
             wv_crv.P1 + aP,
             (wv_crv.P1 + wv_crv.P2) / 2.,
@@ -202,18 +202,18 @@ class WV(VoltReg):
             (wv_crv.P1 + wv_crv.P2) / 2.,
             wv_crv.P1 + aP,
             wv_crv.P1 - aP,
-            eut.Pmin/eut.Prated,
+            self.c_eut.Pmin/self.c_eut.Prated,
         ]
         ret = {k: v for k, v in zip(step_keys, pwrs_inj)}
         return ret
 
-    def wv_traverse_steps_abs(self, env: Env, eut: Eut, wv_crv: WVCurve):
+    def wv_traverse_steps_abs(self, wv_crv: WVCurve):
         """
         """
-        aP = 1.5 * eut.mra.static.P / eut.Prated
+        aP = 1.5 * self.c_eut.mra.static.P / self.c_eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_abs = [
-            eut.Pmin_prime/eut.Prated,
+            self.c_eut.Pmin_prime/self.c_eut.Prated,
             wv_crv.P1_prime + aP,
             wv_crv.P1_prime - aP,
             (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
@@ -231,20 +231,20 @@ class WV(VoltReg):
             (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
             wv_crv.P1_prime - aP,
             wv_crv.P1_prime + aP,
-            eut.Pmin_prime/eut.Prated,
+            self.c_eut.Pmin_prime/self.c_eut.Prated,
         ]
         ret = {k: v for k, v in zip(step_keys, pwrs_abs)}
         return ret
 
-    def wv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def wv_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
-        xMRA = eut.mra.static.P
-        yMRA = eut.mra.static.Q
+        xMRA = self.c_eut.mra.static.P
+        yMRA = self.c_eut.mra.static.Q
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'P', 'Q'
 
-        self.vv_wv_step_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+        self.vv_wv_step_validate(dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)

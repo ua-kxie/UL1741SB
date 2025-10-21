@@ -12,6 +12,7 @@ from pyUL1741SB.IEEE1547.RespPri import RespPri
 from pyUL1741SB.IEEE1547.EnterService import ES
 from pyUL1741SB.IEEE1547.VoltDistResp import VoltDist
 from pyUL1741SB.IEEE1547.FreqDistResp import FreqDist
+from pyUL1741SB.IEEE1547 import IEEE1547
 
-class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist):
+class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist, IEEE1547):
     pass

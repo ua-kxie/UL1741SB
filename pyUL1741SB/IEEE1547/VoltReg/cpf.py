@@ -7,17 +7,17 @@ import math
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
 
 class CPF(VoltReg):
-    def cpf_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        self.cpf_crp_meas_validate(env, eut, dct_label, perturb, olrt, y_of_x)
+    def cpf_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
 
-    def cpf_proc(self, env: Env, eut: Eut):
+    def cpf_proc(self):
         """
         """
         appu_max = 0.2  # should be 1
-        env.log(msg="cpf proc against 1547")
-        olrt = timedelta(seconds=eut.olrt.cpf)
-        VH, VN, VL, Pmin, Prated, multiphase = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated, eut.multiphase
-        av = 1.5 * eut.mra.static.V
+        self.c_env.log(msg="cpf proc against 1547")
+        olrt = timedelta(seconds=self.c_eut.olrt.cpf)
+        VH, VN, VL, Pmin, Prated, multiphase = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase
+        av = 1.5 * self.c_eut.mra.static.V
         '''
         5.14.3.2 
         PFmin,inj: Minimum injected power factor, 0.90 for both Category A and B equipment
@@ -25,12 +25,12 @@ class CPF(VoltReg):
         PFmid,inj: A power factor setting chosen to be less than 1 and greater than PFmin,inj
         PFmid,ab: A power factor setting chosen to be less than 1 and greater than PFmin,ab
         '''
-        if eut.Cat == Eut.Category.A:
+        if self.c_eut.Cat == self.c_eut.Category.A:
             targetPFs = [0.9, 0.97, 0.95, 0.98]  # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
-        elif eut.Cat == Eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             targetPFs = [0.9, 0.9, 0.95, 0.95]
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
         targetPFs = list(zip(targetPFs, ['inj', 'abs', 'inj', 'abs']))
         '''
         5.14.2:
@@ -48,19 +48,19 @@ class CPF(VoltReg):
         control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
-        eut.set_ap(Ena=False, pu=appu_max)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_ap(Ena=False, pu=appu_max)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
-        Vins = [v for v in [eut.Vin_nom, eut.Vin_min, eut.Vin_max] if v is not None]
+        Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min, self.c_eut.Vin_max] if v is not None]
         for Vin in Vins:
-            eut.dc_config(Vdc=Vin)
+            self.c_eut.dc_config(Vdc=Vin)
             """
             s) Repeat steps d) through p) for additional power factor settings: [PFmin,inj,] PFmin,ab, PFmid,inj, PFmid,ab.		
             """
@@ -76,21 +76,21 @@ class CPF(VoltReg):
                 '''
                 (c) - set to nominal and wait for steady state
                 '''
-                env.ac_config(Vac=VN)
+                self.c_env.ac_config(Vac=VN)
                 '''
                 d) Adjust the EUT’s available active power to Prated. For an EUT with an input voltage range, set the
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
                 power requirements.
                 '''
-                eut.set_ap(Ena=True, pu=appu_max)
+                self.c_eut.set_ap(Ena=True, pu=appu_max)
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
-                eut.set_cpf(Ena=True, PF=PF, Exct=Exct)
+                self.c_eut.set_cpf(Ena=True, PF=PF, Exct=Exct)
                 '''
                 f) Wait for steady state to be reached.		
                 '''
-                env.sleep(2 * olrt)
+                self.c_env.sleep(2 * olrt)
                 '''
                 g) Step the EUT’s active power to Pmin.		
                 h) Step the EUT’s available active power to Prated. - interpreted as stepping the EUT's active power
@@ -99,16 +99,14 @@ class CPF(VoltReg):
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 dct_steps = {
-                    'g': lambda: eut.set_ap(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: eut.set_ap(Ena=True, pu=appu_max),
-                    'i': lambda: env.ac_config(Vac=VL + av),
-                    'j': lambda: env.ac_config(Vac=VH - av),
-                    'k': lambda: env.ac_config(Vac=VL + av),
+                    'g': lambda: self.c_eut.set_ap(Ena=True, pu=Pmin / Prated),
+                    'h': lambda: self.c_eut.set_ap(Ena=True, pu=appu_max),
+                    'i': lambda: self.c_env.ac_config(Vac=VL + av),
+                    'j': lambda: self.c_env.ac_config(Vac=VH - av),
+                    'k': lambda: self.c_env.ac_config(Vac=VL + av),
                 }
                 for k, perturbation in dct_steps.items():
                     self.cpf_step_validate(
-                        env=env,
-                        eut=eut,
                         dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}{Exct}', 'Step': f'{k}'},
                         perturb=perturbation,
                         olrt=olrt,
@@ -137,13 +135,13 @@ class CPF(VoltReg):
                     '''
                     raise NotImplementedError
                     for grid_config in [
-                        lambda: env.ac_config(Vac=VN),
-                        lambda: env.ac_config_asym(mag=[1.08 * VN, 0.9 * VN, 0.9 * VN],
+                        lambda: self.c_env.ac_config(Vac=VN),
+                        lambda: self.c_env.ac_config_asym(mag=[1.08 * VN, 0.9 * VN, 0.9 * VN],
                                                     pha=[0, -120, 120]),
-                        lambda: env.ac_config(Vac=VN),
-                        lambda: env.ac_config_asym(mag=[0.9 * VN, 1.08 * VN, 1.08 * VN],
+                        lambda: self.c_env.ac_config(Vac=VN),
+                        lambda: self.c_env.ac_config_asym(mag=[0.9 * VN, 1.08 * VN, 1.08 * VN],
                                                     pha=[0, -120, 120]),
-                        lambda: env.ac_config(Vac=VN),
+                        lambda: self.c_env.ac_config(Vac=VN),
                     ]:
                         grid_config()
                         # do evaluation
@@ -152,10 +150,8 @@ class CPF(VoltReg):
                 r) Verify all reactive/active power control functions are disabled.
                 '''
                 self.cpf_step_validate(
-                    env=env,
-                    eut=eut,
                     dct_label={'proc': 'cpf', 'Vin': f'{Vin:.2f}', 'PF': f'off', 'Step': f'q'},
-                    perturb=lambda: eut.set_cpf(Ena=False),
+                    perturb=lambda: self.c_eut.set_cpf(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )

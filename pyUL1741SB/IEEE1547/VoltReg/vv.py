@@ -48,8 +48,8 @@ class VVCurve:
     @staticmethod
     def Crv_2A(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = eut.Qrated_inj / eut.Srated
-        abs_scale = eut.Qrated_abs / eut.Srated
+        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
+        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
         return VVCurve(VRef=1.05,
                        V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
                        V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -58,8 +58,8 @@ class VVCurve:
     @staticmethod
     def Crv_2B(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = eut.Qrated_inj / eut.Srated
-        abs_scale = eut.Qrated_abs / eut.Srated
+        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
+        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
         return VVCurve(VRef=1.05,
                        V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
                        V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -68,8 +68,8 @@ class VVCurve:
     @staticmethod
     def Crv_3A(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = eut.Qrated_inj / eut.Srated
-        abs_scale = eut.Qrated_abs / eut.Srated
+        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
+        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
         return VVCurve(VRef=0.95,
                        V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -78,8 +78,8 @@ class VVCurve:
     @staticmethod
     def Crv_3B(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = eut.Qrated_inj / eut.Srated
-        abs_scale = eut.Qrated_abs / eut.Srated
+        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
+        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
         return VVCurve(VRef=0.95,
                        V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -106,7 +106,7 @@ class VV(VoltReg):
         '''
         raise NotImplementedError
 
-    def vv_traverse_steps(self, env: Env, eut:Eut, vv_crv: VVCurve, VL, VH, av):
+    def vv_traverse_steps(self, vv_crv: VVCurve, VL, VH, av):
         """
         """
         '''
@@ -136,52 +136,52 @@ class VV(VoltReg):
         dd) Step the ac test source voltage to VRef.
         '''
         ret = {
-            'g': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN - av),
-            'h': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN + av),
-            'i': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * eut.VN),
-            'j': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN - av),
-            'k': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN + av),
-            'l': lambda: env.ac_config(Vac=VH - av),
-            'm': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN + av),
-            'n': lambda: env.ac_config(Vac=vv_crv.V4 * eut.VN - av),
-            'o': lambda: env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * eut.VN),
-            'p': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN + av),
-            'q': lambda: env.ac_config(Vac=vv_crv.V3 * eut.VN - av),
-            'r': lambda: env.ac_config(Vac=vv_crv.VRef * eut.VN),
-            's': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN + av),
-            't': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN - av),
-            'u': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * eut.VN),
-            'v': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN + av),
-            'w': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN - av),
-            'x': lambda: env.ac_config(Vac=VL + av),
-            'y': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN - av),
-            'z': lambda: env.ac_config(Vac=vv_crv.V1 * eut.VN + av),
-            'aa': lambda: env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * eut.VN),
-            'bb': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN - av),
-            'cc': lambda: env.ac_config(Vac=vv_crv.V2 * eut.VN + av),
-            'dd': lambda: env.ac_config(Vac=vv_crv.VRef * eut.VN)
+            'g': lambda: self.c_env.ac_config(Vac=vv_crv.V3 * self.c_eut.VN - av),
+            'h': lambda: self.c_env.ac_config(Vac=vv_crv.V3 * self.c_eut.VN + av),
+            'i': lambda: self.c_env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * self.c_eut.VN),
+            'j': lambda: self.c_env.ac_config(Vac=vv_crv.V4 * self.c_eut.VN - av),
+            'k': lambda: self.c_env.ac_config(Vac=vv_crv.V4 * self.c_eut.VN + av),
+            'l': lambda: self.c_env.ac_config(Vac=VH - av),
+            'm': lambda: self.c_env.ac_config(Vac=vv_crv.V4 * self.c_eut.VN + av),
+            'n': lambda: self.c_env.ac_config(Vac=vv_crv.V4 * self.c_eut.VN - av),
+            'o': lambda: self.c_env.ac_config(Vac=(vv_crv.V3 + vv_crv.V4) / 2. * self.c_eut.VN),
+            'p': lambda: self.c_env.ac_config(Vac=vv_crv.V3 * self.c_eut.VN + av),
+            'q': lambda: self.c_env.ac_config(Vac=vv_crv.V3 * self.c_eut.VN - av),
+            'r': lambda: self.c_env.ac_config(Vac=vv_crv.VRef * self.c_eut.VN),
+            's': lambda: self.c_env.ac_config(Vac=vv_crv.V2 * self.c_eut.VN + av),
+            't': lambda: self.c_env.ac_config(Vac=vv_crv.V2 * self.c_eut.VN - av),
+            'u': lambda: self.c_env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * self.c_eut.VN),
+            'v': lambda: self.c_env.ac_config(Vac=vv_crv.V1 * self.c_eut.VN + av),
+            'w': lambda: self.c_env.ac_config(Vac=vv_crv.V1 * self.c_eut.VN - av),
+            'x': lambda: self.c_env.ac_config(Vac=VL + av),
+            'y': lambda: self.c_env.ac_config(Vac=vv_crv.V1 * self.c_eut.VN - av),
+            'z': lambda: self.c_env.ac_config(Vac=vv_crv.V1 * self.c_eut.VN + av),
+            'aa': lambda: self.c_env.ac_config(Vac=(vv_crv.V2 + vv_crv.V1) / 2. * self.c_eut.VN),
+            'bb': lambda: self.c_env.ac_config(Vac=vv_crv.V2 * self.c_eut.VN - av),
+            'cc': lambda: self.c_env.ac_config(Vac=vv_crv.V2 * self.c_eut.VN + av),
+            'dd': lambda: self.c_env.ac_config(Vac=vv_crv.VRef * self.c_eut.VN)
         }
-        if VH < vv_crv.V4 * eut.VN:
-            env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4 * eut.VN}]')
+        if VH < vv_crv.V4 * self.c_eut.VN:
+            self.c_env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4 * self.c_eut.VN}]')
             for step in ['j', 'k', 'm', 'n']:
                 ret.pop(step)
-        if VL > vv_crv.V1 * eut.VN:
-            env.log(msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1 * eut.VN}]')
+        if VL > vv_crv.V1 * self.c_eut.VN:
+            self.c_env.log(msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1 * self.c_eut.VN}]')
             for step in ['v', 'w', 'y', 'z']:
                 ret.pop(step)
         return ret
 
-    def vv_proc(self, env: Env, eut: Eut):
+    def vv_proc(self):
         """
         """
-        VH, VN, VL, Pmin, Prated = eut.VH, eut.VN, eut.VL, eut.Pmin, eut.Prated
-        av = 1.5 * eut.mra.static.V
-        if eut.Cat == Eut.Category.A:
+        VH, VN, VL, Pmin, Prated = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated
+        av = 1.5 * self.c_eut.mra.static.V
+        if self.c_eut.Cat == self.c_eut.Category.A:
             vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
-        elif eut.Cat == Eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             vv_crvs = [('1B', VVCurve.Crv_1B())]
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
@@ -191,12 +191,12 @@ class VV(VoltReg):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
         '''
@@ -215,51 +215,49 @@ class VV(VoltReg):
                     f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
                     g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
                     '''
-                    eut.set_vv(Ena=True, crv=vv_crv)
-                    dct_vvsteps = self.vv_traverse_steps(env, eut, vv_crv, VL, VH, av)
-                    env.sleep(timedelta(seconds=vv_crv.Tr * 2))
+                    self.c_eut.set_vv(Ena=True, crv=vv_crv)
+                    dct_vvsteps = self.vv_traverse_steps(vv_crv, VL, VH, av)
+                    self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
                     for stepname, perturbation in dct_vvsteps.items():
                         dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
                         self.vv_step_validate(
-                            env,
-                            eut,
                             dct_label=dct_label,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
-                            y_of_x=lambda x: vv_crv.y_of_x(x / eut.VN) * eut.Srated,
+                            y_of_x=lambda x: vv_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Srated,
                         )
 
-    def vv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def vv_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
-        xMRA = eut.mra.static.V
-        yMRA = eut.mra.static.Q
+        xMRA = self.c_eut.mra.static.V
+        yMRA = self.c_eut.mra.static.Q
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'V', 'Q'
 
-        self.vv_wv_step_validate(env, eut, dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+        self.vv_wv_step_validate(dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
-    def vv_vref_proc(self, env: Env, eut: Eut):
+    def vv_vref_proc(self):
         """
         """
-        if eut.Cat == Eut.Category.A:
+        if self.c_eut.Cat == self.c_eut.Category.A:
             crv = VVCurve.Crv_1A()  # just char1 curve, UL1741 amendment
-        elif eut.Cat == Eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             crv = VVCurve.Crv_1B()
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         j) Repeat test steps b) through i) with Tref set at 5000 s.
         '''
@@ -278,21 +276,21 @@ class VV(VoltReg):
             g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
             current measurements.
             '''
-            eut.set_vv(Ena=True, crv=crv)
-            eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
-            env.sleep(timedelta(seconds=10))
+            self.c_eut.set_vv(Ena=True, crv=crv)
+            self.c_eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            self.c_env.sleep(timedelta(seconds=10))
             '''
             h) Step the ac test source voltage to (V3 + V4)/2.
             i) Step the ac test source voltage to (V2 + V1)/2.
             '''
             for step, perturbation, is_valid in [
-                ('h', lambda: env.ac_config(Vac=eut.VN * (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
-                ('i', lambda: env.ac_config(Vac=eut.VN * (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
+                ('h', lambda: self.c_env.ac_config(Vac=self.c_eut.VN * (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
+                ('i', lambda: self.c_env.ac_config(Vac=self.c_eut.VN * (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
             ]:
                 dct_label = {'proc': 'vv-vref', 'Tref': Tref_s, 'step': step}
-                self.vv_vref_validate(env, eut, dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
+                self.vv_vref_validate(dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
 
-    def vv_vref_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+    def vv_vref_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
                          is_valid: Callable[[float], bool]):
         """"""
         '''
@@ -334,18 +332,18 @@ class VV(VoltReg):
         # perturb
         # measure until Q is valid, up to 1x Tr (4x Tr looks like an error)
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         yarg = 'Q'
         meas_args = (yarg,)
 
-        t_step = timedelta(seconds=eut.mra.static.T(olrt.total_seconds()))
+        t_step = timedelta(seconds=self.c_eut.mra.static.T(olrt.total_seconds()))
         resp, valids = [], []
-        resp.append(env.meas_single(*meas_args))
-        ts = env.time_now()
+        resp.append(self.c_env.meas_single(*meas_args))
+        ts = self.c_env.time_now()
         perturb()
-        while not env.elapsed_since(4 * olrt, ts):
-            env.sleep(t_step)
-            meas = env.meas_single(*meas_args)
+        while not self.c_env.elapsed_since(4 * olrt, ts):
+            self.c_env.sleep(t_step)
+            meas = self.c_env.meas_single(*meas_args)
             if is_valid(meas.loc[meas.index[0], 'Q']):
                 valids.append(True)
             else:
@@ -361,7 +359,7 @@ class VV(VoltReg):
         # get first of last 10 meas, check time is not more than olrt
         # seem dubious, validation similar to vv test would make more sense
 
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'valid': crit1 and crit2,
             'data': df_meas

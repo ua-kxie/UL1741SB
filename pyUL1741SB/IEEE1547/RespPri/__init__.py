@@ -4,6 +4,7 @@ IEEE 1547.1-2020 5.16
 from datetime import timedelta
 from typing import Callable
 from pyUL1741SB import Eut, Env
+from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
@@ -11,7 +12,7 @@ from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
 
 import pandas as pd
 
-class RespPri:
+class RespPri(IEEE1547):
     """"""
     """
     IEEE 1547.1-2020
@@ -75,55 +76,55 @@ class RespPri:
         }
         return pd.DataFrame(data).set_index('step')
 
-    def pri_proc(self, env: Env, eut: Eut):
+    def pri_proc(self):
         """"""
-        df_steps = self.catA() if eut.Cat == Eut.Category.A else self.catB()
+        df_steps = self.catA() if self.c_eut.Cat == self.c_eut.Category.A else self.catB()
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage and frequency trip parameters to the widest range of adjustability. Disable all
         reactive/active power control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
-        env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof())
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.
         '''
-        eut.set_ap(Ena=True, pu=1)
+        self.c_eut.set_ap(Ena=True, pu=1)
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and
         enable frequency-watt and volt-watt parameters. For volt-watt, set P2 = 0.2Prated. (P2 = 0.0 1741 amendment)
         [...]
         '''
-        if eut.aopCat == Eut.AOPCat.I:
+        if self.c_eut.aopCat == self.c_eut.AOPCat.I:
             fwchar = FWChar.CatI_CharI()
-        elif eut.aopCat == Eut.AOPCat.II:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.II:
             fwchar = FWChar.CatII_CharI()
-        elif eut.aopCat == Eut.AOPCat.III:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.III:
             fwchar = FWChar.CatIII_CharI()
         else:
-            raise TypeError(eut.aopCat)
+            raise TypeError(self.c_eut.aopCat)
 
-        if eut.Cat == Eut.Category.A:
-            vwcrv = VWCurve.Crv_1A_inj(eut)
+        if self.c_eut.Cat == self.c_eut.Category.A:
+            vwcrv = VWCurve.Crv_1A_inj(self.c_eut)
             vvcrv = VVCurve.Crv_1A()
-            wvcrv = WVCurve.Crv_1A(eut)
-        elif eut.Cat == Eut.Category.B:
-            vwcrv = VWCurve.Crv_1B_inj(eut)
+            wvcrv = WVCurve.Crv_1A(self.c_eut)
+        elif self.c_eut.Cat == self.c_eut.Category.B:
+            vwcrv = VWCurve.Crv_1B_inj(self.c_eut)
             vvcrv = VVCurve.Crv_1B()
-            wvcrv = WVCurve.Crv_1B(eut)
+            wvcrv = WVCurve.Crv_1B(self.c_eut)
         else:
-            raise TypeError(eut.Cat)
+            raise TypeError(self.c_eut.Cat)
         vwcrv.P2 = 0  # 1741 amendment
 
-        eut.set_fw(Ena=True, crv=fwchar)
-        eut.set_vw(Ena=True, crv=vwcrv)
+        self.c_eut.set_fw(Ena=True, crv=fwchar)
+        self.c_eut.set_vw(Ena=True, crv=vwcrv)
         '''
         f) Set EUT volt-var parameters to the default values for the EUT’s category and enable volt-var
         mode.
@@ -136,19 +137,19 @@ class RespPri:
         '''
 
         def vv_cfg():
-            eut.set_vv(Ena=True, crv=vvcrv)
+            self.c_eut.set_vv(Ena=True, crv=vvcrv)
 
         def crp_cfg():
-            eut.set_vv(Ena=False)
-            eut.set_crp(Ena=True, pu=0.44 * eut.Prated / eut.Srated)
+            self.c_eut.set_vv(Ena=False)
+            self.c_eut.set_crp(Ena=True, pu=0.44 * self.c_eut.Prated / self.c_eut.Srated)
 
         def cpf_cfg():
-            eut.set_crp(Ena=False)
-            eut.set_cpf(Ena=True, PF=0.9, Exct='inj')  # always 0.9
+            self.c_eut.set_crp(Ena=False)
+            self.c_eut.set_cpf(Ena=True, PF=0.9, Exct='inj')  # always 0.9
 
         def wv_cfg():
-            eut.set_cpf(Ena=False)
-            eut.set_wv(Ena=True, crv=wvcrv)
+            self.c_eut.set_cpf(Ena=False)
+            self.c_eut.set_wv(Ena=True, crv=wvcrv)
 
         cfgs = [('e_vv_rp_pu', vv_cfg), ('e_crp_rp_pu', crp_cfg), ('e_cpf_pf', cpf_cfg), ('e_wv_rp_pu', wv_cfg)]
         for vars_key, cfg in cfgs:
@@ -160,8 +161,8 @@ class RespPri:
             i) Allow the EUT to reach steady state.
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
-            eut.set_ap(Ena=True, pu=0.5)
-            env.sleep(timedelta(seconds=eut.olrt.lap))
+            self.c_eut.set_ap(Ena=True, pu=0.5)
+            self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
             # meas vac, fac, p, q
             '''
             n) Repeat steps k) through m) for the rest of the steps in Table 38 or Table 39, depending on the
@@ -180,22 +181,22 @@ class RespPri:
                     return x * (1 / (row['e_cpf_pf']) ** 2 - 1) ** 0.5
 
                 dct_q_tup = {
-                    'e_vv_rp_pu': (vvcrv.Tr, 'V', eut.mra.static.V, lambda x: row['e_vv_rp_pu'] * eut.Prated),
-                    'e_crp_rp_pu': (eut.olrt.crp, 'Q', eut.mra.static.Q, lambda x: row['e_crp_rp_pu'] * eut.Prated),
-                    'e_cpf_pf': (eut.olrt.cpf, 'P', eut.mra.static.P, pf_of_x),
-                    'e_wv_rp_pu': (eut.olrt.wv, 'V', eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * eut.Prated),
+                    'e_vv_rp_pu': (vvcrv.Tr, 'V', self.c_eut.mra.static.V, lambda x: row['e_vv_rp_pu'] * self.c_eut.Prated),
+                    'e_crp_rp_pu': (self.c_eut.olrt.crp, 'Q', self.c_eut.mra.static.Q, lambda x: row['e_crp_rp_pu'] * self.c_eut.Prated),
+                    'e_cpf_pf': (self.c_eut.olrt.cpf, 'P', self.c_eut.mra.static.P, pf_of_x),
+                    'e_wv_rp_pu': (self.c_eut.olrt.wv, 'V', self.c_eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * self.c_eut.Prated),
                 }
                 olrt = timedelta(seconds=max(fwchar.tr, vwcrv.Tr, dct_q_tup[vars_key][0]))
-                perturbation = lambda: env.ac_config(Vac=row['vpu_ac'] * eut.VN, freq=row['fhz_ac'])
+                perturbation = lambda: self.c_env.ac_config(Vac=row['vpu_ac'] * self.c_eut.VN, freq=row['fhz_ac'])
                 dct_label = {
                     'proc': 'pri',
                     'vars_ctrl': vars_key,
                     'step': step,
                 }
-                self.pri_validation(env, eut, dct_label, row, olrt, perturbation, dct_q_tup[vars_key][3],
+                self.pri_validation(dct_label, row, olrt, perturbation, dct_q_tup[vars_key][3],
                                     dct_q_tup[vars_key][1], dct_q_tup[vars_key][2])
 
-    def pri_validation(self, env: Env, eut: Eut, dct_label, df_steprow, olrt, perturb, q_of_x, qx, qxMRA):
+    def pri_validation(self, dct_label, df_steprow, olrt, perturb, q_of_x, qx, qxMRA):
         """"""
         """
         5.16.1.4 Criteria
@@ -231,13 +232,13 @@ class RespPri:
         the Y parameter and Psteady is the X parameter.
         """
         # meas vac, fac, p, q
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, ('V', 'F', 'P', 'Q'))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('V', 'F', 'P', 'Q'))
         row_ss = df_meas.loc[df_meas.index[0] + olrt:, :].mean()
-        p_target = df_steprow['e_ap_pu'] * eut.Prated
+        p_target = df_steprow['e_ap_pu'] * self.c_eut.Prated
 
         # ap validation
-        fwmin, fwmax = self.range_4p2(lambda x: p_target, 0, eut.mra.static.F, eut.mra.static.P)
-        vwmin, vwmax = self.range_4p2(lambda x: p_target, 0, eut.mra.static.V, eut.mra.static.P)
+        fwmin, fwmax = self.range_4p2(lambda x: p_target, 0, self.c_eut.mra.static.F, self.c_eut.mra.static.P)
+        vwmin, vwmax = self.range_4p2(lambda x: p_target, 0, self.c_eut.mra.static.V, self.c_eut.mra.static.P)
         pmin, pmax = min(fwmin, vwmin), max(fwmax, vwmax)
         p_valid = pmin < row_ss['P'] < pmax
 
@@ -247,12 +248,12 @@ class RespPri:
         # cpf: x is P
         # wv: x is P
         q_target = q_of_x(row_ss[qx])
-        qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, eut.mra.static.Q)
+        qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, self.c_eut.mra.static.Q)
         q_valid = qmin < row_ss['Q'] < qmax
 
         df_meas['p_target'] = p_target
         df_meas['q_target'] = q_target
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'p_meas': row_ss['P'],
             'p_target': p_target,
@@ -263,10 +264,10 @@ class RespPri:
             'data': df_meas
         })
 
-    def vv_wv_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
+    def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
                        yarg, xMRA, yMRA):
         raise NotImplementedError
 
-    def cpf_crp_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta,
+    def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta,
                          y_of_x: Callable[[float], float]):
         raise NotImplementedError

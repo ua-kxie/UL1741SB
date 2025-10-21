@@ -19,14 +19,14 @@ palette = itertools.cycle([
 ])
 
 std.cpf_proc(env=env, eut=eut)
-results = env.results['cpf'].iloc[:, :-1]
-df = pd.concat(env.results['cpf'].loc[:, 'data'].values)
+results = self.c_env.results['cpf'].iloc[:, :-1]
+df = pd.concat(self.c_env.results['cpf'].loc[:, 'data'].values)
 
 fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
 dct_traces = {'Q': 1, 'P': 1, 'target': 1}
 for k, v in dct_traces.items():
     fig.add_trace(go.Scatter(x=df.index, y=df[k], name=k, mode='lines'), row=v, col=1)
-for i, row in env.results['cpf'].iterrows():
+for i, row in self.c_env.results['cpf'].iterrows():
     start = row['data'].index[0]
     end = row['data'].index[-1]
     label = f"vin: {row['Vin']}; PF: {row['PF']}; step: {row['Step']}"
@@ -34,5 +34,5 @@ for i, row in env.results['cpf'].iterrows():
                   annotation_position='top right', fillcolor=next(palette))
 plotly.offline.plot(fig, filename='results/cpf.html')
 
-assert env.results['cpf'].loc[:, 'ss_valid'].all()
-assert env.results['cpf'].loc[:, 'olrt_valid'].all()
+assert self.c_env.results['cpf'].loc[:, 'ss_valid'].all()
+assert self.c_env.results['cpf'].loc[:, 'olrt_valid'].all()

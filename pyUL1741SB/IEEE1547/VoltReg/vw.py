@@ -119,40 +119,40 @@ class VWCurve:
         )
 
 class VW(VoltReg):
-    def vw_proc(self, env: Env, eut: Eut):
+    def vw_proc(self):
         """
         """
-        if eut.Cat == Eut.Category.A:
+        if self.c_eut.Cat == self.c_eut.Category.A:
             vw_crvs = [
-                ('1A_inj', VWCurve.Crv_1A_inj(eut)),
-                ('2A_inj', VWCurve.Crv_2A_inj(eut)),
-                ('3A_inj', VWCurve.Crv_3A_inj(eut)),
-                ('1A_abs', VWCurve.Crv_1A_abs(eut)),
-                ('2A_abs', VWCurve.Crv_2A_abs(eut)),
-                ('3A_abs', VWCurve.Crv_3A_abs(eut))
+                ('1A_inj', VWCurve.Crv_1A_inj(self.c_eut)),
+                ('2A_inj', VWCurve.Crv_2A_inj(self.c_eut)),
+                ('3A_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('1A_abs', VWCurve.Crv_1A_abs(self.c_eut)),
+                ('2A_abs', VWCurve.Crv_2A_abs(self.c_eut)),
+                ('3A_abs', VWCurve.Crv_3A_abs(self.c_eut))
             ]
-        elif eut.Cat == Eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             vw_crvs = [
-                ('1B_inj', VWCurve.Crv_1A_inj(eut)),
-                ('2B_inj', VWCurve.Crv_2A_inj(eut)),
-                ('3B_inj', VWCurve.Crv_3A_inj(eut)),
-                ('1B_abs', VWCurve.Crv_1A_abs(eut)),
-                ('2B_abs', VWCurve.Crv_2A_abs(eut)),
-                ('3B_abs', VWCurve.Crv_3A_abs(eut))
+                ('1B_inj', VWCurve.Crv_1A_inj(self.c_eut)),
+                ('2B_inj', VWCurve.Crv_2A_inj(self.c_eut)),
+                ('3B_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('1B_abs', VWCurve.Crv_1A_abs(self.c_eut)),
+                ('2B_abs', VWCurve.Crv_2A_abs(self.c_eut)),
+                ('3B_abs', VWCurve.Crv_3A_abs(self.c_eut))
             ]
         else:
-            raise TypeError(f'unknown eut category {eut.Cat}')
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
         '''
@@ -160,8 +160,8 @@ class VW(VoltReg):
             '''
             u) Repeat steps d) through s) for Characteristics 2 and 3.
             '''
-            eut.set_ap(Ena=True, pu=pwr_pu)
-            if eut.Prated_prime == 0:
+            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+            if self.c_eut.Prated_prime == 0:
                 # for euts incapable of absorption, do not test absorption curves
                 vw_crvs = vw_crvs[:3]
             for crv_name, vw_crv in vw_crvs:
@@ -173,12 +173,12 @@ class VW(VoltReg):
                 e) Set EUT volt-watt parameters to the values specified by Characteristic 1. All other functions should be turned off.
                 f) Verify volt-watt mode is reported as active and that the correct characteristic is reported.
                 '''
-                eut.set_vw(Ena=True, crv=vw_crv)
-                for k, v in self.vw_traverse_steps(env, eut, vw_crv).items():
+                self.c_eut.set_vw(Ena=True, crv=vw_crv)
+                for k, v in self.vw_traverse_steps(vw_crv).items():
                     dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
-                    self.vw_validate(env, eut, dct_label, lambda: env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / eut.VN) * eut.Prated)
+                    self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
 
-    def vw_traverse_steps(self, env: Env, eut: Eut, vw_crv: VWCurve):
+    def vw_traverse_steps(self, vw_crv: VWCurve):
         """
         """
         '''
@@ -196,23 +196,23 @@ class VW(VoltReg):
         r) Step the ac test source voltage to av below V1.
         s) Step the ac test source voltage to av above VL.
         '''
-        aV = eut.mra.static.V * 1.5
+        aV = self.c_eut.mra.static.V * 1.5
         ret = {
-            'g': eut.VL + aV,
-            'h': vw_crv.V1 * eut.VN - aV,
-            'i': vw_crv.V1 * eut.VN + aV,
-            'j': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
-            'k': vw_crv.V2 * eut.VN - aV,
-            'm': eut.VH - aV,
-            'o': vw_crv.V2 * eut.VN - aV,
-            'p': (vw_crv.V1 + vw_crv.V2) * eut.VN / 2.,
-            'q': vw_crv.V1 * eut.VN + aV,
-            'r': vw_crv.V1 * eut.VN - aV,
-            's': eut.VL + aV
+            'g': self.c_eut.VL + aV,
+            'h': vw_crv.V1 * self.c_eut.VN - aV,
+            'i': vw_crv.V1 * self.c_eut.VN + aV,
+            'j': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
+            'k': vw_crv.V2 * self.c_eut.VN - aV,
+            'm': self.c_eut.VH - aV,
+            'o': vw_crv.V2 * self.c_eut.VN - aV,
+            'p': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
+            'q': vw_crv.V1 * self.c_eut.VN + aV,
+            'r': vw_crv.V1 * self.c_eut.VN - aV,
+            's': self.c_eut.VL + aV
         }
         return ret
 
-    def vw_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+    def vw_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
                     y_of_x: Callable[[float], float]):
         """"""
         '''
@@ -240,13 +240,13 @@ class VW(VoltReg):
         After each voltage or power step, the open loop response time Tr is evaluated. The measured active power output 
         P(tr) at olrt +/- 1.5 tMRA shall be not more than 0.9 * (Pfinal - Pinitial) + Pinitial + 1.5 * pMRA.
         '''
-        xMRA = eut.mra.static.V
-        yMRA = eut.mra.static.P
+        xMRA = self.c_eut.mra.static.V
+        yMRA = self.c_eut.mra.static.P
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'V', 'P'
 
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -268,7 +268,7 @@ class VW(VoltReg):
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_ss <= y_max
         df_meas['y_target'] = y_targ
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
             'y_olrt': y_olrt,

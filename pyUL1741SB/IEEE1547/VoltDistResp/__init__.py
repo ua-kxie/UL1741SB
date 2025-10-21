@@ -91,22 +91,22 @@ class VrtCond:
     def catIII_hvrt_condC():
         return VrtCond(name=CondName.D, vpu=1.1, vpu_min=1.0, vpu_max=1.1, dur_s=120.0, opmd=OpMode.ContOp)
 
-class VoltDist:
+class VoltDist(IEEE1547):
     Vminkey = 'Vmin'
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
     OpMdkey = 'OpMd'
-    def ovt_proc(self, env: Env, eut: Eut):
+    def ovt_proc(self):
         """"""
-        multiphase = eut.multiphase
+        multiphase = self.c_eut.multiphase
         if multiphase:
             raise NotImplementedError
-        shalltrip_tbl = eut.voltshalltrip_tbl
-        VN = eut.VN
-        vMRA = eut.mra.static.V
+        shalltrip_tbl = self.c_eut.voltshalltrip_tbl
+        VN = self.c_eut.VN
+        vMRA = self.c_eut.mra.static.V
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all source parameters to the nominal operating conditions for the EUT.
+        b) Set all source parameters to the nominal operating conditions for the self.c_eut.
         '''
         '''
         k) Repeat steps c) through k) for each overvoltage operating trip region.
@@ -123,13 +123,13 @@ class VoltDist:
             '''
             trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
             for trip_cts in trip_times:
-                tMRA = eut.mra.static.T(trip_cts)
+                tMRA = self.c_eut.mra.static.T(trip_cts)
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
                 '''
                 trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
                 for trip_vpu in trip_mags:
-                    trip_vpu = max(trip_vpu, (VN + 2 * vMRA) / eut.VN)
+                    trip_vpu = max(trip_vpu, (VN + 2 * vMRA) / self.c_eut.VN)
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
@@ -137,16 +137,16 @@ class VoltDist:
                     h) For multiphase units, repeat steps e) through g) for the applicable voltage on each phase or phase
                     pair individually, and all phases simultaneously.
                     '''
-                    eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
+                    self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(TRIP_RPT):
                         '''
                         e), f)
                         '''
                         dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
-                        self.ovt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
-                        self.trip_rst(env, eut)
+                        self.ovt_validate(dct_label, trip_cts, trip_vpu, tMRA, vMRA)
+                        self.trip_rst()
 
-    def ovt_validate(self, env: Env, eut: Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
+    def ovt_validate(self, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -174,31 +174,31 @@ class VoltDist:
         (c) The clearing time shall be measured from the time t0 to tc.
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        env.ac_config(Vac=eut.VN)
+        self.c_env.ac_config(Vac=self.c_eut.VN)
 
-        env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
-        env.sleep(dur)
+        self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN - 2 * vMRA)
+        self.c_env.sleep(dur)
 
-        ts = env.time_now()
-        env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
-        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
-        ceased = self.cease_energize(env, eut)
+        ts = self.c_env.time_now()
+        self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
+        tripped = self.trip_validate(dur, ts, tMRA)
+        ceased = self.cease_energize()
 
-        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
+        self.c_env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
         # TODO communication based check for trip state?
 
-    def uvt_proc(self, env: Env, eut: Eut):
+    def uvt_proc(self):
         """"""
-        multiphase = eut.multiphase
+        multiphase = self.c_eut.multiphase
         if multiphase:
             raise NotImplementedError
-        shalltrip_tbl = eut.voltshalltrip_tbl
-        VN = eut.VN
-        vMRA = eut.mra.static.V
+        shalltrip_tbl = self.c_eut.voltshalltrip_tbl
+        VN = self.c_eut.VN
+        vMRA = self.c_eut.mra.static.V
         """"""
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all source parameters to the nominal operating conditions for the EUT.
+        b) Set all source parameters to the nominal operating conditions for the self.c_eut.
         '''
 
         '''
@@ -218,13 +218,13 @@ class VoltDist:
             '''
             trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
             for trip_cts in trip_times:
-                tMRA = eut.mra.static.T(trip_cts)
+                tMRA = self.c_eut.mra.static.T(trip_cts)
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at minimum of the range.
                 '''
                 trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
                 for trip_vpu in trip_mags:
-                    trip_vpu = min(trip_vpu, (VN - 2 * vMRA) / eut.VN)
+                    trip_vpu = min(trip_vpu, (VN - 2 * vMRA) / self.c_eut.VN)
                     '''
                     h) For multiphase units, repeat steps d) through g) for the applicable voltage on each phase or phase
                     pair individually, and on all phases simultaneously.
@@ -232,7 +232,7 @@ class VoltDist:
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
-                    eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
+                    self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(TRIP_RPT):
                         '''
                         e) Record applicable settings.
@@ -246,10 +246,10 @@ class VoltDist:
                         f) Record all voltage magnitudes when the unit trips.
                         '''
                         dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
-                        self.uvt_validate(env, eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA)
-                        self.trip_rst(env, eut)
+                        self.uvt_validate(dct_label, trip_cts, trip_vpu, tMRA, vMRA)
+                        self.trip_rst()
 
-    def uvt_validate(self, env: Env, eut:Eut, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
+    def uvt_validate(self, dct_label, trip_cts, trip_vpu, tMRA, vMRA):
         """"""
         '''
         e) Record applicable settings.
@@ -269,39 +269,39 @@ class VoltDist:
         ranges of adjustment for each undervoltage tripping range specified in IEEE Std 1547.
         '''
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        env.ac_config(Vac=eut.VN)
+        self.c_env.ac_config(Vac=self.c_eut.VN)
 
-        env.ac_config(Vac=trip_vpu * eut.VN + 2 * vMRA)
-        env.sleep(dur)
+        self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
+        self.c_env.sleep(dur)
 
-        ts = env.time_now()
-        env.ac_config(Vac=trip_vpu * eut.VN - 2 * vMRA)
-        tripped = self.trip_validate(env, eut, dur, ts, tMRA)
-        ceased = self.cease_energize(env, eut)
+        ts = self.c_env.time_now()
+        self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN - 2 * vMRA)
+        tripped = self.trip_validate(dur, ts, tMRA)
+        ceased = self.cease_energize()
 
-        env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
+        self.c_env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
         # TODO communication based check for trip state?
 
-    def lvrt_proc(self, env: Env, eut: Eut):
+    def lvrt_proc(self):
         """"""
-        multiphase = eut.multiphase
+        multiphase = self.c_eut.multiphase
         if multiphase:
             raise NotImplementedError
 
-        if eut.Cat == eut.Category.A:
+        if self.c_eut.Cat == self.c_eut.Category.A:
             vvcrv = VVCurve.Crv_1A()
-        elif eut.Cat == eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             vvcrv = VVCurve.Crv_1B()
         else:
-            raise ValueError(eut.Cat)
+            raise ValueError(self.c_eut.Cat)
 
-        if eut.aopCat == eut.AOPCat.I:
+        if self.c_eut.aopCat == self.c_eut.AOPCat.I:
             fwchar = FWChar.CatI_CharI()
             raise NotImplementedError
-        elif eut.aopCat == eut.AOPCat.II:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.II:
             fwchar = FWChar.CatII_CharI()
             raise NotImplementedError
-        elif eut.aopCat == eut.AOPCat.III:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.III:
             fwchar = FWChar.CatIII_CharI()
             seq = [
                 VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
@@ -310,9 +310,9 @@ class VoltDist:
                 VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condCprime(), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
             ]
         else:
-            raise ValueError(eut.Cat)
+            raise ValueError(self.c_eut.Cat)
         resptm = timedelta(seconds=VrtCond.catIII_lvrt_condB().dur_s)
-        vt_tbl = eut.voltshalltrip_tbl
+        vt_tbl = self.c_eut.voltshalltrip_tbl
         vt_args = {
             'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
             'UV2': {'cts': vt_tbl.UV2.cts_max, 'vpu': vt_tbl.UV2.volt_pu_min}
@@ -325,27 +325,27 @@ class VoltDist:
         If the EUT provides a voltage-active power control mode, that mode shall be disabled. 
         The frequency-active power control mode of the EUT shall be set to the default settings.
         '''
-        eut.set_vt(**vt_args)
-        eut.set_vv(Ena=True, crv=vvcrv)
-        eut.set_vw(Ena=False)
-        eut.set_fw(Ena=True, crv=fwchar)
+        self.c_eut.set_vt(**vt_args)
+        self.c_eut.set_vv(Ena=True, crv=vvcrv)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_fw(Ena=True, crv=fwchar)
         '''
         The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
         power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
         '''
         PF = 1.0  # 0.9-1.0
-        eut.set_cpf(PF=PF)
+        self.c_eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            eut.set_ap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
             for cond in seq:
                 dct_label = {
                     'proc': 'lvrt',
                     'pwr_pu': pwr_pu,
                     'cond': str(cond.name)
                 }
-                self.lvrt_validate(env, eut, dct_label, resptm, cond)
+                self.lvrt_validate(dct_label, resptm, cond)
 
-    def lvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, cond: VrtCond):
+    def lvrt_validate(self, dct_label, resptm: timedelta, cond: VrtCond):
         """"""
         '''
         IEEE 1547.1-2020 5.4.4.5
@@ -366,21 +366,21 @@ class VoltDist:
         meas_args = ('V', 'P', 'Q')
         ntrvl = timedelta(seconds=cond.dur_s)
         def perturb():
-            env.ac_config(Vac=cond.vpu * eut.VN)
-        df_meas = self.meas_perturb(env, eut, perturb, ntrvl, ntrvl, meas_args)
+            self.c_env.ac_config(Vac=cond.vpu * self.c_eut.VN)
+        df_meas = self.meas_perturb(perturb, ntrvl, ntrvl, meas_args)
         resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
 
         def contop_valid():
             s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
 
         def momcess_valid():
             p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
             q = df_meas.loc[resp_idx:, 'Q'].mean()
-            p_thresh = 0.01 * eut.Srated / eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
-            q_thresh = 0.1 * eut.Srated if eut.Srated < 500e3 else 0.03 * eut.Srated # IEEE 1547.1-2018 4.5
+            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
+            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * self.c_eut.Srated # IEEE 1547.1-2018 4.5
             return p < p_thresh and q < q_thresh
 
         def mandop_valid():
@@ -405,30 +405,30 @@ class VoltDist:
         else:
             raise ValueError(cond.opmd)
 
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'valid': valid,
             'data': df_meas
         })
 
-    def hvrt_proc(self, env: Env, eut: Eut):
+    def hvrt_proc(self):
         """"""
-        multiphase = eut.multiphase
+        multiphase = self.c_eut.multiphase
         if multiphase:
             raise NotImplementedError
 
-        if eut.Cat == eut.Category.A:
+        if self.c_eut.Cat == self.c_eut.Category.A:
             vvcrv = VVCurve.Crv_1A()
-        elif eut.Cat == eut.Category.B:
+        elif self.c_eut.Cat == self.c_eut.Category.B:
             vvcrv = VVCurve.Crv_1B()
         else:
-            raise ValueError(eut.Cat)
+            raise ValueError(self.c_eut.Cat)
 
-        if eut.aopCat == eut.AOPCat.I:
+        if self.c_eut.aopCat == self.c_eut.AOPCat.I:
             raise NotImplementedError
-        elif eut.aopCat == eut.AOPCat.II:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.II:
             raise NotImplementedError
-        elif eut.aopCat == eut.AOPCat.III:
+        elif self.c_eut.aopCat == self.c_eut.AOPCat.III:
             seq = [
                 VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condB(),
                 VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condB(),
@@ -436,9 +436,9 @@ class VoltDist:
                 VrtCond.catIII_hvrt_condA(), VrtCond.catIII_hvrt_condBprime(), VrtCond.catIII_hvrt_condC(),
             ]
         else:
-            raise ValueError(eut.Cat)
+            raise ValueError(self.c_eut.Cat)
         resptm = timedelta(seconds=VrtCond.catIII_lvrt_condB().dur_s)
-        vt_tbl = eut.voltshalltrip_tbl
+        vt_tbl = self.c_eut.voltshalltrip_tbl
         vt_args = {
             'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
             'UV2': {'cts': vt_tbl.UV2.cts_max, 'vpu': vt_tbl.UV2.volt_pu_min}
@@ -447,25 +447,25 @@ class VoltDist:
         The voltage-reactive power control mode of the EUT shall be set to the default settings specified in Table 8
         of IEEE Std 1547-2018 for the applicable performance category, and enabled.
         '''
-        eut.set_vv(Ena=True, crv=vvcrv)
-        eut.set_vw(Ena=False)  # not specified but helps identify cont.op
+        self.c_eut.set_vv(Ena=True, crv=vvcrv)
+        self.c_eut.set_vw(Ena=False)  # not specified but helps identify cont.op
         '''
         The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
         power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
         '''
         PF = 1.0  # 0.9-1.0
-        eut.set_cpf(PF=PF)
+        self.c_eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            eut.set_ap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
             for cond in seq:
                 dct_label = {
                     'proc': 'hvrt',
                     'pwr_pu': pwr_pu,
                     'cond': str(cond.name)
                 }
-                self.hvrt_validate(env, eut, dct_label, resptm, cond)
+                self.hvrt_validate(dct_label, resptm, cond)
 
-    def hvrt_validate(self, env: Env, eut: Eut, dct_label, resptm: timedelta, cond: VrtCond):
+    def hvrt_validate(self, dct_label, resptm: timedelta, cond: VrtCond):
         """"""
         '''
         IEEE 1547.1-2020 5.4.7.6
@@ -482,22 +482,22 @@ class VoltDist:
         ntrvl = timedelta(seconds=cond.dur_s)
 
         def perturb():
-            env.ac_config(Vac=cond.vpu * eut.VN)
+            self.c_env.ac_config(Vac=cond.vpu * self.c_eut.VN)
 
-        df_meas = self.meas_perturb(env, eut, perturb, ntrvl, ntrvl, meas_args)
+        df_meas = self.meas_perturb(perturb, ntrvl, ntrvl, meas_args)
         resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
 
         def contop_valid():
             s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
 
         def momcess_valid():
             p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
             q = df_meas.loc[resp_idx:, 'Q'].mean()
-            p_thresh = 0.01 * eut.Srated / eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
-            q_thresh = 0.1 * eut.Srated if eut.Srated < 500e3 else 0.03 * eut.Srated # IEEE 1547.1-2018 4.5
+            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
+            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * self.c_eut.Srated # IEEE 1547.1-2018 4.5
             return p < p_thresh and q < q_thresh
 
         if cond.opmd == OpMode.ContOp:
@@ -507,7 +507,7 @@ class VoltDist:
         else:
             raise ValueError(cond.opmd)
 
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'valid': valid,
             'data': df_meas

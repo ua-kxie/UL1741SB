@@ -4,12 +4,12 @@ from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547 import IEEE1547
 
 class VoltReg(IEEE1547):
-    def vv_wv_step_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, xarg, yarg, y_of_x: Callable,
+    def vv_wv_step_validate(self, dct_label: dict, perturb: Callable, xarg, yarg, y_of_x: Callable,
                             olrt: timedelta, xMRA, yMRA):
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
-        self.vv_wv_validate(env, eut, dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
+        self.vv_wv_validate(dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
 
-    def vv_wv_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
+    def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
                        yarg, xMRA, yMRA):
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -33,7 +33,7 @@ class VoltReg(IEEE1547):
         ss_valid = y_min <= y_ss <= y_max
 
         df_meas['y_target'] = y_targ
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
             'y_olrt': y_olrt,
@@ -45,10 +45,10 @@ class VoltReg(IEEE1547):
             'data': df_meas
         })
 
-    def cpf_crp_validate(self, env: Env, eut: Eut, dct_label: dict, df_meas, olrt: timedelta,
+    def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta,
                          y_of_x: Callable[[float], float]):
         xarg, yarg = 'P', 'Q'
-        yMRA = eut.mra.static.Q
+        yMRA = self.c_eut.mra.static.Q
 
         # # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
         # y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
@@ -86,7 +86,7 @@ class VoltReg(IEEE1547):
         ss_valid = y_min <= y_ss <= y_max
 
         df_meas['y_target'] = y_targ
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
             'y_olrt': y_olrt,
@@ -98,15 +98,15 @@ class VoltReg(IEEE1547):
             'data': df_meas
         })
 
-    def cpf_crp_meas_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta,
+    def cpf_crp_meas_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
                               y_of_x: Callable[[float], float]):
         """"""
         '''
         IEEE 1547.1-2020 5.14.3.3
         '''
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'P', 'Q'
         meas_args = (xarg, yarg)
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, meas_args)
-        self.cpf_crp_validate(env, eut, dct_label, df_meas, olrt, y_of_x)
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, meas_args)
+        self.cpf_crp_validate(dct_label, df_meas, olrt, y_of_x)

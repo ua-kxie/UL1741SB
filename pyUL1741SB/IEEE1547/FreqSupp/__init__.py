@@ -6,6 +6,9 @@ from datetime import timedelta
 from typing import Callable
 import numpy as np
 
+from pyUL1741SB.IEEE1547 import IEEE1547
+
+
 class FWChar:
     def __init__(self, dbof_hz, kof, dbuf_hz, kuf, tr):
         self.dbof_hz = dbof_hz
@@ -66,36 +69,36 @@ EUT’s abnormal operating performance category defined by IEEE Std 1547-2018
 The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
-class FreqSupp:
-    def fwo_proc(self, env: Env, eut: Eut):
+class FreqSupp(IEEE1547):
+    def fwo_proc(self):
         """"""
         # chars = char1, char2, char1 with Pmin if needed
         fw_crvs = {
-            Eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
-            Eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
-            Eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
-        }[eut.aopCat]
+            self.c_eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
+            self.c_eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
+            self.c_eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
+        }[self.c_eut.aopCat]
         ap_sgns = [1, 1, -1]
         fw_crvs = list(zip(['charI', 'charII', 'charI'], fw_crvs, ap_sgns))
-        if not eut.Prated_prime < 0:
+        if not self.c_eut.Prated_prime < 0:
             # discard second CharI run if eut cannot absorb active power
             fw_crvs = fw_crvs[:-1]
         # fw_crvs = [[crv_key, crv, p_min_pu]
         '''
         IEEE 1547.1-2020 5.15.3.2:
-        "Frequency is ramped at the ROCOF for the category of the EUT."
+        "Frequency is ramped at the ROCOF for the category of the self.c_eut."
         '''
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         r) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
         programming a negative Pmin.
@@ -121,17 +124,17 @@ class FreqSupp:
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof)
-                eut.set_ap(Ena=True, pu=pwr_pu)
-                eut.set_fw(Ena=True, crv=crv)
-                env.sleep(timedelta(seconds=eut.olrt.lap))  # wait for AP steady state
-                y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
-                dct_steps = self.fwo_traverse_steps(env, eut, crv, af=eut.mra.static.F)
+                self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof)
+                self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+                self.c_eut.set_fw(Ena=True, crv=crv)
+                self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state
+                y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * self.c_eut.Prated
+                dct_steps = self.fwo_traverse_steps(crv, af=self.c_eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
                     dct_label = {'proc': 'fwo', 'crv': crv_key, 'pwr_pu': pwr_pu, 'step': step_key}
-                    self.fwo_validate(env, eut, dct_label, step_fcn, olrt, y_of_x)
+                    self.fwo_validate(dct_label, step_fcn, olrt, y_of_x)
 
-    def fwo_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def fwo_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         5.15.2.3 Criteria
@@ -151,9 +154,9 @@ class FreqSupp:
         
         For the larger frequency ramps, the EUT shall reach steady state within 1/ ΔPlarge minutes.
         '''
-        self.fw_common_criteria(env, eut, dct_label, perturb, olrt, y_of_x)
+        self.fw_common_criteria(dct_label, perturb, olrt, y_of_x)
 
-    def fwo_traverse_steps(self, env: Env, eut: Eut, crv: FWChar, af):
+    def fwo_traverse_steps(self, crv: FWChar, af):
         """"""
         '''
         h) Begin the adjustment to fH. Ramp the frequency to af below (fN + dbOF).
@@ -166,46 +169,46 @@ class FreqSupp:
         o) Ramp the frequency to fN.
         '''
         # delta_fsmall = delta_Psmall * fN * kOF
-        delta_fsmall = eut.delta_Psmall * eut.fN * crv.kof
+        delta_fsmall = self.c_eut.delta_Psmall * self.c_eut.fN * crv.kof
         ret = {
-            'h': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN + crv.dbof_hz - af),
-            'i': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN + crv.dbof_hz + af),
-            'j': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN + crv.dbof_hz + delta_fsmall),
-            'k': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fH),
-            'l': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fH - delta_fsmall),
-            'm': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN + crv.dbof_hz + af),
-            'n': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN + crv.dbof_hz - af),
-            'o': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN),
+            'h': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN + crv.dbof_hz - af),
+            'i': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN + crv.dbof_hz + af),
+            'j': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN + crv.dbof_hz + delta_fsmall),
+            'k': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fH),
+            'l': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fH - delta_fsmall),
+            'm': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN + crv.dbof_hz + af),
+            'n': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN + crv.dbof_hz - af),
+            'o': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN),
         }
         return ret
 
-    def fwu_proc(self, env: Env, eut: Eut):
+    def fwu_proc(self):
         """"""
         fw_crvs = {
-            Eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
-            Eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
-            Eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
-        }[eut.aopCat]
+            self.c_eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
+            self.c_eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
+            self.c_eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
+        }[self.c_eut.aopCat]
         ap_sgns = [1, 1, -1]
         fw_crvs = list(zip(['charI', 'charII', 'charI'], fw_crvs, ap_sgns))
-        if not eut.Prated_prime < 0:
+        if not self.c_eut.Prated_prime < 0:
             # discard second CharI run if eut can not absorb active power
             fw_crvs = fw_crvs[:-1]
         '''
         IEEE 1547.1-2020 5.15.3.2:
-        "Frequency is ramped at the ROCOF for the category of the EUT."
+        "Frequency is ramped at the ROCOF for the category of the self.c_eut."
         '''
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
-        eut.set_vw(Ena=False)
-        eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
         '''
         o) Repeat steps b) through n) for Characteristic 2.
         p) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
@@ -224,17 +227,17 @@ class FreqSupp:
             '''
             f) Verify frequency-watt mode is reported as active and that the correct characteristic is reported.
             '''
-            env.ac_config(Vac=eut.VN, freq=eut.fN, rocof=eut.rocof)
-            eut.set_ap(Ena=True, pu=pwr_pu)
-            eut.set_fw(Ena=True, crv=crv)
-            env.sleep(timedelta(seconds=eut.olrt.lap))  # wait for AP steady state
-            y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * eut.Prated
-            dct_steps = self.fwu_traverse_steps(env, eut, crv, af=eut.mra.static.F)
+            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof)
+            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_fw(Ena=True, crv=crv)
+            self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state
+            y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * self.c_eut.Prated
+            dct_steps = self.fwu_traverse_steps(crv, af=self.c_eut.mra.static.F)
             for step_key, step_fcn in dct_steps.items():
                 dct_label = {'proc': 'fwu', 'crv': crv_key, 'pwr_pu': pwr_pu, 'step': step_key}
-                self.fwu_validate(env, eut, dct_label, step_fcn, olrt, y_of_x)
+                self.fwu_validate(dct_label, step_fcn, olrt, y_of_x)
 
-    def fwu_validate(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+    def fwu_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""
         '''
         5.15.3.3 Criteria
@@ -252,9 +255,9 @@ class FreqSupp:
         
         For the larger frequency ramps, the EUT shall reach steady state within 1/ ΔPlarge minutes.
         '''
-        self.fw_common_criteria(env, eut, dct_label, perturb, olrt, y_of_x)
+        self.fw_common_criteria(dct_label, perturb, olrt, y_of_x)
 
-    def fwu_traverse_steps(self, env: Env, eut: Eut, crv: FWChar, af):
+    def fwu_traverse_steps(self, crv: FWChar, af):
         """"""
         '''
         g) Begin the adjustment to fL. Ramp the frequency to af above (fN – dbUF).
@@ -267,28 +270,28 @@ class FreqSupp:
         n) Ramp the frequency to fN.
         '''
         # delta_fsmall = delta_Psmall * fN * kOF
-        delta_fsmall = eut.delta_Psmall * eut.fN * crv.kof
+        delta_fsmall = self.c_eut.delta_Psmall * self.c_eut.fN * crv.kof
         ret = {
-            'g': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN - crv.dbof_hz + af),
-            'h': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN - crv.dbof_hz - af),
-            'i': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN - crv.dbof_hz - delta_fsmall),
-            'j': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fL),
-            'k': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fL + delta_fsmall),
-            'l': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN - crv.dbof_hz - af),
-            'm': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN - crv.dbof_hz + af),
-            'n': lambda: env.ac_config(rocof=eut.rocof(), freq=eut.fN),
+            'g': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN - crv.dbof_hz + af),
+            'h': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN - crv.dbof_hz - af),
+            'i': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN - crv.dbof_hz - delta_fsmall),
+            'j': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fL),
+            'k': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fL + delta_fsmall),
+            'l': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN - crv.dbof_hz - af),
+            'm': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN - crv.dbof_hz + af),
+            'n': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN),
         }
         return ret
 
-    def fw_common_criteria(self, env: Env, eut: Eut, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        xMRA = eut.mra.static.F
-        yMRA = eut.mra.static.P
+    def fw_common_criteria(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        xMRA = self.c_eut.mra.static.F
+        yMRA = self.c_eut.mra.static.P
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
-        env.log(msg=f"1741SB {slabel}")
+        self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'F', 'P'
         # need to apply different validation depending on DeltaPsmall/large
         # assume criteria for deltaPsmall for all steps, more stringent criteria
-        df_meas = self.meas_perturb(env, eut, perturb, olrt, 4 * olrt, (xarg, yarg))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
 
         # get y_init
         y_init = df_meas.loc[df_meas.index[0], yarg]
@@ -312,7 +315,7 @@ class FreqSupp:
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_min <= y_ss <= y_max
 
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
             'y_olrt': y_olrt,

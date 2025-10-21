@@ -1,42 +1,41 @@
 from datetime import timedelta
-
-from pyUL1741SB import Env, Eut
+from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 
 
-class LAP:
-    def lap_proc(self, env: Env, eut: Eut):
+class LAP(IEEE1547):
+    def lap_proc(self):
         """"""
         dflt_fwchar = {
-            eut.aopCat.I: FWChar.CatI_CharI(),
-            eut.aopCat.II: FWChar.CatII_CharI(),
-            eut.aopCat.III: FWChar.CatIII_CharI(),
-        }[eut.aopCat]
-        if eut.Prated_prime < 0:
+            self.c_eut.aopCat.I: FWChar.CatI_CharI(),
+            self.c_eut.aopCat.II: FWChar.CatII_CharI(),
+            self.c_eut.aopCat.III: FWChar.CatIII_CharI(),
+        }[self.c_eut.aopCat]
+        if self.c_eut.Prated_prime < 0:
             dflt_vwcrv = {
-                eut.Category.A: VWCurve.Crv_1A_abs(eut),
-                eut.Category.B: VWCurve.Crv_1B_abs(eut),
-            }[eut.Cat]
+                self.c_eut.Category.A: VWCurve.Crv_1A_abs(self.c_eut),
+                self.c_eut.Category.B: VWCurve.Crv_1B_abs(self.c_eut),
+            }[self.c_eut.Cat]
         else:
             dflt_vwcrv = {
-                eut.Category.A: VWCurve.Crv_1A_inj(eut),
-                eut.Category.B: VWCurve.Crv_1B_inj(eut),
-            }[eut.Cat]
+                self.c_eut.Category.A: VWCurve.Crv_1A_inj(self.c_eut),
+                self.c_eut.Category.B: VWCurve.Crv_1B_inj(self.c_eut),
+            }[self.c_eut.Cat]
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         Apply the default settings from IEEE Std 1547 for voltage-active power mode. Apply the default
         settings from frequency-droop response in IEEE Std 1547 for the abnormal operating performance
         category of the DER. Enable voltage-active power mode.
         '''
-        env.ac_config(freq=eut.fN, Vac=eut.VN)
-        eut.set_cpf(Ena=False)
-        eut.set_crp(Ena=False)
-        eut.set_wv(Ena=False)
-        eut.set_vv(Ena=False)
+        self.c_env.ac_config(freq=self.c_eut.fN, Vac=self.c_eut.VN)
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
 
-        eut.set_fw(Ena=True, crv=dflt_fwchar)
-        eut.set_vw(Ena=True, crv=dflt_vwcrv)
+        self.c_eut.set_fw(Ena=True, crv=dflt_fwchar)
+        self.c_eut.set_vw(Ena=True, crv=dflt_vwcrv)
         '''
         g) Repeat steps b) through f) using active power limits of [66%] 33% and zero.
         h) Repeat steps b) through g) twice for a total of three repetitions.
@@ -45,7 +44,7 @@ class LAP:
             for aplim_pu in [0.66, 0.33, 0]:
                 '''
                 b) Establish nominal operating conditions as specified by the manufacturer at the terminals of the
-                EUT. Make available sufficient input power for the EUT to reach its rated active power. Allow (or
+                self.c_eut. Make available sufficient input power for the EUT to reach its rated active power. Allow (or
                 command) the EUT to reach steady-state output at its rated active power. Begin recording EUT
                 active power.
 
@@ -64,8 +63,8 @@ class LAP:
                 reaches steady state. Return ac test source voltage to nominal.
                 '''
                 # b)
-                eut.set_ap(Ena=True, pu=1)
-                env.sleep(timedelta(seconds=eut.olrt.lap))
+                self.c_eut.set_ap(Ena=True, pu=1)
+                self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
                 dct_label = {
                     'proc': 'lap',
                     'iter': i,
@@ -73,36 +72,36 @@ class LAP:
                 }
 
                 def y_of_fw(x):
-                    if eut.Prated_prime < 0:
+                    if self.c_eut.Prated_prime < 0:
                         ymin_pu = -1
                     else:
                         ymin_pu = 0
                     ymax_pu = 1
-                    fw_val = dflt_fwchar.y_of_x(x, ymin_pu, aplim_pu, ymax_pu) * eut.Prated
+                    fw_val = dflt_fwchar.y_of_x(x, ymin_pu, aplim_pu, ymax_pu) * self.c_eut.Prated
                     return fw_val
 
                 def y_of_vw(x):
-                    vw_val = dflt_vwcrv.y_of_x(x) * eut.Prated
-                    return min(vw_val, aplim_pu * eut.Prated)
+                    vw_val = dflt_vwcrv.y_of_x(x) * self.c_eut.Prated
+                    return min(vw_val, aplim_pu * self.c_eut.Prated)
 
                 lst_tup_steps = [
                     # step label, perturbation, y_ss_target, olrt
-                    ('c', lambda: eut.set_lap(Ena=True, pu=aplim_pu), aplim_pu * eut.Prated, timedelta(seconds=30)),
-                    ('d1', lambda: env.ac_config(freq=59, rocof=eut.rocof()), y_of_fw(59),
+                    ('c', lambda: self.c_eut.set_lap(Ena=True, pu=aplim_pu), aplim_pu * self.c_eut.Prated, timedelta(seconds=30)),
+                    ('d1', lambda: self.c_env.ac_config(freq=59, rocof=self.c_eut.rocof()), y_of_fw(59),
                      timedelta(seconds=dflt_fwchar.tr)),
-                    ('d2', lambda: env.ac_config(freq=60, rocof=eut.rocof()), y_of_fw(60),
+                    ('d2', lambda: self.c_env.ac_config(freq=60, rocof=self.c_eut.rocof()), y_of_fw(60),
                      timedelta(seconds=dflt_fwchar.tr)),
-                    ('e1', lambda: env.ac_config(freq=61, rocof=eut.rocof()), y_of_fw(61),
+                    ('e1', lambda: self.c_env.ac_config(freq=61, rocof=self.c_eut.rocof()), y_of_fw(61),
                      timedelta(seconds=dflt_fwchar.tr)),
-                    ('e2', lambda: env.ac_config(freq=60, rocof=eut.rocof()), y_of_fw(60),
+                    ('e2', lambda: self.c_env.ac_config(freq=60, rocof=self.c_eut.rocof()), y_of_fw(60),
                      timedelta(seconds=dflt_fwchar.tr)),
-                    ('f1', lambda: env.ac_config(Vac=1.08 * eut.VN), y_of_vw(1.08), timedelta(seconds=dflt_vwcrv.Tr)),
-                    ('f2', lambda: env.ac_config(Vac=eut.VN), y_of_vw(1.0), timedelta(seconds=dflt_vwcrv.Tr))
+                    ('f1', lambda: self.c_env.ac_config(Vac=1.08 * self.c_eut.VN), y_of_vw(1.08), timedelta(seconds=dflt_vwcrv.Tr)),
+                    ('f2', lambda: self.c_env.ac_config(Vac=self.c_eut.VN), y_of_vw(1.0), timedelta(seconds=dflt_vwcrv.Tr))
                 ]
                 for tup in lst_tup_steps:
-                    self.lap_validation(env, eut, dct_label, *tup)
+                    self.lap_validation(dct_label, *tup)
 
-    def lap_validation(self, env: Env, eut: Eut, dct_label, step_label, perturbation, y_ss_target, olrt: timedelta):
+    def lap_validation(self, dct_label, step_label, perturbation, y_ss_target, olrt: timedelta):
         """"""
         '''
         IEEE 1547.1-2018
@@ -140,13 +139,13 @@ class LAP:
         commissioning test may be needed to verify correct operation of the installed DER.
         '''
         yarg = 'P'
-        yMRA = eut.mra.static.P
-        df_meas = self.meas_perturb(env, eut, perturbation, olrt, 4 * olrt, (yarg,))
+        yMRA = self.c_eut.mra.static.P
+        df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, (yarg,))
         y_init = df_meas.loc[df_meas.index[0], yarg]
         y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
         ss_valid = y_ss <= y_ss_target + 1.5 * yMRA
         df_meas['y_target'] = y_ss_target
-        env.validate(dct_label={
+        self.c_env.validate(dct_label={
             **dct_label,
             'step': step_label,
             'y_init': y_init,
