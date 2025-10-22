@@ -311,9 +311,11 @@ class FreqSupp(IEEE1547):
         '''
         # ss eval with 1741SB amendment
         y_targ = y_of_x(x_ss)
-        df_meas['y_target'] = y_targ
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_min <= y_ss <= y_max
+        df_meas['y_ss_target'] = y_targ
+        df_meas['y_min'] = y_min
+        df_meas['y_max'] = y_max
 
         self.c_env.validate(dct_label={
             **dct_label,

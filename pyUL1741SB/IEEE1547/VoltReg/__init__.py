@@ -32,7 +32,9 @@ class VoltReg(IEEE1547):
         y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_min <= y_ss <= y_max
 
-        df_meas['y_target'] = y_targ
+        df_meas['y_ss_target'] = y_targ
+        df_meas['y_min'] = y_min
+        df_meas['y_max'] = y_max
         self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,
@@ -45,8 +47,7 @@ class VoltReg(IEEE1547):
             'data': df_meas
         })
 
-    def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta,
-                         y_of_x: Callable[[float], float]):
+    def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable[[float], float]):
         xarg, yarg = 'P', 'Q'
         yMRA = self.c_eut.mra.static.Q
 
@@ -85,7 +86,9 @@ class VoltReg(IEEE1547):
         y_max = y_targ + 1.5 * yMRA
         ss_valid = y_min <= y_ss <= y_max
 
-        df_meas['y_target'] = y_targ
+        df_meas['y_ss_target'] = y_targ
+        df_meas['y_min'] = y_min
+        df_meas['y_max'] = y_max
         self.c_env.validate(dct_label={
             **dct_label,
             'y_init': y_init,

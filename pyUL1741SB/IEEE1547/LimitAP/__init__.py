@@ -143,8 +143,11 @@ class LAP(IEEE1547):
         df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, (yarg,))
         y_init = df_meas.loc[df_meas.index[0], yarg]
         y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
-        ss_valid = y_ss <= y_ss_target + 1.5 * yMRA
-        df_meas['y_target'] = y_ss_target
+        y_max = y_ss_target + 1.5 * yMRA
+        ss_valid = y_ss <= y_max
+        df_meas['y_ss_target'] = y_ss_target
+        df_meas['y_min'] = 0
+        df_meas['y_max'] = y_max
         self.c_env.validate(dct_label={
             **dct_label,
             'step': step_label,

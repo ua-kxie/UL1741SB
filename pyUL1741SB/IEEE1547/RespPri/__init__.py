@@ -251,8 +251,12 @@ class RespPri(IEEE1547):
         qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, self.c_eut.mra.static.Q)
         q_valid = qmin < row_ss['Q'] < qmax
 
-        df_meas['p_target'] = p_target
-        df_meas['q_target'] = q_target
+        df_meas['p_ss_target'] = p_target
+        df_meas['p_min'] = pmin
+        df_meas['p_max'] = pmax
+        df_meas['q_ss_target'] = q_target
+        df_meas['q_min'] = qmin
+        df_meas['q_max'] = qmax
         self.c_env.validate(dct_label={
             **dct_label,
             'p_meas': row_ss['P'],

@@ -13,7 +13,7 @@ class CPF(VoltReg):
     def cpf_proc(self):
         """
         """
-        appu_max = 0.2  # should be 1
+        appu_max = 1  # should be 1
         self.c_env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=self.c_eut.olrt.cpf)
         VH, VN, VL, Pmin, Prated, multiphase = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase
