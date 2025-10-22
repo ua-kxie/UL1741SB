@@ -14,5 +14,8 @@ from pyUL1741SB.IEEE1547.VoltDistResp import VoltDist
 from pyUL1741SB.IEEE1547.FreqDistResp import FreqDist
 from pyUL1741SB.IEEE1547 import IEEE1547
 
+from pyUL1741SB.eut import VoltShallTripTable
+from pyUL1741SB.eut import FreqShallTripTable
+
 class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist, IEEE1547):
     pass
