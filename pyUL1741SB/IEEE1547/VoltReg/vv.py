@@ -48,8 +48,8 @@ class VVCurve:
     @staticmethod
     def Crv_2A(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
-        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=1.05,
                        V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
                        V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -58,8 +58,8 @@ class VVCurve:
     @staticmethod
     def Crv_2B(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
-        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=1.05,
                        V2=1.04, Q2=0.5 * inj_scale, V3=1.07, Q3=0.5 * inj_scale,
                        V1=0.88, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -68,8 +68,8 @@ class VVCurve:
     @staticmethod
     def Crv_3A(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
-        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=0.95,
                        V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
@@ -78,34 +78,14 @@ class VVCurve:
     @staticmethod
     def Crv_3B(eut: Eut):
         # defined around NP_Q_ABS / INJ
-        inj_scale = self.c_eut.Qrated_inj / self.c_eut.Srated
-        abs_scale = self.c_eut.Qrated_abs / self.c_eut.Srated
+        inj_scale = eut.Qrated_inj / eut.Srated
+        abs_scale = eut.Qrated_abs / eut.Srated
         return VVCurve(VRef=0.95,
                        V2=0.93, Q2=-0.5 * abs_scale, V3=0.96, Q3=-0.5 * abs_scale,
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=90)
 
 class VV(VoltReg):
-    def vv_step_validate(self, env: Env, label: str, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        '''
-        Data from the test is used to confirm the manufacturer’s stated ratings. After each voltage, a new steady
-        state reactive power, Qfinal, and steady-state voltage Vfinal is measured. To obtain a steady-state value,
-        measurements shall be taken at a time period much larger than the open loop response, Tr, setting of the
-        volt-var function. As a guideline, at 2 times the open loop response time setting, the steady-state error is
-        1%. In addition, instrumentation filtering may be used to reject any variation in ac test source voltage
-        during steady-state measurement.
-        After each voltage, the open loop response time, Tr, is evaluated. The expected reactive power output,
-        Q(Tr), at one times the open loop response time, is calculated as 90% × (Qfinal – Qinitial) + Qinitial.
-        Qfinal shall meet the test result accuracy requirements specified in 4.2, where Qfinal is the Y parameter and
-        Vfinal is the X parameter.
-        Q(Tr) shall meet the test result accuracy requirements specified in 4.2, where Q(Tr) is the Y parameter and
-        Tr is the X parameter.
-        Where EUT is DER equipment that does not produce power, such as a plant controller, the DER’s
-        commanded power factor or commanded reactive power may be used to verify compliance at the DER
-        design evaluation stage. Because the unit does not produce power, signal injection may be used.
-        '''
-        raise NotImplementedError
-
     def vv_traverse_steps(self, vv_crv: VVCurve, VL, VH, av):
         """
         """
@@ -290,8 +270,7 @@ class VV(VoltReg):
                 dct_label = {'proc': 'vv-vref', 'Tref': Tref_s, 'step': step}
                 self.vv_vref_validate(dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
 
-    def vv_vref_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
-                         is_valid: Callable[[float], bool]):
+    def vv_vref_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, is_valid: Callable[[float], bool]):
         """"""
         '''
         IEEE 1547-2020 5.14.5.3
@@ -357,7 +336,8 @@ class VV(VoltReg):
         crit2 = (df_meas.index[-10] - df_meas.index[0]).total_seconds() < olrt.total_seconds() * 4
         # get last 10 meas, check all values in last 10 meas are valid
         # get first of last 10 meas, check time is not more than olrt
-        # seem dubious, validation similar to vv test would make more sense
+        # seem dubious, validation similar to vv test would make more sense. e.g. within allowance at olrt
+        # but test procedure passes as long as response is faster
 
         self.c_env.validate(dct_label={
             **dct_label,

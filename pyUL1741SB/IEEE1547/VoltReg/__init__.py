@@ -9,39 +9,56 @@ class VoltReg(IEEE1547):
         df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
         self.vv_wv_validate(dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
 
-    def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
-                       yarg, xMRA, yMRA):
+    def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg, yarg, xMRA, yMRA):
         # get y_init
-        y_init = df_meas.loc[df_meas.index[0], yarg]
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
+        tMRA = self.c_eut.mra.static.T(olrt.total_seconds())
+        t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
+
+        y_init = df_meas.loc[t_init, yarg]
+        y_olrt = df_meas.loc[t_olrt, yarg]
         # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
+        x_ss = df_meas.loc[t_ss0:, xarg].mean()
+        y_ss = df_meas.loc[t_ss0:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
-        y_thresh = y_init + 0.9 * (y_ss - y_init)
-        y_min, y_max = y_thresh - self.mra_scale * yMRA, y_thresh + self.mra_scale * yMRA
-        olrt_valid = y_min <= y_olrt <= y_max
+        olrt_s = olrt.total_seconds()
+        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
+        y_olrt_target = y_of_t(olrt_s)
+        olrt_valid = y_olrt <= y_olrt_max
 
         '''
         shall meet 4.2
         '''
         # ss eval with 1741SB amendment
-        y_targ = y_of_x(x_ss)
-        y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
-        ss_valid = y_min <= y_ss <= y_max
+        y_ss_target = y_of_x(x_ss)
+        y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        ss_valid = y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_targ
-        df_meas['y_min'] = y_min
-        df_meas['y_max'] = y_max
+        df_meas['y_ss_target'] = y_ss_target
+        df_meas['y_min'] = y_ss_min
+        df_meas['y_max'] = y_ss_max
+
         self.c_env.validate(dct_label={
             **dct_label,
+            't_init': t_init,
+            't_olrt': t_olrt,
+            't_ss0': t_ss0,
+            't_ss1': t_ss1,
+
             'y_init': y_init,
+
             'y_olrt': y_olrt,
+            'y_olrt_target': y_olrt_target,
+            'y_olrt_min': y_olrt_min,
+            'y_olrt_max': y_olrt_max,
+
             'y_ss': y_ss,
-            'y_olrt_target': y_thresh,
-            'y_ss_target': y_targ,
+            'y_ss_target': y_ss_target,
+            'y_ss_min': y_ss_min,
+            'y_ss_max': y_ss_max,
+
             'olrt_valid': olrt_valid,
             'ss_valid': ss_valid,
             'data': df_meas
@@ -50,26 +67,28 @@ class VoltReg(IEEE1547):
     def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable[[float], float]):
         xarg, yarg = 'P', 'Q'
         yMRA = self.c_eut.mra.static.Q
+        t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
 
-        # # get y_init as furthest from y_ss in the first 10% of olrt (interpreted)
-        # y_init = df_meas.loc[df_meas.index[0]:df_meas.index[0] + olrt/10, yarg]
-        # y_init = max(y_init, key=lambda x: abs(x - y_ss))
-        y_init = df_meas.loc[df_meas.index[0], yarg]
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[0] + olrt), yarg]
-        # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[0] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[0] + olrt:, yarg].mean()
+        y_init = df_meas.loc[t_init, yarg]
+        y_olrt = df_meas.loc[t_olrt, yarg]
+        x_ss = df_meas.loc[t_ss0:, xarg].mean()
+        y_ss = df_meas.loc[t_ss0:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 10 s after a voltage or power step.
-         - olrt validate as: any y meas within 10% of y_ss before olrt, then pass
-
          Q shall reach Qini + 0.9 * (Qfin - Qini) in a time of 10s or less
         '''
-        # interpret as require y within 10% of y_ss after olrt, or 1.5*MRA, whichever is greater
-        # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
-        y_thresh = max(abs(y_ss - y_init) * 0.1, self.mra_scale * yMRA)
-        olrt_valid = (abs(df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss) < y_thresh).all()
+        y_ss_target = y_of_x(x_ss)
+        y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, 0, yMRA)
 
+        olrt_s = olrt.total_seconds()
+        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+
+        y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, 0, yMRA)
+        y_olrt_min = min(y_olrt_min, y_ss_min)
+        y_olrt_max = max(y_olrt_max, y_ss_max)
+
+        y_olrt_target = y_of_t(olrt_s)
+        olrt_valid = y_olrt_min <= y_olrt <= y_olrt_max
         '''
         Qfinal shall meet the test result accuracy
         requirements specified in 4.2 where Qfinal is the Y parameter and Pfinal is the X parameter. The relationship
@@ -80,24 +99,34 @@ class VoltReg(IEEE1547):
         crp:
         Qfin shall equal Qset +/- 1.5 * qMRA
         '''
-        # ss eval with 1741SB amendment
-        y_targ = y_of_x(x_ss)
-        y_min = y_targ - self.mra_scale * yMRA
-        y_max = y_targ + self.mra_scale * yMRA
-        ss_valid = y_min <= y_ss <= y_max
+        ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_targ
-        df_meas['y_min'] = y_min
-        df_meas['y_max'] = y_max
+        df_meas['y_ss_target'] = y_ss_target
+        df_meas['y_min'] = y_ss_min
+        df_meas['y_max'] = y_ss_max
+
         self.c_env.validate(dct_label={
             **dct_label,
+            't_init': t_init,
+            't_olrt': t_olrt,
+            't_ss0': t_ss0,
+            't_ss1': t_ss1,
+
             'y_init': y_init,
+
             'y_olrt': y_olrt,
+            'y_olrt_target': y_olrt_target,
+            'y_olrt_min': y_olrt_min,
+            'y_olrt_max': y_olrt_max,
+
             'y_ss': y_ss,
-            'y_olrt_target': y_thresh,
-            'y_ss_target': y_targ,
+            'y_ss_target': y_ss_target,
+            'y_ss_min': y_ss_min,
+            'y_ss_max': y_ss_max,
+            
             'olrt_valid': olrt_valid,
             'ss_valid': ss_valid,
+
             'data': df_meas
         })
 

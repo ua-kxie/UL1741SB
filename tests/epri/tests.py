@@ -24,7 +24,7 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
             go.Scatter(
                 x=np.concatenate([df_data.index, df_data.index[::-1]]), y=pd.concat([df_data[v[0]], df_data[v[1]][::-1]]),
                 name=k, mode='lines', opacity=.2, fill='toself', hoveron='points',
-                hovertemplate="Time: %{x|%H:%M:%S}<br>Value: %{y}<extra></extra>"
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
             ),
             row=v[2], col=1,
         )
@@ -32,7 +32,7 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
         fig.add_trace(
             go.Scatter(
                 x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                hovertemplate="Time: %{x|%H:%M:%S}<br>Value: %{y}<extra></extra>"
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
             ),
             row=v, col=1
         )
@@ -46,7 +46,7 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
     fig.update_xaxes(tickformat="%H:%M:%S.%2f")
     fig.update_layout(
         title=dict(text=titletext),
-        plot_bgcolor='white'
+        plot_bgcolor='rgba(245, 245, 245)'
     )
     return fig
 
@@ -184,7 +184,6 @@ def test_wv(std):
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_vw(std):
-    # TODO should meet criteria with 1.5 * tMRA accounted for for olrt validation
     std.vw_proc()
     proc = 'vw'
     lst_labels = ['pwr', 'crv', 'step']
@@ -290,7 +289,7 @@ def test_es_ramp(std):
 
     results = std.c_env.results[proc].iloc[:, :-1]
     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], title, dct_traces, labelfcn, pfcols, epoch=True)
+    fig = drawfig(fig, std.c_env.results[proc], title, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
@@ -339,7 +338,7 @@ def test_lvrt(std):
 
     results = std.c_env.results[proc].iloc[:, :-1]
     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, epoch=True)
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
@@ -356,7 +355,7 @@ def test_hvrt(std):
 
     results = std.c_env.results[proc].iloc[:, :-1]
     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, epoch=True)
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
@@ -373,7 +372,7 @@ def test_lfrt(std):
 
     results = std.c_env.results[proc].iloc[:, :-1]
     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, epoch=True)
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
@@ -390,7 +389,7 @@ def test_hfrt(std):
 
     results = std.c_env.results[proc].iloc[:, :-1]
     labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, epoch=True)
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
     plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 

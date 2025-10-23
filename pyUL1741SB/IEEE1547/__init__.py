@@ -5,6 +5,7 @@ from typing import Callable
 from datetime import timedelta
 import pandas as pd
 from pyUL1741SB import Eut, Env
+import math
 
 class IEEE1547:
     def __init__(self, env: Env, eut: Eut):
@@ -13,6 +14,16 @@ class IEEE1547:
 
         self.mra_scale = 1.5  # 1.5 in standard
         self.trip_rpt = 2  # 5 in standard
+
+    def ts_of_interest(self, index, olrt):
+        t_init = index[0]
+        t_olrt = index.asof(index[1] + olrt)
+        t_ss0 = index.asof(index[1] + 2 * olrt)
+        t_ss1 = index[-1]
+        return t_init, t_olrt, t_ss0, t_ss1
+
+    def expapp(self, olrt, t, y0, y1):
+        return (y0-y1) * math.exp(math.log(0.1)*t/olrt) + y1
 
     def range_4p2(self, y_of_x, x, xMRA, yMRA):
         """"""

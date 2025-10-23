@@ -286,6 +286,8 @@ class FreqSupp(IEEE1547):
     def fw_common_criteria(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         xMRA = self.c_eut.mra.static.F
         yMRA = self.c_eut.mra.static.P
+        tMRA = self.c_eut.mra.static.T(olrt.total_seconds())
+
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
         self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'F', 'P'
@@ -293,38 +295,54 @@ class FreqSupp(IEEE1547):
         # assume criteria for deltaPsmall for all steps, more stringent criteria
         df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
 
+        t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
         # get y_init
-        y_init = df_meas.loc[df_meas.index[0], yarg]
-        y_olrt = df_meas.loc[df_meas.index.asof(df_meas.index[1] + olrt), yarg]
+        y_init = df_meas.loc[t_init, yarg]
+        y_olrt = df_meas.loc[t_olrt, yarg]
         # determine y_ss by average after olrt
-        x_ss = df_meas.loc[df_meas.index[1] + olrt:, xarg].mean()
-        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
+        x_ss = df_meas.loc[t_ss0:, xarg].mean()
+        y_ss = df_meas.loc[t_ss0:, yarg].mean()
         '''
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
-        y_olrt_targ = y_init + 0.9 * (y_ss - y_init)
-        y_min, y_max = y_olrt_targ - self.mra_scale * yMRA, y_olrt_targ + self.mra_scale * yMRA
-        olrt_valid = y_min <= y_olrt <= y_max
+        olrt_s = olrt.total_seconds()
+        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
+        y_olrt_target = y_of_t(olrt_s)
+        olrt_valid = y_olrt <= y_olrt_max
 
         '''
         shall meet 4.2
         '''
         # ss eval with 1741SB amendment
-        y_targ = y_of_x(x_ss)
-        y_min, y_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
-        ss_valid = y_min <= y_ss <= y_max
-        df_meas['y_ss_target'] = y_targ
-        df_meas['y_min'] = y_min
-        df_meas['y_max'] = y_max
+        y_ss_target = y_of_x(x_ss)
+        y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        ss_valid = y_ss <= y_ss_max
+
+        df_meas['y_ss_target'] = y_ss_target
+        df_meas['y_min'] = y_ss_min
+        df_meas['y_max'] = y_ss_max
 
         self.c_env.validate(dct_label={
             **dct_label,
+            't_init': t_init,
+            't_olrt': t_olrt,
+            't_ss0': t_ss0,
+            't_ss1': t_ss1,
+
             'y_init': y_init,
+
             'y_olrt': y_olrt,
-            'y_olrt_target': y_olrt_targ,
-            'olrt_valid': olrt_valid,
+            'y_olrt_target': y_olrt_target,
+            'y_olrt_min': y_olrt_min,
+            'y_olrt_max': y_olrt_max,
+
             'y_ss': y_ss,
-            'y_ss_target': y_targ,
+            'y_ss_target': y_ss_target,
+            'y_ss_min': y_ss_min,
+            'y_ss_max': y_ss_max,
+
+            'olrt_valid': olrt_valid,
             'ss_valid': ss_valid,
             'data': df_meas
         })

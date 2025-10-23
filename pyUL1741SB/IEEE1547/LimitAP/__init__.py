@@ -65,11 +65,6 @@ class LAP(IEEE1547):
                 # b)
                 self.c_eut.set_ap(Ena=True, pu=1)
                 self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
-                dct_label = {
-                    'proc': 'lap',
-                    'iter': i,
-                    'aplim_pu': aplim_pu,
-                }
 
                 def y_of_fw(x):
                     if self.c_eut.Prated_prime < 0:
@@ -99,9 +94,15 @@ class LAP(IEEE1547):
                     ('f2', lambda: self.c_env.ac_config(Vac=self.c_eut.VN), y_of_vw(1.0), timedelta(seconds=dflt_vwcrv.Tr))
                 ]
                 for tup in lst_tup_steps:
-                    self.lap_validation(dct_label, *tup)
+                    dct_label = {
+                        'proc': 'lap',
+                        'iter': i,
+                        'aplim_pu': aplim_pu,
+                        'step': tup[0],
+                    }
+                    self.lap_validation(dct_label, *tup[1:])
 
-    def lap_validation(self, dct_label, step_label, perturbation, y_ss_target, olrt: timedelta):
+    def lap_validation(self, dct_label, perturbation, y_ss_target, olrt: timedelta):
         """"""
         '''
         IEEE 1547.1-2018
@@ -141,20 +142,44 @@ class LAP(IEEE1547):
         yarg = 'P'
         yMRA = self.c_eut.mra.static.P
         df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, (yarg,))
-        y_init = df_meas.loc[df_meas.index[0], yarg]
-        y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
-        y_max = y_ss_target + self.mra_scale * yMRA
-        ss_valid = y_ss <= y_max
+        t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
+
+        y_init = df_meas.loc[t_init, yarg]
+        y_olrt = df_meas.loc[t_olrt, yarg]
+        y_ss = df_meas.loc[t_ss0:, yarg].mean()
+
+        olrt_s = olrt.total_seconds()
+        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, 0, yMRA)
+        y_olrt_target = y_of_t(olrt_s)
+        olrt_valid = y_olrt <= y_olrt_max
+
+
+        y_ss_max = y_ss_target + self.mra_scale * yMRA
+        ss_valid = y_ss <= y_ss_max
+
         df_meas['y_ss_target'] = y_ss_target
         df_meas['y_min'] = 0
-        df_meas['y_max'] = y_max
+        df_meas['y_max'] = y_ss_max
+
         self.c_env.validate(dct_label={
             **dct_label,
-            'step': step_label,
+            't_init': t_init,
+            't_olrt': t_olrt,
+            't_ss0': t_ss0,
+            't_ss1': t_ss1,
+
             'y_init': y_init,
-            'olrt': olrt.total_seconds(),
+
+            'y_olrt': y_olrt,
+            'y_olrt_target': y_olrt_target,
+            'y_olrt_max': y_olrt_max,
+
             'y_ss': y_ss,
-            'y_ss_target': y_ss_target + self.mra_scale * yMRA,
+            'y_ss_target': y_ss_target,
+            'y_ss_max': y_ss_max,
+
+            'olrt_valid': olrt_valid,
             'ss_valid': ss_valid,
             'data': df_meas
         })
