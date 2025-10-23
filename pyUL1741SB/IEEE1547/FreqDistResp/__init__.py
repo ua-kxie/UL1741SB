@@ -4,7 +4,7 @@ IEEE 1547.1-2020 5.5
 from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
-from pyUL1741SB.IEEE1547 import IEEE1547, TRIP_RPT
+from pyUL1741SB.IEEE1547 import IEEE1547
 
 class FreqDist(IEEE1547):
     def oft_proc(self):
@@ -41,7 +41,7 @@ class FreqDist(IEEE1547):
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
                     self.c_eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
-                    for i in range(TRIP_RPT):
+                    for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
                         range of adjustment specified by the manufacturer.
@@ -124,7 +124,7 @@ class FreqDist(IEEE1547):
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
                     self.c_eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
-                    for i in range(TRIP_RPT):
+                    for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
                         the range of adjustment specified by the manufacturer.
@@ -373,7 +373,7 @@ class FreqDist(IEEE1547):
     def frt_validate(self, dct_label, perturbation, ntrvl):
         """"""
         df_meas = self.meas_perturb(perturbation, ntrvl, ntrvl, ('P', 'Q', 'F'))
-        valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated) < 1.5 * self.c_eut.mra.static.P).all()
+        valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated) < self.mra_scale * self.c_eut.mra.static.P).all()
 
         self.c_env.validate(dct_label={
             **dct_label,

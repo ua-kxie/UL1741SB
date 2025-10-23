@@ -196,7 +196,7 @@ class VW(VoltReg):
         r) Step the ac test source voltage to av below V1.
         s) Step the ac test source voltage to av above VL.
         '''
-        aV = self.c_eut.mra.static.V * 1.5
+        aV = self.c_eut.mra.static.V * self.mra_scale
         ret = {
             'g': self.c_eut.VL + aV,
             'h': vw_crv.V1 * self.c_eut.VN - aV,
@@ -256,7 +256,7 @@ class VW(VoltReg):
         '''
         P(tr) at olrt +/- 1.5 tMRA [...] shall be not more than 0.9 * (Pfinal - Pinitial) + Pinitial + 1.5 * pMRA
         '''
-        y_thresh = y_init + 0.9 * (y_ss - y_init) + 1.5 * yMRA
+        y_thresh = y_init + 0.9 * (y_ss - y_init) + self.mra_scale * yMRA
         olrt_valid = y_olrt <= y_thresh
 
         '''

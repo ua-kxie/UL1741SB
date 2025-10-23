@@ -21,7 +21,7 @@ class VoltReg(IEEE1547):
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
         y_thresh = y_init + 0.9 * (y_ss - y_init)
-        y_min, y_max = y_thresh - 1.5 * yMRA, y_thresh + 1.5 * yMRA
+        y_min, y_max = y_thresh - self.mra_scale * yMRA, y_thresh + self.mra_scale * yMRA
         olrt_valid = y_min <= y_olrt <= y_max
 
         '''
@@ -67,7 +67,7 @@ class VoltReg(IEEE1547):
         '''
         # interpret as require y within 10% of y_ss after olrt, or 1.5*MRA, whichever is greater
         # y_thresh = y_init + (y_ss - y_init) * 0.9  # direct interpretation
-        y_thresh = max(abs(y_ss - y_init) * 0.1, 1.5 * yMRA)
+        y_thresh = max(abs(y_ss - y_init) * 0.1, self.mra_scale * yMRA)
         olrt_valid = (abs(df_meas.loc[df_meas.index[0] + olrt:, yarg] - y_ss) < y_thresh).all()
 
         '''
@@ -82,8 +82,8 @@ class VoltReg(IEEE1547):
         '''
         # ss eval with 1741SB amendment
         y_targ = y_of_x(x_ss)
-        y_min = y_targ - 1.5 * yMRA
-        y_max = y_targ + 1.5 * yMRA
+        y_min = y_targ - self.mra_scale * yMRA
+        y_max = y_targ + self.mra_scale * yMRA
         ss_valid = y_min <= y_ss <= y_max
 
         df_meas['y_ss_target'] = y_targ

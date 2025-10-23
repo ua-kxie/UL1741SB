@@ -22,7 +22,7 @@ class CRP(VoltReg):
         Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min, self.c_eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase
         VL, VN, VH = self.c_eut.VL, self.c_eut.VN, self.c_eut.VH
-        av = 1.5 * self.c_eut.mra.static.V
+        av = self.mra_scale * self.c_eut.mra.static.V
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power

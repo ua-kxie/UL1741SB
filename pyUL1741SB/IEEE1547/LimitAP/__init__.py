@@ -143,7 +143,7 @@ class LAP(IEEE1547):
         df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, (yarg,))
         y_init = df_meas.loc[df_meas.index[0], yarg]
         y_ss = df_meas.loc[df_meas.index[1] + olrt:, yarg].mean()
-        y_max = y_ss_target + 1.5 * yMRA
+        y_max = y_ss_target + self.mra_scale * yMRA
         ss_valid = y_ss <= y_max
         df_meas['y_ss_target'] = y_ss_target
         df_meas['y_min'] = 0
@@ -154,7 +154,7 @@ class LAP(IEEE1547):
             'y_init': y_init,
             'olrt': olrt.total_seconds(),
             'y_ss': y_ss,
-            'y_ss_target': y_ss_target + 1.5 * yMRA,
+            'y_ss_target': y_ss_target + self.mra_scale * yMRA,
             'ss_valid': ss_valid,
             'data': df_meas
         })

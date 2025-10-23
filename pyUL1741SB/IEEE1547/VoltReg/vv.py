@@ -175,7 +175,7 @@ class VV(VoltReg):
         """
         """
         VH, VN, VL, Pmin, Prated = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated
-        av = 1.5 * self.c_eut.mra.static.V
+        av = self.mra_scale * self.c_eut.mra.static.V
         if self.c_eut.Cat == self.c_eut.Category.A:
             vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
         elif self.c_eut.Cat == self.c_eut.Category.B:

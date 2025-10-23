@@ -7,7 +7,7 @@ from datetime import timedelta
 import copy
 
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
-from pyUL1741SB.IEEE1547 import IEEE1547, TRIP_RPT
+from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB import Eut, Env
 
@@ -138,7 +138,7 @@ class VoltDist(IEEE1547):
                     pair individually, and all phases simultaneously.
                     '''
                     self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
-                    for i in range(TRIP_RPT):
+                    for i in range(self.trip_rpt):
                         '''
                         e), f)
                         '''
@@ -233,7 +233,7 @@ class VoltDist(IEEE1547):
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
                     self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
-                    for i in range(TRIP_RPT):
+                    for i in range(self.trip_rpt):
                         '''
                         e) Record applicable settings.
                         For single-phase units, adjust the applicable voltage to parameter starting point Pb, as defined in
@@ -374,7 +374,7 @@ class VoltDist(IEEE1547):
             s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > self.c_eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * self.mra_scale  # ap is subject to vv-modulation due to Srated
 
         def momcess_valid():
             p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
@@ -491,7 +491,7 @@ class VoltDist(IEEE1547):
             s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > self.c_eut.mra.static.P * 1.5  # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * self.mra_scale  # ap is subject to vv-modulation due to Srated
 
         def momcess_valid():
             p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean

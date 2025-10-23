@@ -17,7 +17,7 @@ class CPF(VoltReg):
         self.c_env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=self.c_eut.olrt.cpf)
         VH, VN, VL, Pmin, Prated, multiphase = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase
-        av = 1.5 * self.c_eut.mra.static.V
+        av = self.mra_scale * self.c_eut.mra.static.V
         '''
         5.14.3.2 
         PFmin,inj: Minimum injected power factor, 0.90 for both Category A and B equipment

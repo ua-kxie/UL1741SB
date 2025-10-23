@@ -6,20 +6,22 @@ from datetime import timedelta
 import pandas as pd
 from pyUL1741SB import Eut, Env
 
-TRIP_RPT = 5
-
 class IEEE1547:
     def __init__(self, env: Env, eut: Eut):
         self.c_env = env
         self.c_eut = eut
+
+        self.mra_scale = 1.5  # 1.5 in standard
+        self.trip_rpt = 2  # 5 in standard
 
     def range_4p2(self, y_of_x, x, xMRA, yMRA):
         """"""
         '''
         IEEE 1547.1-2020 4.2
         '''
-        y_min = min(y_of_x(x - 1.5 * xMRA), y_of_x(x + 1.5 * xMRA)) - 1.5 * yMRA
-        y_max = max(y_of_x(x - 1.5 * xMRA), y_of_x(x + 1.5 * xMRA)) + 1.5 * yMRA
+        s1p5 = self.mra_scale
+        y_min = min(y_of_x(x - s1p5 * xMRA), y_of_x(x + s1p5 * xMRA)) - s1p5 * yMRA
+        y_max = max(y_of_x(x - s1p5 * xMRA), y_of_x(x + s1p5 * xMRA)) + s1p5 * yMRA
         return y_min, y_max
 
     def meas_perturb(self, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):

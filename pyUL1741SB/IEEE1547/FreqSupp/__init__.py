@@ -303,7 +303,7 @@ class FreqSupp(IEEE1547):
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
         y_olrt_targ = y_init + 0.9 * (y_ss - y_init)
-        y_min, y_max = y_olrt_targ - 1.5 * yMRA, y_olrt_targ + 1.5 * yMRA
+        y_min, y_max = y_olrt_targ - self.mra_scale * yMRA, y_olrt_targ + self.mra_scale * yMRA
         olrt_valid = y_min <= y_olrt <= y_max
 
         '''

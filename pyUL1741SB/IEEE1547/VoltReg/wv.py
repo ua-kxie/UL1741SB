@@ -181,7 +181,7 @@ class WV(VoltReg):
         x) Step the EUT’s available active power to aP below P1.
         y) Step the EUT’s available active power to Pmin.
         '''
-        aP = 1.5 * self.c_eut.mra.static.P / self.c_eut.Prated
+        aP = self.mra_scale * self.c_eut.mra.static.P / self.c_eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_inj = [
             self.c_eut.Pmin/self.c_eut.Prated,
@@ -210,7 +210,7 @@ class WV(VoltReg):
     def wv_traverse_steps_abs(self, wv_crv: WVCurve):
         """
         """
-        aP = 1.5 * self.c_eut.mra.static.P / self.c_eut.Prated
+        aP = self.mra_scale * self.c_eut.mra.static.P / self.c_eut.Prated
         step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
         pwrs_abs = [
             self.c_eut.Pmin_prime/self.c_eut.Prated,
