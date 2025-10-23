@@ -31,16 +31,15 @@ class FreqDist(IEEE1547):
             range of adjustment specified by the manufacturer and repeat steps f) through k).
             '''
             for trip_cts in list({trip_region.cts_min, trip_region.cts_max}):
-                tMRA = self.c_eut.mra.static.T(trip_cts)
                 '''
                 k) Set (or verify) EUT parameters at the maximum of the overfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_fpu in list({trip_region.hertz_min, trip_region.hertz_max}):
+                for trip_fhz in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
+                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
@@ -48,11 +47,11 @@ class FreqDist(IEEE1547):
                         e) Set (or verify) the EUT parameters to the minimum [maximum] overfrequency trip duration setting within the
                         range of adjustment specified by the manufacturer.
                         '''
-                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
-                        self.oft_validate(dct_label, trip_fpu, trip_cts, tMRA)
+                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fhz, 'iter': i}
+                        self.oft_validate(dct_label, trip_fhz, trip_cts)
                         self.trip_rst()
 
-    def oft_validate(self, dct_label, trip_fpu, trip_cts, tMRA):
+    def oft_validate(self, dct_label, trip_fhz, trip_cts):
         """"""
         # PN, PB, PU
         # th, cts
@@ -76,18 +75,12 @@ class FreqDist(IEEE1547):
         [...] PU is at least 110% (90% for under value tests) of PT. 
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
+        tMRA = self.c_eut.mra.static.T(trip_cts)
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        self.c_env.ac_config(freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-
-        self.c_env.ac_config(freq=trip_fpu * self.c_eut.fN * 0.99, rocof=self.c_eut.rocof())
-        self.c_env.sleep(dur)
-
-        ts = self.c_env.time_now()
-        self.c_env.ac_config(freq=trip_fpu * self.c_eut.fN * 1.1, rocof=self.c_eut.rocof())
-        tripped = self.trip_validate(dur, ts, tMRA)
-        ceased = self.cease_energize()
-
-        self.c_env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
+        step0 = lambda: self.c_env.ac_config(freq=trip_fhz * 0.99, rocof=self.c_eut.rocof())
+        step1 = lambda: self.c_env.ac_config(freq=trip_fhz * 1.1, rocof=self.c_eut.rocof())
+        meas_args = ('P', 'Q', 'F')
+        self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
     def uft_proc(self):
         '''
@@ -114,16 +107,15 @@ class FreqDist(IEEE1547):
             within the range of adjustment specified by the manufacturer and repeat steps e) through k).
             '''
             for trip_cts in list({trip_region.cts_min, trip_region.cts_max}):
-                tMRA = self.c_eut.mra.static.T(trip_cts)
                 '''
                 k) Set (or verify) EUT parameters at the [minimum] maximum of the underfrequency trip magnitude setting
                 within the range of adjustment specified by the manufacturer and repeat steps e) through j).
                 '''
-                for trip_fpu in list({trip_region.hertz_min, trip_region.hertz_max}):
+                for trip_fhz in list({trip_region.hertz_min, trip_region.hertz_max}):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fpu, 'cts': trip_cts}})
+                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
@@ -137,10 +129,11 @@ class FreqDist(IEEE1547):
                         1.5 times the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fpu, 'iter': i}
-                        self.uft_validate(dct_label, trip_fpu, trip_cts, tMRA)
+                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fhz, 'iter': i}
+                        self.uft_validate(dct_label, trip_fhz, trip_cts)
+                        self.trip_rst()
 
-    def uft_validate(self, dct_label, trip_fpu, trip_cts, tMRA):
+    def uft_validate(self, dct_label, trip_fhz, trip_cts):
         """"""
         # PN, PB, PU
         # th, cts
@@ -164,18 +157,12 @@ class FreqDist(IEEE1547):
         [...] PU is at least 110% (90% for under value tests) of PT. 
         Exception: For frequency tests, [...] PU is at least 101% (99% for under value tests) of PT.
         '''
+        tMRA = self.c_eut.mra.static.T(trip_cts)
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        self.c_env.ac_config(freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-
-        self.c_env.ac_config(freq=trip_fpu * self.c_eut.fN * 1.01, rocof=self.c_eut.rocof())
-        self.c_env.sleep(dur)
-
-        ts = self.c_env.time_now()
-        self.c_env.ac_config(freq=trip_fpu * self.c_eut.fN * 0.90, rocof=self.c_eut.rocof())
-        tripped = self.trip_validate(dur, ts, tMRA)
-        ceased = self.cease_energize()
-
-        self.c_env.validate({**dct_label, 'ceased': ceased, 'tripped': tripped})
+        step0 = lambda: self.c_env.ac_config(freq=trip_fhz * 1.01, rocof=self.c_eut.rocof())
+        step1 = lambda: self.c_env.ac_config(freq=trip_fhz * 0.90, rocof=self.c_eut.rocof())
+        meas_args = ('P', 'Q', 'F')
+        self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
     def hfrt_proc(self):
         """"""

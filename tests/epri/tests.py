@@ -299,34 +299,70 @@ def test_es_ramp(std):
 def test_uvt(std):
     std.uvt_proc()
     proc = 'uvt'
+    lst_labels = ['region', 'time', 'mag', 'iter']
+    pfcols = ['ceased']
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
+
     results = std.c_env.results[proc].iloc[:, :-1]
+    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
+    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
-    assert results.loc[:, 'ceased'].all()
-    # assert results.loc[:, 'tripped'].all()
+
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_ovt(std):
     std.ovt_proc()
     proc = 'ovt'
+    lst_labels = ['region', 'time', 'mag', 'iter']
+    pfcols = ['ceased']
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
+
     results = std.c_env.results[proc].iloc[:, :-1]
+    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
+    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
-    assert results.loc[:, 'ceased'].all()
-    # assert results.loc[:, 'tripped'].all()
+
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_uft(std):
     std.uft_proc()
     proc = 'uft'
+    lst_labels = ['region', 'time', 'mag', 'iter']
+    pfcols = ['ceased']
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
+
     results = std.c_env.results[proc].iloc[:, :-1]
+    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
+    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
-    assert results.loc[:, 'ceased'].all()
-    # assert results.loc[:, 'tripped'].all()
+
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_oft(std):
     std.oft_proc()
     proc = 'oft'
+    lst_labels = ['region', 'time', 'mag', 'iter']
+    pfcols = ['ceased']
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
+
     results = std.c_env.results[proc].iloc[:, :-1]
+    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
+    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
-    assert results.loc[:, 'ceased'].all()
-    # assert results.loc[:, 'tripped'].all()
+
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_lvrt(std):
     std.lvrt_proc()

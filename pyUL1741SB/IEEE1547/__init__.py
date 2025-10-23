@@ -45,11 +45,55 @@ class IEEE1547:
         df = pd.concat([init, resp])
         return df
 
-    def cease_energize(self):
+    def cease_energize(self, df_meas_single):
         """"""
-        df_meas = self.c_env.meas_single('P', 'Q')
-        zipped = zip(df_meas.iloc[0, :].values, [self.c_eut.mra.static.P, self.c_eut.mra.static.Q])
+        '''
+        IEEE 1547.1-2018 
+        4.5 Cease to energize performance requirement
+        In the cease to energize state, the DER shall not deliver active power during steady-state or transient
+        conditions. The requirements for cease to energize shall apply to the point of DER connection (PoC).
+        For Local EPS with aggregate DER rating less than 500 kVA, the reactive power exchange in the cease to
+        energize state shall be less than 10% of nameplate DER rating and shall exclusively result from passive
+        devices. For Local EPS with aggregate DER rating 500 kVA and greater, the reactive power exchange in
+        the cease to energize state shall be less than 3% of nameplate DER rating and shall exclusively result from
+        passive devices.40
+        If requested by the Area EPS operator, the DER operator shall provide the reactive susceptance that
+        remains connected to the Area EPS in the cease to energize state.
+        Import of active power and reactive power exchange in the cease to energize state is permitted only for
+        continuation of supply to DER housekeeping and auxiliary loads.
+        Alternatively, the requirements for cease to energize may be met by disconnecting41 the local EPS, or the
+        portion of the local EPS to which the DER is connected from the Area EPS. The DER may continue to
+        deliver power to the portion of the Local EPS that is disconnected from the Area EPS.42
+        '''
+        if self.c_eut.Srated < 500e3:
+            Qlim = self.c_eut.Srated * 0.1
+        else:
+            Qlim = self.c_eut.Srated * 0.03
+        lst_PQlims = [self.c_eut.mra.static.P * self.mra_scale, Qlim + self.c_eut.mra.static.Q * self.mra_scale]
+        zipped = zip(df_meas_single.iloc[0, :].values, lst_PQlims)
         return all([v < thresh for v, thresh in zipped])
+
+    def trip_step(self, dct_label, dur: timedelta, tstep_s, step0, step1, meas_args):
+        # reset eut input
+        dfs = []
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        dfs.append(self.c_env.meas_single(*meas_args))
+        step0()
+        dfs.append(self.c_env.meas_for(dur, timedelta(seconds=tstep_s), *meas_args))
+
+        ts = self.c_env.time_now()
+        step1()
+
+        ceased = False
+        while not self.c_env.elapsed_since(dur, ts):
+            df_meas = self.c_env.meas_single(*meas_args)
+            dfs.append(df_meas)
+            if self.cease_energize(df_meas):
+                ceased = True
+                break
+            self.c_env.sleep(timedelta(seconds=tstep_s))
+        dfs.append(self.c_env.meas_single(*meas_args))
+        self.c_env.validate({**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
 
     def trip_validate(self, dur, ts, tMRA):
         """"""
@@ -78,3 +122,4 @@ class IEEE1547:
         self.c_env.log(msg='waiting for re-energization...')
         while self.c_env.meas_single('P').iloc[0, 0] < self.c_eut.Prated * 0.5:
             self.c_env.sleep(timedelta(seconds=1))
+        return None
