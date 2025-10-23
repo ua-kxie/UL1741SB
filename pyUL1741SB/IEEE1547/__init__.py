@@ -13,7 +13,7 @@ class IEEE1547:
         self.c_eut = eut
 
         self.mra_scale = 1.5  # 1.5 in standard
-        self.trip_rpt = 2  # 5 in standard
+        self.trip_rpt = 5  # 5 in standard
 
     def ts_of_interest(self, index, olrt):
         t_init = index[0]
@@ -23,6 +23,13 @@ class IEEE1547:
         return t_init, t_olrt, t_ss0, t_ss1
 
     def expapp(self, olrt, t, y0, y1):
+        '''
+        :param olrt: response time in seconds
+        :param t: time argument
+        :param y0: initial value
+        :param y1: final value
+        :return: y(t), where y is exp approach from y0 to y1
+        '''
         return (y0-y1) * math.exp(math.log(0.1)*t/olrt) + y1
 
     def range_4p2(self, y_of_x, x, xMRA, yMRA):
@@ -94,21 +101,6 @@ class IEEE1547:
             self.c_env.sleep(timedelta(seconds=tstep_s))
         dfs.append(self.c_env.meas_single(*meas_args))
         self.c_env.validate({**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
-
-    def trip_validate(self, dur, ts, tMRA):
-        """"""
-        '''
-        5.4.2.4 Criteria - freq trip similar
-        The EUT shall be considered in compliance if it ceases to energize the ac test source and trips within
-        respective clearing times for each overvoltage range specified in IEEE Std 1547. The evaluated ranges of
-        adjustment for tripping magnitude and duration shall be greater than or equal to the allowable ranges of
-        adjustment for each overvoltage tripping range specified in IEEE Std 1547.
-        '''
-        while not self.c_env.elapsed_since(dur, ts):
-            self.c_env.sleep(timedelta(seconds=tMRA))
-            if self.c_eut.has_tripped():
-                return True
-        return False
 
     def trip_rst(self):
         # TODO reset the inverter for next test
