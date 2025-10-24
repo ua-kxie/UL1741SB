@@ -1,5 +1,5 @@
 import pytest
-from pyUL1741SB import UL1741SB, Plotting
+from pyUL1741SB import UL1741SB, Post
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
 import plotly
@@ -32,7 +32,7 @@ class EpriStd(UL1741SB):
             self.c_env.sleep(dt.timedelta(seconds=1))
         return None
 
-pltng = Plotting('tests/epri/results/')
+post = Post('tests/epri/results/')
 
 @pytest.fixture
 def std():
@@ -44,11 +44,7 @@ def std():
 def test_cpf(std):
     std.cpf_proc()
     proc = 'cpf'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -56,11 +52,7 @@ def test_cpf(std):
 def test_crp(std):
     std.crp_proc()
     proc = 'crp'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -68,11 +60,7 @@ def test_crp(std):
 def test_vv(std):
     std.vv_proc()
     proc = 'vv'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -80,11 +68,7 @@ def test_vv(std):
 def test_vv_vref(std):
     std.vv_vref_proc()
     proc = 'vv-vref'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -92,11 +76,7 @@ def test_vv_vref(std):
 def test_wv(std):
     std.wv_proc()
     proc = 'wv'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -104,11 +84,7 @@ def test_wv(std):
 def test_vw(std):
     std.vw_proc()
     proc = 'vw'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -116,11 +92,7 @@ def test_vw(std):
 def test_fwo(std):
     std.fwo_proc()
     proc = 'fwo'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -128,11 +100,7 @@ def test_fwo(std):
 def test_fwu(std):
     std.fwu_proc()
     proc = 'fwu'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -140,11 +108,7 @@ def test_fwu(std):
 def test_pri(std):
     std.pri_proc()
     proc = 'pri'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['p_valid', 'q_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -152,11 +116,7 @@ def test_pri(std):
 def test_lap(std):
     std.lap_proc()
     proc = 'lap'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -164,11 +124,7 @@ def test_lap(std):
 def test_es_ramp(std):
     std.es_ramp_proc()
     proc = 'es-ramp'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -176,11 +132,7 @@ def test_es_ramp(std):
 def test_uvt(std):
     std.uvt_proc()
     proc = 'uvt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -188,11 +140,7 @@ def test_uvt(std):
 def test_ovt(std):
     std.ovt_proc()
     proc = 'ovt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -200,11 +148,7 @@ def test_ovt(std):
 def test_uft(std):
     std.uft_proc()
     proc = 'uft'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -212,11 +156,7 @@ def test_uft(std):
 def test_oft(std):
     std.oft_proc()
     proc = 'oft'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -224,11 +164,7 @@ def test_oft(std):
 def test_lvrt(std):
     std.lvrt_proc()
     proc = 'lvrt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -236,11 +172,7 @@ def test_lvrt(std):
 def test_hvrt(std):
     std.hvrt_proc()
     proc = 'hvrt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -248,11 +180,7 @@ def test_hvrt(std):
 def test_lfrt(std):
     std.lfrt_proc()
     proc = 'lfrt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -260,11 +188,7 @@ def test_lfrt(std):
 def test_hfrt(std):
     std.hfrt_proc()
     proc = 'hfrt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -275,11 +199,7 @@ def rtest_pri_corruption(std):
     std.vw_proc()
     std.pri_proc()
     proc = 'pri'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['p_valid', 'q_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
@@ -291,11 +211,7 @@ def rtest_uvt_nrst(std):
     print(ts)
     std.uvt_proc()
     proc = 'uvt'
-
-    pltng.plot(proc, std.c_env.results[proc])
-    results = std.c_env.results[proc].iloc[:, :-1]
-    results.to_csv(f'tests/epri/results/{proc}.csv')
-
+    post.post(proc, std.c_env.results[proc])
     pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()

@@ -31,7 +31,7 @@ palette = {
     True: 'rgba(25, 215, 25, 0.05)',
 }
 
-class Plotting:
+class Post:
     def __init__(self, outdir):
         self.outdir = outdir
 
@@ -367,3 +367,8 @@ class Plotting:
 
         else:
             raise ValueError(f'Invalid proc: {proc} - typo or NotImplemented')
+
+    def post(self, proc, df):
+        self.plot(proc, df)
+        results = df.iloc[:, :-1]
+        results.to_csv(f'tests/epri/results/{proc}.csv')
