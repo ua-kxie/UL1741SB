@@ -308,5 +308,53 @@ class Plotting:
             title = 'PRI'
             self.draw_pri(proc, df, traces, labelfcn, pfcols, title)
 
+        elif proc == 'lap':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['iter', 'aplim_pu', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P']]
+            title = 'LAP'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'es-ramp':
+            pfcols = ['valid']
+            lst_labels = ['case', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P'], ['F'], ['V']]
+            title = 'ES (ramp)'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc in ['uvt', 'ovt']:
+            pfcols = ['ceased']
+            lst_labels = ['region', 'time', 'mag', 'iter'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q'], ['V']]
+            title = f'{proc.upper()}'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc in ['uft', 'oft']:
+            pfcols = ['ceased']
+            lst_labels = ['region', 'time', 'mag', 'iter'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q'], ['F']]
+            title = f'{proc.upper()}'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc in ['lvrt', 'hvrt']:
+            pfcols = ['valid']
+            lst_labels = ['pwr_pu', 'cond'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q'], ['V']]
+            title = f'{proc.upper()}'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc in ['lfrt', 'hfrt']:
+            pfcols = ['valid']
+            lst_labels = ['iter', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q'], ['F']]
+            title = f'{proc.upper()}'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
         else:
             raise ValueError(f'Invalid proc: {proc} - typo or NotImplemented')

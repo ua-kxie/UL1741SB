@@ -172,11 +172,11 @@ class LAP(IEEE1547):
 
             'y_init': y_init,
 
-            'y_olrt': y_olrt,
+            'y_olrt_min': self.c_eut.Prated_prime,
             'y_olrt_target': y_olrt_target,
             'y_olrt_max': y_olrt_max,
 
-            'y_ss': y_ss,
+            'y_ss_min': self.c_eut.Prated_prime,
             'y_ss_target': y_ss_target,
             'y_ss_max': y_ss_max,
 

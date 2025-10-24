@@ -152,173 +152,120 @@ def test_pri(std):
 def test_lap(std):
     std.lap_proc()
     proc = 'lap'
-    lst_labels = ['iter', 'aplim_pu', 'step']
-    pfcols = ['ss_valid']
-    fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'y_ss_target': 1}
-    dct_yranges = {'y_ss_target': ('y_min', 'y_max', 1)}
-    title = 'LAP'
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], title, dct_traces, labelfcn, pfcols, dct_yranges, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['ss_valid', 'olrt_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_es_ramp(std):
     std.es_ramp_proc()
     proc = 'es-ramp'
-    lst_labels = ['case', 'step']
-    pfcols = ['valid']
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'F': 2, 'V': 3}
-    title = 'ES-ramp'
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], title, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_uvt(std):
     std.uvt_proc()
     proc = 'uvt'
-    lst_labels = ['region', 'time', 'mag', 'iter']
-    pfcols = ['ceased']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_ovt(std):
     std.ovt_proc()
     proc = 'ovt'
-    lst_labels = ['region', 'time', 'mag', 'iter']
-    pfcols = ['ceased']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_uft(std):
     std.uft_proc()
     proc = 'uft'
-    lst_labels = ['region', 'time', 'mag', 'iter']
-    pfcols = ['ceased']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_oft(std):
     std.oft_proc()
     proc = 'oft'
-    lst_labels = ['region', 'time', 'mag', 'iter']
-    pfcols = ['ceased']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['ceased']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_lvrt(std):
     std.lvrt_proc()
     proc = 'lvrt'
-    lst_labels = ['pwr_pu', 'cond']
-    pfcols = ['valid']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_hvrt(std):
     std.hvrt_proc()
     proc = 'hvrt'
-    lst_labels = ['pwr_pu', 'cond']
-    pfcols = ['valid']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'V': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_lfrt(std):
     std.lfrt_proc()
     proc = 'lfrt'
-    lst_labels = ['iter', 'step']
-    pfcols = ['valid']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
 def test_hfrt(std):
     std.hfrt_proc()
     proc = 'hfrt'
-    lst_labels = ['iter', 'step']
-    pfcols = ['valid']
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'F': 2}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], proc, dct_traces, labelfcn, pfcols, dct_yranges={}, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
@@ -328,17 +275,12 @@ def rtest_pri_corruption(std):
     std.vw_proc()
     std.pri_proc()
     proc = 'pri'
-    lst_labels = ['vars_ctrl', 'step']
-    pfcols = ['p_valid', 'q_valid']
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True)
-    dct_traces = {'P': 1, 'Q': 1, 'V': 2, 'F': 3, 'p_target': 1, 'q_target': 1}
 
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
-    labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
-    fig = drawfig(fig, std.c_env.results[proc], '', dct_traces, labelfcn, pfcols, epoch=True)
-    plotly.offline.plot(fig, filename=f'tests/epri/results/{proc}.html')
     results.to_csv(f'tests/epri/results/{proc}.csv')
 
+    pfcols = ['p_valid', 'q_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
 
@@ -349,7 +291,11 @@ def rtest_uvt_nrst(std):
     print(ts)
     std.uvt_proc()
     proc = 'uvt'
+
+    pltng.plot(proc, std.c_env.results[proc])
     results = std.c_env.results[proc].iloc[:, :-1]
     results.to_csv(f'tests/epri/results/{proc}.csv')
-    assert results.loc[:, 'ceased'].all()
-    # assert results.loc[:, 'tripped'].all()
+
+    pfcols = ['ceased']
+    for pfcol in pfcols:
+        assert std.c_env.results[proc].loc[:, pfcol].all()
