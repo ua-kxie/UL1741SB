@@ -18,16 +18,31 @@ palette = {
 }
 
 def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch=False):
+    fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
     df_data = pd.concat(df.loc[:, 'data'].values)
-    for k, v in dct_yranges.items():
-        fig.add_trace(
-            go.Scatter(
-                x=np.concatenate([df_data.index, df_data.index[::-1]]), y=pd.concat([df_data[v[0]], df_data[v[1]][::-1]]),
-                name=k, mode='lines', opacity=.2, fill='toself', hoveron='points',
-                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
-            ),
-            row=v[2], col=1,
-        )
+    df_results = df.iloc[:, :-1]
+
+    ts_vrange_min = pd.concat([
+        df_results.loc[:, ['t_init', 'y_init']].rename(columns={"t_init": "t", "y_init": "y"}),
+        df_results.loc[:, ['t_olrt', 'y_olrt_min']].rename(columns={"t_olrt": "t", "y_olrt_min": "y"}),
+        df_results.loc[:, ['t_ss0', 'y_ss_min']].rename(columns={"t_ss0": "t", "y_ss_min": "y"}),
+        df_results.loc[:, ['t_ss1', 'y_ss_min']].rename(columns={"t_ss1": "t", "y_ss_min": "y"}),
+    ]).set_index('t').sort_index()
+    ts_vrange_max = pd.concat([
+        df_results.loc[:, ['t_init', 'y_init']].rename(columns={"t_init": "t", "y_init": "y"}),
+        df_results.loc[:, ['t_olrt', 'y_olrt_max']].rename(columns={"t_olrt": "t", "y_olrt_max": "y"}),
+        df_results.loc[:, ['t_ss0', 'y_ss_max']].rename(columns={"t_ss0": "t", "y_ss_max": "y"}),
+        df_results.loc[:, ['t_ss1', 'y_ss_max']].rename(columns={"t_ss1": "t", "y_ss_max": "y"}),
+    ]).set_index('t').sort_index()
+    fig.add_trace(
+        go.Scatter(
+            x=np.concatenate([ts_vrange_min.index, ts_vrange_max.index[::-1]]), y=pd.concat([ts_vrange_min['y'], ts_vrange_max['y'][::-1]]),
+            name='test', mode='lines', opacity=.2, fill='toself', hoveron='points',
+            hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+        ),
+        row=1, col=1,
+    )
+    # plot traces
     for k, v in dct_traces.items():
         fig.add_trace(
             go.Scatter(
@@ -36,6 +51,7 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
             ),
             row=v, col=1
         )
+    # mark epochs
     if epoch:
         for i, row in df.iterrows():
             start = row['data'].index[0]
@@ -48,6 +64,7 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
         title=dict(text=titletext),
         plot_bgcolor='rgba(245, 245, 245)'
     )
+    plotly.offline.plot(fig, filename=f'tests/epri/results/test.html')
     return fig
 
 class EpriStd(UL1741SB):
