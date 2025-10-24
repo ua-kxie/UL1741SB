@@ -102,6 +102,15 @@ class Plotting:
             ),
             row=1, col=1,
         )
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dmin.index, dmax.index[::-1]]),
+                y=pd.concat([dmin['y'], dmax['y'][::-1]]),
+                name=displayname, mode='lines', opacity=.2, hoveron="fills", fill='toself',
+                hovertemplate="Value: %{y:.0f}"
+            ),
+            row=1, col=1,
+        )
         return fig
 
     def valid_range_by_key_pri(self, fig, df_rslts, key, displayname, row):
