@@ -8,7 +8,7 @@ import plotly
 pd.options.plotting.backend = "plotly"
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-import datetime
+import datetime as dt
 import numpy as np
 
 
@@ -50,11 +50,37 @@ def drawfig(fig, df, titletext, dct_traces, labelfcn, pfcols, dct_yranges, epoch
     )
     return fig
 
+class EpriStd(UL1741SB):
+    def __init__(self, env, eut):
+        super().__init__(env, eut)
+
+        self.mra_scale = 1.5  # 1.5 in standard
+        self.trip_rpt = 5  # 5 in standard
+
+    def conn_to_grid(self):
+        # vdc to nom
+        # vgrid to std
+        pass
+
+    def trip_rst(self):
+        # return to continuous op after tripping
+        # set VDC, (Vg) to 0
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_eut.dc_config(Vdc=0)
+        # wait 1 second
+        self.c_env.sleep(dt.timedelta(seconds=1))
+        # set VDC to nominal
+        self.c_eut.dc_config(Vdc=self.c_eut.Vin_nom)
+        self.c_env.log(msg='waiting for re-energization...')
+        while self.c_env.meas_single('P').iloc[0, 0] < self.c_eut.Prated * 0.5:
+            self.c_env.sleep(dt.timedelta(seconds=1))
+        return None
+
 @pytest.fixture
 def std():
     eut = EpriEut()
     env = EpriEnv(eut)
-    std = UL1741SB(env, eut)
+    std = EpriStd(env, eut)
     return std
 
 def rtest_pri_corruption(std):
@@ -78,7 +104,7 @@ def rtest_pri_corruption(std):
 
 def rtest_uvt_nrst(std):
     std.lap_proc()
-    ts = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d %H:%M:%S")
+    ts = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d %H:%M:%S")
     print('\n')
     print(ts)
     std.uvt_proc()

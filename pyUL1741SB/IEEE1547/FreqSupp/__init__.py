@@ -93,6 +93,7 @@ class FreqSupp(IEEE1547):
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
@@ -203,6 +204,7 @@ class FreqSupp(IEEE1547):
         b) Set all frequency trip parameters to the widest range of adjustability. Disable all reactive/active
         power control functions.
         '''
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

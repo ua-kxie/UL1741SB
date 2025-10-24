@@ -106,8 +106,10 @@ class VoltDist(IEEE1547):
         vMRA = self.c_eut.mra.static.V
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all source parameters to the nominal operating conditions for the self.c_eut.
+        b) Set all source parameters to the nominal operating conditions for the eut.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         k) Repeat steps c) through k) for each overvoltage operating trip region.
         '''
@@ -191,9 +193,10 @@ class VoltDist(IEEE1547):
         """"""
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all source parameters to the nominal operating conditions for the self.c_eut.
+        b) Set all source parameters to the nominal operating conditions for the eut.
         '''
-
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         k) Repeat steps c) through j) for each undervoltage operating trip region.
         '''
@@ -311,6 +314,8 @@ class VoltDist(IEEE1547):
         If the EUT provides a voltage-active power control mode, that mode shall be disabled. 
         The frequency-active power control mode of the EUT shall be set to the default settings.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_vt(**vt_args)
         self.c_eut.set_vv(Ena=True, crv=vvcrv)
         self.c_eut.set_vw(Ena=False)
@@ -433,6 +438,8 @@ class VoltDist(IEEE1547):
         The voltage-reactive power control mode of the EUT shall be set to the default settings specified in Table 8
         of IEEE Std 1547-2018 for the applicable performance category, and enabled.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_vv(Ena=True, crv=vvcrv)
         self.c_eut.set_vw(Ena=False)  # not specified but helps identify cont.op
         '''

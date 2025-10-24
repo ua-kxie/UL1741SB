@@ -85,13 +85,14 @@ class RespPri(IEEE1547):
         reactive/active power control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.

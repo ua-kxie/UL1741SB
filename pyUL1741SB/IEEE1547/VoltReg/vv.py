@@ -171,6 +171,7 @@ class VV(VoltReg):
         voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
         requirements.
         '''
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
@@ -232,6 +233,7 @@ class VV(VoltReg):
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         '''
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

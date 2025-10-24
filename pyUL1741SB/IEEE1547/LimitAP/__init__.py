@@ -28,7 +28,8 @@ class LAP(IEEE1547):
         settings from frequency-droop response in IEEE Std 1547 for the abnormal operating performance
         category of the DER. Enable voltage-active power mode.
         '''
-        self.c_env.ac_config(freq=self.c_eut.fN, Vac=self.c_eut.VN)
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

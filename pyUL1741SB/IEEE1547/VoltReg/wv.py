@@ -122,6 +122,7 @@ class WV(VoltReg):
         e) Set EUT watt-var parameters to the values specified by Characteristic 1. All other functions should
         be turned off.
         '''
+        self.conn_to_grid()
         self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         vttbl = self.c_eut.voltshalltrip_tbl
         self.c_eut.set_vt(**{

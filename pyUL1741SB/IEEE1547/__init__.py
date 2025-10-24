@@ -102,8 +102,13 @@ class IEEE1547:
         dfs.append(self.c_env.meas_single(*meas_args))
         self.c_env.validate({**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
 
+    def conn_to_grid(self):
+        # vdc to nom
+        # vgrid to std
+        pass
+
     def trip_rst(self):
-        # TODO reset the inverter for next test
+        # return to continuous op after tripping
         # set VDC, (Vg) to 0
         self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.dc_config(Vdc=0)

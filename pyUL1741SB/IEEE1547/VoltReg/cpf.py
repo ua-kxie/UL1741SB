@@ -48,6 +48,7 @@ class CPF(VoltReg):
         control functions.
         c) Set all ac test source parameters to the nominal operating voltage and frequency. 
         '''
+        self.conn_to_grid()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

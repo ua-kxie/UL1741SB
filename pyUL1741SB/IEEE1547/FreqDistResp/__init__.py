@@ -14,8 +14,10 @@ class FreqDist(IEEE1547):
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all ac test source or signal injection generator parameters to the nominal operating conditions
-        for the self.c_eut.
+        for the eut.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         m) Repeat steps c) through l) for each overfrequency operating region.
         '''
@@ -90,8 +92,10 @@ class FreqDist(IEEE1547):
         a) Connect the EUT according to the instructions and specifications provided by the
         manufacturer.
         b) Set all programmable ac power source or signal injection generator parameters to the nominal
-        operating conditions for the self.c_eut.
+        operating conditions for the eut.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         m) Repeat steps c) through l) for each underfrequency operating region.
         '''
@@ -177,13 +181,14 @@ class FreqDist(IEEE1547):
         VFO INCAPABLE:
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
         frequency as small as possible.
         d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
         '''
-        # TODO verify default settings
         self.c_eut.set_fw(Ena=False)
         self.c_eut.set_ft(**ft_args)
         '''
@@ -274,13 +279,14 @@ class FreqDist(IEEE1547):
         VFO INCAPABLE:
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
+        self.conn_to_grid()
+        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
         frequency as small as possible.
         d) Set or verify that all frequency trip settings are set to not influence the outcome of the test.
         '''
-        # TODO verify default settings
         self.c_eut.set_fw(Ena=False)
         self.c_eut.set_ft(**ft_args)
         '''
