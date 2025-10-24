@@ -26,7 +26,7 @@ class VoltReg(IEEE1547):
         y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
         y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
         y_olrt_target = y_of_t(olrt_s)
-        olrt_valid = y_olrt <= y_olrt_max
+        olrt_valid = y_olrt_min <= y_olrt <= y_olrt_max
 
         '''
         shall meet 4.2
@@ -34,7 +34,7 @@ class VoltReg(IEEE1547):
         # ss eval with 1741SB amendment
         y_ss_target = y_of_x(x_ss)
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
-        ss_valid = y_ss <= y_ss_max
+        ss_valid = y_ss_min <= y_ss <= y_ss_max
 
         df_meas['y_ss_target'] = y_ss_target
         df_meas['y_min'] = y_ss_min

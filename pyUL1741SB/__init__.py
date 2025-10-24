@@ -17,5 +17,296 @@ from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.eut import VoltShallTripTable
 from pyUL1741SB.eut import FreqShallTripTable
 
+import numpy as np
+import pandas as pd
+import plotly
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
 class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist, IEEE1547):
     pass
+
+palette = {
+    False: 'rgba(215, 25, 25, 0.05)',
+    True: 'rgba(25, 215, 25, 0.05)',
+}
+
+class Plotting:
+    def __init__(self, outdir):
+        self.outdir = outdir
+
+    def mintargmax(self, df_rslts, key):
+        ini = f'{key}_init'
+        olrtmin = f'{key}_olrt_min'
+        ssmin = f'{key}_ss_min'
+        olrtmax = f'{key}_olrt_max'
+        ssmax = f'{key}_ss_max'
+        olrt = f'{key}_olrt_target'
+        ss = f'{key}_ss_target'
+        dmin = pd.concat([
+            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrtmin]].rename(columns={"t_olrt": "t", olrtmin: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmin]].rename(columns={"t_ss0": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmin]].rename(columns={"t_ss1": "t", ssmin: "y"}),
+        ]).set_index('t').sort_index()
+        targ = pd.concat([
+            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrt]].rename(columns={"t_olrt": "t", olrt: "y"}),
+            df_rslts.loc[:, ['t_ss0', ss]].rename(columns={"t_ss0": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss1', ss]].rename(columns={"t_ss1": "t", ss: "y"}),
+        ]).set_index('t').sort_index()
+        dmax = pd.concat([
+            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrtmax]].rename(columns={"t_olrt": "t", olrtmax: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmax]].rename(columns={"t_ss0": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmax]].rename(columns={"t_ss1": "t", ssmax: "y"}),
+        ]).set_index('t').sort_index()
+
+        return dmin, targ, dmax
+
+    def mintargmax_pri(self, df_rslts, key):
+        ssmin = f'{key}_min'
+        ssmax = f'{key}_max'
+        ss = f'{key}_target'
+        dmin = pd.concat([
+            df_rslts.loc[:, ['t_ss0', ssmin]].rename(columns={"t_ss0": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmin]].rename(columns={"t_ss1": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss2', ssmin]].rename(columns={"t_ss2": "t", ssmin: "y"}),
+        ]).set_index('t').sort_index()
+        targ = pd.concat([
+            df_rslts.loc[:, ['t_ss0', ss]].rename(columns={"t_ss0": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss1', ss]].rename(columns={"t_ss1": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss2', ss]].rename(columns={"t_ss2": "t", ss: "y"}),
+        ]).set_index('t').sort_index()
+        dmax = pd.concat([
+            df_rslts.loc[:, ['t_ss0', ssmax]].rename(columns={"t_ss0": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmax]].rename(columns={"t_ss1": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss2', ssmax]].rename(columns={"t_ss2": "t", ssmax: "y"}),
+        ]).set_index('t').sort_index()
+
+        return dmin, targ, dmax
+
+    def valid_range_by_key(self, fig, df_rslts, key, displayname):
+        dmin, targ, dmax = self.mintargmax(df_rslts, key)
+        fig.add_trace(
+            go.Scatter(
+                x=targ.index,
+                y=targ['y'],
+                error_y=dict(
+                    type='data', symmetric=False,
+                    arrayminus=targ['y'] - dmin['y'],
+                    array=dmax['y'] - targ['y'],
+                ),
+                name=displayname, mode='markers', opacity=.5, hoveron="points+fills",
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>upper: %{error_y.array:.0f}<br>Value: %{y:.0f}<br>lower: %{error_y.arrayminus:.0f}"
+            ),
+            row=1, col=1,
+        )
+        return fig
+
+    def valid_range_by_key_pri(self, fig, df_rslts, key, displayname, row):
+        dmin, targ, dmax = self.mintargmax_pri(df_rslts, key)
+        fig.add_trace(
+            go.Scatter(
+                x=targ.index,
+                y=targ['y'],
+                error_y=dict(
+                    type='data', symmetric=False,
+                    arrayminus=targ['y'] - dmin['y'],
+                    array=dmax['y'] - targ['y'],
+                ),
+                name=displayname, mode='markers', opacity=.5, hoveron="points+fills",
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>upper: %{error_y.array:.0f}<br>Value: %{y:.0f}<br>lower: %{error_y.arrayminus:.0f}"
+            ),
+            row=row, col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=np.concatenate([dmin.index, dmax.index[::-1]]),
+                y=pd.concat([dmin['y'], dmax['y'][::-1]]),
+                name=displayname, mode='lines', opacity=.2, hoveron="fills", fill='toself',
+                hovertemplate="Value: %{y:.0f}"
+            ),
+            row=row, col=1,
+        )
+        return fig
+
+    def common(self, proc, fig, title):
+        fig.update_xaxes(tickformat="%H:%M:%S.%2f")
+        fig.update_layout(
+            title=dict(text=title),
+            plot_bgcolor='rgba(245, 245, 245)',
+            hovermode="x"
+        )
+        plotly.offline.plot(fig, filename=f'{self.outdir}{proc}.html')
+
+
+    def draw_cpf_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+        fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
+        df_data = pd.concat(df.loc[:, 'data'].values)
+        df_rslts = df.iloc[:, :-1]
+
+        fig = self.valid_range_by_key(fig, df_rslts, 'y', 'Q valid range')
+        # plot traces
+        for i, traces in enumerate(lst_traces):
+            for k in traces:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                    ),
+                    row=i+1, col=1
+                )
+        # mark epochs
+        for i, row in df.iterrows():
+            start = row['data'].index[0]
+            end = row['data'].index[-1]
+            label = labelfcn(row)
+            fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
+                          annotation_position='top left',
+                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+
+        self.common(proc, fig, titletext)
+
+    def draw_pri(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+        fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
+        df_data = pd.concat(df.loc[:, 'data'].values)
+        df_rslts = df.iloc[:, :-1]
+
+        # plot traces
+        for i, traces in enumerate(lst_traces):
+            for k in traces:
+                if k == 'P':
+                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'p', 'P valid range', i + 1)
+                if k == 'Q':
+                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'q', 'Q valid range', i + 1)
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                    ),
+                    row=i+1, col=1
+                )
+        # mark epochs
+        for i, row in df.iterrows():
+            start = row['data'].index[0]
+            end = row['data'].index[-1]
+            label = labelfcn(row)
+            fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
+                          annotation_position='top left',
+                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+
+        self.common(proc, fig, titletext)
+
+    def draw_bare_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+        fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
+        df_data = pd.concat(df.loc[:, 'data'].values)
+        df_rslts = df.iloc[:, :-1]
+
+        fig = self.valid_range_by_key(fig, df_rslts, 'y', 'Q valid range')
+        # plot traces
+        for i, traces in enumerate(lst_traces):
+            for k in traces:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                    ),
+                    row=i+1, col=1
+                )
+
+        self.common(proc, fig, titletext)
+
+    def draw_notarg_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+        fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
+        df_data = pd.concat(df.loc[:, 'data'].values)
+        df_rslts = df.iloc[:, :-1]
+
+        # plot traces
+        for i, traces in enumerate(lst_traces):
+            for k in traces:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                    ),
+                    row=i+1, col=1
+                )
+        # mark epochs
+        for i, row in df.iterrows():
+            start = row['data'].index[0]
+            end = row['data'].index[-1]
+            label = labelfcn(row)
+            fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
+                          annotation_position='top left',
+                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+
+        self.common(proc, fig, titletext)
+
+    def plot(self, proc, df):
+        if proc == 'cpf':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['Vin', 'PF', 'Step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q']]
+            title = 'CPF y(x) = Q(P)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'crp':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['Qset', 'Vin', 'Step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q']]
+            title = 'CRP y(x) = Q'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'vv':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['crv', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['Q'], ['V']]
+            title = 'VV y(x) = Q(V)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'vv-vref':
+            pfcols = ['valid']
+            lst_labels = ['Tref', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['Q']]
+            title = 'VV-vref'
+            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'wv':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['crv', 'dir', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P', 'Q']]
+            title = 'WV y(x) = P(Q)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'vw':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['pwr', 'crv', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P'], ['V']]
+            title = 'VW y(x) = P(V)'
+            self.draw_bare_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc in ['fwo', 'fwu']:
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['crv', 'pwr_pu', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P'], ['F']]
+            title = f'{proc.upper()} y(x) = W(F)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+
+        elif proc == 'pri':
+            pfcols = ['p_valid', 'q_valid']
+            lst_labels = ['vars_ctrl', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P'], ['Q'], ['V'], ['F']]
+            title = 'PRI'
+            self.draw_pri(proc, df, traces, labelfcn, pfcols, title)
+
+        else:
+            raise ValueError(f'Invalid proc: {proc} - typo or NotImplemented')
