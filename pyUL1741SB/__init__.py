@@ -97,20 +97,30 @@ class Post:
                     arrayminus=targ['y'] - dmin['y'],
                     array=dmax['y'] - targ['y'],
                 ),
-                name=displayname, mode='markers', opacity=.5, hoveron="points+fills",
-                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>upper: %{error_y.array:.0f}<br>Value: %{y:.0f}<br>lower: %{error_y.arrayminus:.0f}"
+                name=f'{displayname} target', mode='markers', opacity=.5, hoveron="points",
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y:.0f}"
             ),
             row=1, col=1,
         )
         fig.add_trace(
             go.Scatter(
-                x=np.concatenate([dmin.index, dmax.index[::-1]]),
-                y=pd.concat([dmin['y'], dmax['y'][::-1]]),
-                name=displayname, mode='lines', opacity=.2, hoveron="fills", fill='toself',
-                hovertemplate="Value: %{y:.0f}"
+                x=dmax.index,
+                y=dmax['y'],
+                name=f'{displayname} max', mode='lines', opacity=.2, hoveron="points",
+                line_color="rgba(0, 0, 0, 0.2)", hovertemplate="Value: %{y:.0f}",
             ),
             row=1, col=1,
         )
+        fig.add_trace(
+            go.Scatter(
+                x=dmin.index,
+                y=dmin['y'],
+                name=f'{displayname} min', mode='lines', opacity=.2, hoveron="points", fill='tonexty',
+                fillcolor='rgba(0, 0, 0, 0.1)', line_color="rgba(0, 0, 0, 0.2)", hovertemplate="Value: %{y:.0f}",
+            ),
+            row=1, col=1,
+        )
+
         return fig
 
     def valid_range_by_key_pri(self, fig, df_rslts, key, displayname, row):
@@ -124,17 +134,26 @@ class Post:
                     arrayminus=targ['y'] - dmin['y'],
                     array=dmax['y'] - targ['y'],
                 ),
-                name=displayname, mode='markers', opacity=.5, hoveron="points+fills",
-                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>upper: %{error_y.array:.0f}<br>Value: %{y:.0f}<br>lower: %{error_y.arrayminus:.0f}"
+                name=f'{displayname} target', mode='markers', opacity=.5, hoveron="points+fills",
+                hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y:.0f}"
             ),
             row=row, col=1,
         )
         fig.add_trace(
             go.Scatter(
-                x=np.concatenate([dmin.index, dmax.index[::-1]]),
-                y=pd.concat([dmin['y'], dmax['y'][::-1]]),
-                name=displayname, mode='lines', opacity=.2, hoveron="fills", fill='toself',
-                hovertemplate="Value: %{y:.0f}"
+                x=dmax.index,
+                y=dmax['y'],
+                name=f'{displayname} max', mode='lines', opacity=.2, hoveron="points",
+                line_color="rgba(0, 0, 0, 0.2)", hovertemplate="Value: %{y:.0f}",
+            ),
+            row=row, col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=dmin.index,
+                y=dmin['y'],
+                name=f'{displayname} min', mode='lines', opacity=.2, hoveron="points", fill='tonexty',
+                fillcolor='rgba(0, 0, 0, 0.1)', line_color="rgba(0, 0, 0, 0.2)", hovertemplate="Value: %{y:.0f}",
             ),
             row=row, col=1,
         )
@@ -150,19 +169,19 @@ class Post:
         plotly.offline.plot(fig, filename=f'{self.outdir}{proc}.html')
 
 
-    def draw_cpf_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+    def draw_cpf_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext, yname):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
 
-        fig = self.valid_range_by_key(fig, df_rslts, 'y', 'Q valid range')
+        fig = self.valid_range_by_key(fig, df_rslts, 'y', yname)
         # plot traces
         for i, traces in enumerate(lst_traces):
             for k in traces:
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                        hovertemplate="Value: %{y:.0f}"
                     ),
                     row=i+1, col=1
                 )
@@ -186,13 +205,13 @@ class Post:
         for i, traces in enumerate(lst_traces):
             for k in traces:
                 if k == 'P':
-                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'p', 'P valid range', i + 1)
+                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'p', 'P', i + 1)
                 if k == 'Q':
-                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'q', 'Q valid range', i + 1)
+                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'q', 'Q', i + 1)
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y:.0f}"
                     ),
                     row=i+1, col=1
                 )
@@ -207,19 +226,19 @@ class Post:
 
         self.common(proc, fig, titletext)
 
-    def draw_bare_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+    def draw_bare_type(self, proc, df, lst_traces, titletext, yname):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
 
-        fig = self.valid_range_by_key(fig, df_rslts, 'y', 'Q valid range')
+        fig = self.valid_range_by_key(fig, df_rslts, 'y', yname)
         # plot traces
         for i, traces in enumerate(lst_traces):
             for k in traces:
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y:.0f}"
                     ),
                     row=i+1, col=1
                 )
@@ -237,7 +256,7 @@ class Post:
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y}<extra></extra>"
+                        hovertemplate="Time: %{x|%H:%M:%S.%2f}<br>Value: %{y:.0f}"
                     ),
                     row=i+1, col=1
                 )
@@ -259,7 +278,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CPF y(x) = Q(P)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'crp':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -267,7 +286,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CRP y(x) = Q'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'vv':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -275,7 +294,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['Q'], ['V']]
             title = 'VV y(x) = Q(V)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'vv-vref':
             pfcols = ['valid']
@@ -290,8 +309,8 @@ class Post:
             lst_labels = ['crv', 'dir', 'step'] + pfcols
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
-            title = 'WV y(x) = P(Q)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            title = 'WV y(x) = Q(P)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'vw':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -299,15 +318,15 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['V']]
             title = 'VW y(x) = P(V)'
-            self.draw_bare_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_bare_type(proc, df, traces, title, 'P')
 
         elif proc in ['fwo', 'fwu']:
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['crv', 'pwr_pu', 'step'] + pfcols
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['F']]
-            title = f'{proc.upper()} y(x) = W(F)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            title = f'{proc.upper()} y(x) = P(F)'
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'P')
 
         elif proc == 'pri':
             pfcols = ['p_valid', 'q_valid']
@@ -323,7 +342,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P']]
             title = 'LAP'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'P')
 
         elif proc == 'es-ramp':
             pfcols = ['valid']
