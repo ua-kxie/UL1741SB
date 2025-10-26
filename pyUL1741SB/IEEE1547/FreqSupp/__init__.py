@@ -125,7 +125,7 @@ class FreqSupp(IEEE1547):
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof)
+                self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
                 self.c_eut.set_ap(Ena=True, pu=pwr_pu)
                 self.c_eut.set_fw(Ena=True, crv=crv)
                 self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state
@@ -229,7 +229,7 @@ class FreqSupp(IEEE1547):
             '''
             f) Verify frequency-watt mode is reported as active and that the correct characteristic is reported.
             '''
-            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof)
+            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
             self.c_eut.set_ap(Ena=True, pu=pwr_pu)
             self.c_eut.set_fw(Ena=True, crv=crv)
             self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state

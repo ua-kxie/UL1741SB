@@ -390,4 +390,4 @@ class Post:
     def post(self, proc, df):
         self.plot(proc, df)
         results = df.iloc[:, :-1]
-        results.to_csv(f'tests/epri/results/{proc}.csv')
+        results.to_csv(f'{self.outdir}{proc}.csv')

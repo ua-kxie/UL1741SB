@@ -243,7 +243,9 @@ class VV(VoltReg):
         '''
         j) Repeat test steps b) through i) with Tref set at 5000 s.
         '''
-        for Tref_s in [300, 5000]:
+        rsptms = [300, 5000]
+        # rsptms = rsptms[:1]
+        for Tref_s in rsptms:
             '''
             b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
             control functions.
