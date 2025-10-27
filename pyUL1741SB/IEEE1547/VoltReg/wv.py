@@ -154,7 +154,7 @@ class WV(VoltReg):
                 for k, step in dct_steps.items():
                     dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
                     self.wv_step_validate(
-                        dct_label, lambda: self.c_eut.set_ap(Ena=True, pu=step), olrt,
+                        dct_label, lambda: self.c_eut.set_ap(Ena=True, pu=max(min(step, 1), -1)), olrt,
                         lambda x: wv_crv.y_of_x(x / self.c_eut.Prated) * self.c_eut.Prated)
 
     def wv_traverse_steps_inj(self, wv_crv: WVCurve):
