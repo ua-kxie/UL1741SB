@@ -183,58 +183,54 @@ class WV(VoltReg):
         y) Step the EUT’s available active power to Pmin.
         '''
         aP = self.mra_scale * self.c_eut.mra.static.P / self.c_eut.Prated
-        step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
-        pwrs_inj = [
-            self.c_eut.Pmin/self.c_eut.Prated,
-            wv_crv.P1 - aP,
-            wv_crv.P1 + aP,
-            (wv_crv.P1 + wv_crv.P2) / 2.,
-            wv_crv.P2 - aP,
-            wv_crv.P2 + aP,
-            (wv_crv.P2 + wv_crv.P3) / 2.,
-            wv_crv.P3 - aP,
-            wv_crv.P3 + aP,
-            1,
-            wv_crv.P3 + aP,
-            wv_crv.P3 - aP,
-            (wv_crv.P2 + wv_crv.P3) / 2.,
-            wv_crv.P2 + aP,
-            wv_crv.P2 - aP,
-            (wv_crv.P1 + wv_crv.P2) / 2.,
-            wv_crv.P1 + aP,
-            wv_crv.P1 - aP,
-            self.c_eut.Pmin/self.c_eut.Prated,
-        ]
-        ret = {k: v for k, v in zip(step_keys, pwrs_inj)}
+        ret = {
+            'g': self.c_eut.Pmin / self.c_eut.Prated,
+            'h': wv_crv.P1 - aP,
+            'i': wv_crv.P1 + aP,
+            'j': (wv_crv.P1 + wv_crv.P2) / 2.,
+            'k': wv_crv.P2 - aP,
+            'l': wv_crv.P2 + aP,
+            'm': (wv_crv.P2 + wv_crv.P3) / 2.,
+            'n': wv_crv.P3 - aP,
+            'o': wv_crv.P3 + aP,
+            'p': 1,
+            'q': wv_crv.P3 + aP,
+            'r': wv_crv.P3 - aP,
+            's': (wv_crv.P2 + wv_crv.P3) / 2.,
+            't': wv_crv.P2 + aP,
+            'u': wv_crv.P2 - aP,
+            'v': (wv_crv.P1 + wv_crv.P2) / 2.,
+            'w': wv_crv.P1 + aP,
+            'x': wv_crv.P1 - aP,
+            'y': self.c_eut.Pmin / self.c_eut.Prated
+        }
         return ret
 
     def wv_traverse_steps_abs(self, wv_crv: WVCurve):
         """
         """
         aP = self.mra_scale * self.c_eut.mra.static.P / self.c_eut.Prated
-        step_keys = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']
-        pwrs_abs = [
-            self.c_eut.Pmin_prime/self.c_eut.Prated,
-            wv_crv.P1_prime + aP,
-            wv_crv.P1_prime - aP,
-            (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
-            wv_crv.P2_prime + aP,
-            wv_crv.P2_prime - aP,
-            (wv_crv.P2_prime + wv_crv.P3_prime) / 2.,
-            wv_crv.P3_prime + aP,
-            wv_crv.P3_prime - aP,
-            -1,
-            wv_crv.P3_prime - aP,
-            wv_crv.P3_prime + aP,
-            (wv_crv.P2_prime + wv_crv.P3_prime) / 2.,
-            wv_crv.P2_prime - aP,
-            wv_crv.P2_prime + aP,
-            (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
-            wv_crv.P1_prime - aP,
-            wv_crv.P1_prime + aP,
-            self.c_eut.Pmin_prime/self.c_eut.Prated,
-        ]
-        ret = {k: v for k, v in zip(step_keys, pwrs_abs)}
+        ret = {
+            'g': self.c_eut.Pmin_prime / self.c_eut.Prated,
+            'h': wv_crv.P1_prime + aP,
+            'i': wv_crv.P1_prime - aP,
+            'j': (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
+            'k': wv_crv.P2_prime + aP,
+            'l': wv_crv.P2_prime - aP,
+            'm': (wv_crv.P2_prime + wv_crv.P3_prime) / 2.,
+            'n': wv_crv.P3_prime + aP,
+            'o': wv_crv.P3_prime - aP,
+            'p': -1,
+            'q': wv_crv.P3_prime - aP,
+            'r': wv_crv.P3_prime + aP,
+            's': (wv_crv.P2_prime + wv_crv.P3_prime) / 2.,
+            't': wv_crv.P2_prime - aP,
+            'u': wv_crv.P2_prime + aP,
+            'v': (wv_crv.P1_prime + wv_crv.P2_prime) / 2.,
+            'w': wv_crv.P1_prime - aP,
+            'x': wv_crv.P1_prime + aP,
+            'y': self.c_eut.Pmin_prime / self.c_eut.Prated
+        }
         return ret
 
     def wv_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
