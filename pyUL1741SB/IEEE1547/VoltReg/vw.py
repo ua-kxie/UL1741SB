@@ -119,9 +119,37 @@ class VWCurve:
         )
 
 class VW(VoltReg):
-    def vw_proc(self):
+    def vw_pwr_crv_mat(self, pwr_pus, vw_crvs):
+        """"""
+        '''
+        t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
+        '''
+        for pwr_pu in pwr_pus:
+            '''
+            u) Repeat steps d) through s) for Characteristics 2 and 3.
+            '''
+            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+            for crv_name, vw_crv in vw_crvs:
+                '''
+                v) Test may be repeated for EUTs that can also absorb power using the P’ values in the characteristic definition. 
+                '''
+                '''
+                d) Adjust the EUT’s active power to Prated. For an EUT with an electrical input, set the input voltage to Vin_nom.
+                e) Set EUT volt-watt parameters to the values specified by Characteristic 1. All other functions should be turned off.
+                f) Verify volt-watt mode is reported as active and that the correct characteristic is reported.
+                '''
+                self.c_eut.set_vw(Ena=True, crv=vw_crv)
+                for k, v in self.vw_traverse_steps(vw_crv).items():
+                    dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
+                    self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
+
+    def vw_proc(self, pwr_pus=(1, 0.2, 0.66)):
         """
         """
+        '''
+        t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
+        '''
+        # pwr_pus = [1, 0.2, 0.66]
         if self.c_eut.Cat == self.c_eut.Category.A:
             vw_crvs = [
                 ('1A_inj', VWCurve.Crv_1A_inj(self.c_eut)),
@@ -142,6 +170,9 @@ class VW(VoltReg):
             ]
         else:
             raise TypeError(f'unknown eut category {self.c_eut.Cat}')
+        if self.c_eut.Prated_prime == 0:
+            # for euts incapable of absorption, do not test absorption curves
+            vw_crvs = vw_crvs[:3]
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power control functions.
@@ -154,30 +185,44 @@ class VW(VoltReg):
         self.c_eut.set_vv(Ena=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
+        self.vw_pwr_crv_mat(pwr_pus, vw_crvs)
+
+    def vw_proc_fast(self, pwr_pus=(1, 0.2, 0.66)):
+        """
+        run only curve 3, fastest response time
+        """
         '''
         t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
         '''
-        for pwr_pu in [1, 0.2, 0.66]:
-            '''
-            u) Repeat steps d) through s) for Characteristics 2 and 3.
-            '''
-            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
-            if self.c_eut.Prated_prime == 0:
-                # for euts incapable of absorption, do not test absorption curves
-                vw_crvs = vw_crvs[:3]
-            for crv_name, vw_crv in vw_crvs:
-                '''
-                v) Test may be repeated for EUTs that can also absorb power using the P’ values in the characteristic definition. 
-                '''
-                '''
-                d) Adjust the EUT’s active power to Prated. For an EUT with an electrical input, set the input voltage to Vin_nom.
-                e) Set EUT volt-watt parameters to the values specified by Characteristic 1. All other functions should be turned off.
-                f) Verify volt-watt mode is reported as active and that the correct characteristic is reported.
-                '''
-                self.c_eut.set_vw(Ena=True, crv=vw_crv)
-                for k, v in self.vw_traverse_steps(vw_crv).items():
-                    dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
-                    self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
+        # pwr_pus = [1, 0.2, 0.66]
+        if self.c_eut.Cat == self.c_eut.Category.A:
+            vw_crvs = [
+                ('3A_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('3A_abs', VWCurve.Crv_3A_abs(self.c_eut))
+            ]
+        elif self.c_eut.Cat == self.c_eut.Category.B:
+            vw_crvs = [
+                ('3B_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('3B_abs', VWCurve.Crv_3A_abs(self.c_eut))
+            ]
+        else:
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
+        if self.c_eut.Prated_prime == 0:
+            # for euts incapable of absorption, do not test absorption curves
+            vw_crvs = vw_crvs[:3]
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power control functions.
+        c) Set all ac test source parameters to the nominal operating voltage and frequency.
+        '''
+        self.conn_to_grid()
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
+        self.vw_pwr_crv_mat(pwr_pus, vw_crvs)
 
     def vw_traverse_steps(self, vw_crv: VWCurve):
         """

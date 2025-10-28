@@ -159,17 +159,17 @@ class Post:
         )
         return fig
 
-    def common(self, proc, fig, title):
+    def common(self, name, fig, title):
         fig.update_xaxes(tickformat="%H:%M:%S.%2f")
         fig.update_layout(
             title=dict(text=title),
             plot_bgcolor='rgba(245, 245, 245)',
             hovermode="x"
         )
-        plotly.offline.plot(fig, filename=f'{self.outdir}{proc}.html')
+        plotly.offline.plot(fig, filename=f'{self.outdir}{name}.html')
 
 
-    def draw_cpf_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext, yname):
+    def draw_cpf_type(self, name, df, lst_traces, labelfcn, pfcols, titletext, yname):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
@@ -194,9 +194,9 @@ class Post:
                           annotation_position='top left',
                           fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
 
-        self.common(proc, fig, titletext)
+        self.common(name, fig, titletext)
 
-    def draw_pri(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+    def draw_pri(self, name, df, lst_traces, labelfcn, pfcols, titletext):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
@@ -224,9 +224,9 @@ class Post:
                           annotation_position='top left',
                           fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
 
-        self.common(proc, fig, titletext)
+        self.common(name, fig, titletext)
 
-    def draw_bare_type(self, proc, df, lst_traces, titletext, yname):
+    def draw_bare_type(self, name, df, lst_traces, titletext, yname):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
@@ -243,9 +243,9 @@ class Post:
                     row=i+1, col=1
                 )
 
-        self.common(proc, fig, titletext)
+        self.common(name, fig, titletext)
 
-    def draw_notarg_type(self, proc, df, lst_traces, labelfcn, pfcols, titletext):
+    def draw_notarg_type(self, name, df, lst_traces, labelfcn, pfcols, titletext):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
         df_rslts = df.iloc[:, :-1]
@@ -269,16 +269,16 @@ class Post:
                           annotation_position='top left',
                           fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
 
-        self.common(proc, fig, titletext)
+        self.common(name, fig, titletext)
 
-    def plot(self, proc, df):
+    def plot(self, proc, df, name):
         if proc == 'cpf':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['Vin', 'PF', 'Step'] + pfcols
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CPF y(x) = Q(P)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'crp':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -286,7 +286,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CRP y(x) = Q'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'vv':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -294,7 +294,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['Q'], ['V']]
             title = 'VV y(x) = Q(V)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
 
         elif proc == 'vv-vref':
             pfcols = ['valid']
@@ -302,7 +302,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['Q']]
             title = 'VV-vref'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         elif proc == 'wv':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -310,7 +310,15 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'WV y(x) = Q(P)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'Q')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
+
+        elif proc == 'vw-bare':
+            pfcols = ['ss_valid', 'olrt_valid']
+            lst_labels = ['pwr', 'crv', 'step'] + pfcols
+            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            traces = [['P'], ['V']]
+            title = 'VW y(x) = P(V)'
+            self.draw_bare_type(name, df, traces, title, 'P')
 
         elif proc == 'vw':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -318,7 +326,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['V']]
             title = 'VW y(x) = P(V)'
-            self.draw_bare_type(proc, df, traces, title, 'P')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
 
         elif proc in ['fwo', 'fwu']:
             pfcols = ['ss_valid', 'olrt_valid']
@@ -326,7 +334,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['F']]
             title = f'{proc.upper()} y(x) = P(F)'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'P')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
 
         elif proc == 'pri':
             pfcols = ['p_valid', 'q_valid']
@@ -334,7 +342,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['Q'], ['V'], ['F']]
             title = 'PRI'
-            self.draw_pri(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_pri(name, df, traces, labelfcn, pfcols, title)
 
         elif proc == 'lap':
             pfcols = ['ss_valid', 'olrt_valid']
@@ -342,7 +350,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P']]
             title = 'LAP'
-            self.draw_cpf_type(proc, df, traces, labelfcn, pfcols, title, 'P')
+            self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
 
         elif proc == 'es-ramp':
             pfcols = ['valid']
@@ -350,7 +358,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['F'], ['V']]
             title = 'ES (ramp)'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         elif proc in ['uvt', 'ovt']:
             pfcols = ['ceased']
@@ -358,7 +366,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['V']]
             title = f'{proc.upper()}'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         elif proc in ['uft', 'oft']:
             pfcols = ['ceased']
@@ -366,7 +374,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['F']]
             title = f'{proc.upper()}'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         elif proc in ['lvrt', 'hvrt']:
             pfcols = ['valid']
@@ -374,7 +382,7 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['V']]
             title = f'{proc.upper()}'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         elif proc in ['lfrt', 'hfrt']:
             pfcols = ['valid']
@@ -382,12 +390,12 @@ class Post:
             labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['F']]
             title = f'{proc.upper()}'
-            self.draw_notarg_type(proc, df, traces, labelfcn, pfcols, title)
+            self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
 
         else:
             raise ValueError(f'Invalid proc: {proc} - typo or NotImplemented')
 
-    def post(self, proc, df):
-        self.plot(proc, df)
+    def post(self, proc, df, name):
+        self.plot(proc, df, name)
         results = df.iloc[:, :-1]
-        results.to_csv(f'{self.outdir}{proc}.csv')
+        results.to_csv(f'{self.outdir}{name}.csv')
