@@ -143,7 +143,7 @@ class VW(VoltReg):
                     dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
                     self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
 
-    def vw_proc(self, pwr_pus=(1, 0.2, 0.66)):
+    def vw_proc(self, pwr_pus=(1, 0.2, 0.66), crvs=(1,2,3)):
         """
         """
         '''
@@ -170,6 +170,7 @@ class VW(VoltReg):
             ]
         else:
             raise TypeError(f'unknown eut category {self.c_eut.Cat}')
+        vw_crvs = [vw_crvs[i-1] for i in crvs] + [vw_crvs[i-1+3] for i in crvs]
         if self.c_eut.Prated_prime == 0:
             # for euts incapable of absorption, do not test absorption curves
             vw_crvs = vw_crvs[:3]
@@ -189,7 +190,7 @@ class VW(VoltReg):
 
     def vw_proc_fast(self, pwr_pus=(1, 0.2, 0.66)):
         """
-        run only curve 3, fastest response time
+        run only curve 1
         """
         '''
         t) Repeat test steps d) through s) at EUT power set at 20% and 66% of rated power.
@@ -197,13 +198,13 @@ class VW(VoltReg):
         # pwr_pus = [1, 0.2, 0.66]
         if self.c_eut.Cat == self.c_eut.Category.A:
             vw_crvs = [
-                ('3A_inj', VWCurve.Crv_3A_inj(self.c_eut)),
-                ('3A_abs', VWCurve.Crv_3A_abs(self.c_eut))
+                ('1A_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('1A_abs', VWCurve.Crv_3A_abs(self.c_eut))
             ]
         elif self.c_eut.Cat == self.c_eut.Category.B:
             vw_crvs = [
-                ('3B_inj', VWCurve.Crv_3A_inj(self.c_eut)),
-                ('3B_abs', VWCurve.Crv_3A_abs(self.c_eut))
+                ('1B_inj', VWCurve.Crv_3A_inj(self.c_eut)),
+                ('1B_abs', VWCurve.Crv_3A_abs(self.c_eut))
             ]
         else:
             raise TypeError(f'unknown eut category {self.c_eut.Cat}')
