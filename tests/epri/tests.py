@@ -41,181 +41,186 @@ def std():
     std = EpriStd(env, eut)
     return std
 
-def test_cpf(std):
-    std.cpf_proc()
-    proc = 'cpf'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+class TestVoltreg:
+    def test_cpf(self, std):
+        std.cpf_proc()
+        proc = 'cpf'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_crp(std):
-    std.crp_proc()
-    proc = 'crp'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_crp(self, std):
+        std.crp_proc()
+        proc = 'crp'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_vv(std):
-    std.vv_proc()
-    proc = 'vv'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vv(self, std):
+        std.vv_proc()
+        proc = 'vv'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_vv_vref(std):
-    std.vv_vref_proc()
-    proc = 'vv-vref'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vv_vref(self, std):
+        std.vv_vref_proc()
+        proc = 'vv-vref'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_wv(std):
-    std.wv_proc()
-    proc = 'wv'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_wv(self, std):
+        std.wv_proc()
+        proc = 'wv'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def stest_vw(std):
-    std.vw_proc(pwr_pus=(1,))
-    proc = 'vw'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vw_fast(self, std):
+        std.vw_proc(pwr_pus=(0.66,), crvs=(1,))
+        proc = 'vw'
+        post.post(proc, std.c_env.results[proc], 'vw-fast')
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_vw_1pu(std):
-    std.vw_proc(pwr_pus=(1,))
-    proc = 'vw'
-    post.post(proc, std.c_env.results[proc], 'vw-1pu')
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vw_1pu(self, std):
+        std.vw_proc(pwr_pus=(1,))
+        proc = 'vw'
+        post.post(proc, std.c_env.results[proc], 'vw-1pu')
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_vw_p66pu(std):
-    std.vw_proc(pwr_pus=(0.66,))
-    proc = 'vw'
-    post.post(proc, std.c_env.results[proc], 'vw-p66pu')
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vw_p66pu(self, std):
+        std.vw_proc(pwr_pus=(0.66,))
+        proc = 'vw'
+        post.post(proc, std.c_env.results[proc], 'vw-p66pu')
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_vw_p20pu(std):
-    std.vw_proc(pwr_pus=(0.2,))
-    proc = 'vw'
-    post.post(proc, std.c_env.results[proc], 'vw-p20pu')
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_vw_p20pu(self, std):
+        std.vw_proc(pwr_pus=(0.2,))
+        proc = 'vw'
+        post.post(proc, std.c_env.results[proc], 'vw-p20pu')
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_fwo(std):
-    std.fwo_proc()
-    proc = 'fwo'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+class TestFreqsupp:
+    def test_fwo(self, std):
+        std.fwo_proc()
+        proc = 'fwo'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_fwu(std):
-    std.fwu_proc()
-    proc = 'fwu'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_fwu(self, std):
+        std.fwu_proc()
+        proc = 'fwu'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_pri(std):
-    std.pri_proc()
-    proc = 'pri'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['p_valid', 'q_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+class TestMisc:
+    def test_pri(self, std):
+        std.pri_proc()
+        proc = 'pri'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['p_valid', 'q_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_lap(std):
-    std.lap_proc()
-    proc = 'lap'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ss_valid', 'olrt_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_lap(self, std):
+        std.lap_proc()
+        proc = 'lap'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ss_valid', 'olrt_valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_es_ramp(std):
-    std.es_ramp_proc()
-    proc = 'es-ramp'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_es_ramp(self, std):
+        std.es_ramp_proc()
+        proc = 'es-ramp'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_uvt(std):
-    std.uvt_proc()
-    proc = 'uvt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ceased']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+class TestTrip:
+    def test_uvt(self, std):
+        std.uvt_proc()
+        proc = 'uvt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ceased']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_ovt(std):
-    std.ovt_proc()
-    proc = 'ovt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ceased']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_ovt(self, std):
+        std.ovt_proc()
+        proc = 'ovt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ceased']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_uft(std):
-    std.uft_proc()
-    proc = 'uft'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ceased']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_uft(self, std):
+        std.uft_proc()
+        proc = 'uft'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ceased']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_oft(std):
-    std.oft_proc()
-    proc = 'oft'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ceased']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_oft(self, std):
+        std.oft_proc()
+        proc = 'oft'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['ceased']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_lvrt(std):
-    std.lvrt_proc()
-    proc = 'lvrt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+class TestRidethrough:
+    def test_lvrt(self, std):
+        std.lvrt_proc()
+        proc = 'lvrt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_hvrt(std):
-    std.hvrt_proc()
-    proc = 'hvrt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_hvrt(self, std):
+        std.hvrt_proc()
+        proc = 'hvrt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_lfrt(std):
-    std.lfrt_proc()
-    proc = 'lfrt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_lfrt(self, std):
+        std.lfrt_proc()
+        proc = 'lfrt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
-def test_hfrt(std):
-    std.hfrt_proc()
-    proc = 'hfrt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+    def test_hfrt(self, std):
+        std.hfrt_proc()
+        proc = 'hfrt'
+        post.post(proc, std.c_env.results[proc], proc)
+        pfcols = ['valid']
+        for pfcol in pfcols:
+            assert std.c_env.results[proc].loc[:, pfcol].all()
 
 
 def rtest_pri_corruption(std):

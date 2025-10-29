@@ -181,7 +181,7 @@ class Post:
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
-                        hovertemplate="Value: %{y:.0f}"
+                        hovertemplate="Value: %{y:.2f}"
                     ),
                     row=i+1, col=1
                 )
