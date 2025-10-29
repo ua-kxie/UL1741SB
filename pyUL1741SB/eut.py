@@ -309,16 +309,13 @@ class Eut:
     def set_crp(self, **kwargs):
         raise NotImplementedError
 
-    def set_vv(self, Ena: bool, crv=None):
+    def set_vv(self, Ena: bool, crv=None, vrefEna=None, vrefTr_s=None):
         raise NotImplementedError
 
     def set_wv(self, Ena: bool, crv=None):
         raise NotImplementedError
 
     def set_vw(self, Ena: bool, crv=None):
-        raise NotImplementedError
-
-    def set_vv_vref(self, Ena: bool, Tref_s):
         raise NotImplementedError
 
     def set_vt(self, **kwargs):

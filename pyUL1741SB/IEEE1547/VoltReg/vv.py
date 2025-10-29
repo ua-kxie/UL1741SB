@@ -260,8 +260,7 @@ class VV(VoltReg):
             g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage, and
             current measurements.
             '''
-            self.c_eut.set_vv(Ena=True, crv=crv)
-            self.c_eut.set_vv_vref(Ena=True, Tref_s=Tref_s)
+            self.c_eut.set_vv(Ena=True, crv=crv, vrefEna=True, vrefTr_s=Tref_s)
             self.c_env.sleep(timedelta(seconds=10))
             '''
             h) Step the ac test source voltage to (V3 + V4)/2.
