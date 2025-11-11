@@ -172,8 +172,8 @@ class FreqDist(IEEE1547):
         """"""
         ft_tbl = self.c_eut.freqshalltrip_tbl
         ft_args = {
-            'OF1': {'cts': ft_tbl.OF1.cts_max, 'freq': ft_tbl.OF1.hertz_min},
-            'OF2': {'cts': ft_tbl.OF2.cts_max, 'freq': ft_tbl.OF2.hertz_min}
+            'OF1': {'cts': ft_tbl.OF1.cts_max, 'freq': ft_tbl.OF1.hertz_max},
+            'OF2': {'cts': ft_tbl.OF2.cts_max, 'freq': ft_tbl.OF2.hertz_max}
         }
         '''
         VFO CAPABLE:

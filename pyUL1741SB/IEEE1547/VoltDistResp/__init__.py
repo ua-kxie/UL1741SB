@@ -377,7 +377,7 @@ class VoltDist(IEEE1547):
         def mandop_valid():
             s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[resp_idx:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
-            return s / v > 0.8 * self.predist_apparent_current
+            return (s / v) > (0.8 * self.predist_apparent_current)
 
         if cond.opmd == OpMode.ContOp:
             valid = contop_valid()
