@@ -173,7 +173,7 @@ class VW(VoltReg):
         vw_crvs = [vw_crvs[i-1] for i in crvs] + [vw_crvs[i-1+3] for i in crvs]
         if self.c_eut.Prated_prime == 0:
             # for euts incapable of absorption, do not test absorption curves
-            vw_crvs = vw_crvs[:3]
+            vw_crvs = vw_crvs[:len(crvs)]
         '''
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power control functions.
