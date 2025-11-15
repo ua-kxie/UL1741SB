@@ -62,9 +62,9 @@ class DercEnv(Env):
     def ac_config(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Vac':
-                self.eut.run_step(v_pu=v/self.eut.VN)
+                self.eut.current_input.v = v/self.eut.VN
             elif k == 'freq':
-                self.eut.run_step(f_hz=v)
+                self.eut.current_input.f = v
             elif k == 'rocof':
                 pass
             else:

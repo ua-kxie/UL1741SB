@@ -188,25 +188,25 @@ class DercEut(Eut):
             ul1741sb_cfg.vv.crv.pts[3].y = crv.Q4
             ul1741sb_cfg.vv.olrt = crv.Tr
         if vrefEna is not None:
-            ul1741sb_cfg.vv.AutoVref[0] = 1 if vrefEna else 0
+            ul1741sb_cfg.vv.AutoVref.ena = 1 if vrefEna else 0
         if vrefTr_s is not None:
-            ul1741sb_cfg.vv.AutoVref[1] = vrefTr_s
+            ul1741sb_cfg.vv.AutoVref.olrt = vrefTr_s
 
     def set_wv(self, Ena: bool, crv=None):
         ul1741sb_cfg.wv.ena = 1 if Ena else 0
         if crv is not None:
-            ul1741sb_cfg.wv.crv.pts[0].x = crv.P1
-            ul1741sb_cfg.wv.crv.pts[0].y = crv.Q1
-            ul1741sb_cfg.wv.crv.pts[1].x = crv.P2
-            ul1741sb_cfg.wv.crv.pts[1].y = crv.Q2
-            ul1741sb_cfg.wv.crv.pts[2].x = crv.P3
-            ul1741sb_cfg.wv.crv.pts[2].y = crv.Q3
-            ul1741sb_cfg.wv.crv.pts[3].x = crv.P1_prime
-            ul1741sb_cfg.wv.crv.pts[3].y = crv.Q1_prime
-            ul1741sb_cfg.wv.crv.pts[4].x = crv.P2_prime
-            ul1741sb_cfg.wv.crv.pts[4].y = crv.Q2_prime
-            ul1741sb_cfg.wv.crv.pts[5].x = crv.P3_prime
-            ul1741sb_cfg.wv.crv.pts[5].y = crv.Q3_prime
+            ul1741sb_cfg.wv.crv.pts[0].x = crv.P3_prime
+            ul1741sb_cfg.wv.crv.pts[0].y = crv.Q3_prime
+            ul1741sb_cfg.wv.crv.pts[1].x = crv.P2_prime
+            ul1741sb_cfg.wv.crv.pts[1].y = crv.Q2_prime
+            ul1741sb_cfg.wv.crv.pts[2].x = crv.P1_prime
+            ul1741sb_cfg.wv.crv.pts[2].y = crv.Q1_prime
+            ul1741sb_cfg.wv.crv.pts[3].x = crv.P1
+            ul1741sb_cfg.wv.crv.pts[3].y = crv.Q1
+            ul1741sb_cfg.wv.crv.pts[4].x = crv.P2
+            ul1741sb_cfg.wv.crv.pts[4].y = crv.Q2
+            ul1741sb_cfg.wv.crv.pts[5].x = crv.P3
+            ul1741sb_cfg.wv.crv.pts[5].y = crv.Q3
 
     def set_vw(self, Ena: bool, crv=None):
         ul1741sb_cfg.vw.ena = 1 if Ena else 0
@@ -257,10 +257,10 @@ class DercEut(Eut):
     def set_fw(self, Ena: bool, crv=None):
         ul1741sb_cfg.fw.ena = 1 if Ena else 0
         if crv is not None:
-            ul1741sb_cfg.fw.of[0] = crv.dbof_hz  # db
-            ul1741sb_cfg.fw.of[1] = crv.kof      # k
-            ul1741sb_cfg.fw.uf[0] = crv.dbuf_hz
-            ul1741sb_cfg.fw.uf[1] = crv.kuf
+            ul1741sb_cfg.fw.of.db = crv.dbof_hz  # db
+            ul1741sb_cfg.fw.of.k = crv.kof      # k
+            ul1741sb_cfg.fw.uf.db = crv.dbuf_hz
+            ul1741sb_cfg.fw.uf.k = crv.kuf
             ul1741sb_cfg.fw.olrt = crv.tr
 
     def set_es(self, **kwargs):
@@ -282,14 +282,7 @@ class DercEut(Eut):
             else:
                 raise NotImplementedError
 
-    def run_step(self, v_pu=None, f_hz=None, ap_pu=None, dt=0.1, fault=False):
-        if v_pu is not None:
-            self.current_input.v = v_pu
-        if f_hz is not None:
-            self.current_input.f = f_hz
-        if ap_pu is not None:
-            self.current_input.ap = ap_pu
-
+    def run_step(self, dt=0.1, fault=False):
         derc.ul1741sb_step(byref(self.current_input), dt, fault, byref(self.current_cmd))
 
     @property

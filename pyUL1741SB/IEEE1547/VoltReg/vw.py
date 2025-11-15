@@ -180,6 +180,12 @@ class VW(VoltReg):
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
         self.conn_to_grid()
+        vt_tbl = self.c_eut.voltshalltrip_tbl
+        vt_args = {
+            'UV1': {'cts': vt_tbl.UV1.cts_max, 'vpu': vt_tbl.UV1.volt_pu_min},
+            'UV2': {'cts': vt_tbl.UV2.cts_max, 'vpu': vt_tbl.UV2.volt_pu_min}
+        }
+        self.c_eut.set_vt(**vt_args)
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

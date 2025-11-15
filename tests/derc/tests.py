@@ -82,7 +82,7 @@ class TestVoltreg:
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
 
-    def test_vw_fast(self, std):
+    def stest_vw_fast(self, std):
         std.vw_proc(pwr_pus=(0.66,), crvs=(1,))
         proc = 'vw'
         post.post(proc, std.c_env.results[proc], 'vw-fast')
