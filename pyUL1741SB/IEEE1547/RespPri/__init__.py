@@ -162,7 +162,7 @@ class RespPri(IEEE1547):
             i) Allow the EUT to reach steady state.
             j) Measure ac test source voltage and frequency, and the EUT’s active and reactive power production.
             '''
-            self.c_eut.set_ap(Ena=True, pu=0.5)
+            self.c_eut.set_lap(Ena=True, pu=0.5)
             self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
             # meas vac, fac, p, q
             '''
