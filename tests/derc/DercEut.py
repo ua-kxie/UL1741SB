@@ -39,9 +39,15 @@ class ESCfg(Structure):
         ('of', c_float), ('uf', c_float), ('delay', c_float), ('ramp_time', c_float)
     ]
 
+class FreqWattCfg(Structure):
+    _fields_ = [('db', c_float), ('k', c_float)]
+
 class FWCfg(Structure):
     _fields_ = [
-        ('of', c_float * 2), ('uf', c_float * 2), ('ena', c_int), ('olrt', c_float)
+        ('of', FreqWattCfg),
+        ('uf', FreqWattCfg),
+        ('ena', c_int),
+        ('olrt', c_float)
     ]
 
 class VWCfg(Structure):
@@ -56,10 +62,13 @@ class CPFCfg(Structure):
 class CRPCfg(Structure):
     _fields_ = [('ena', c_int), ('var', c_float)]
 
+class AutoVrefCfg(Structure):
+    _fields_ = [("ena", c_int), ("olrt", c_float)]
+
 class VVCfg(Structure):
     _fields_ = [
         ('ena', c_int), ('vref', c_float), ('crv', VoltVarCrv), ('olrt', c_float),
-        ('AutoVref', c_int * 2)
+        ('AutoVref', AutoVrefCfg)
     ]
 
 class WVCfg(Structure):
@@ -90,17 +99,93 @@ class DercEut(Eut):
         # Initialize DLL
         derc.ul1741sb_step.argtypes = [POINTER(UL1741SbInput), c_float, c_bool, POINTER(UL1741SbCmd)]
         derc.ul1741sb_step.restype = c_int
-        derc.ul1741sb_init_defaults.argtypes = []
-        derc.ul1741sb_init_defaults.restype = c_int
-        derc.ul1741sb_init_defaults()
 
         ul1741sb_cfg.es.ena = 1  # ENABLED
-        ul1741sb_cfg.es.ov = 1.20    # 120% over-voltage
-        ul1741sb_cfg.es.uv = 0.70    # 70% under-voltage
-        ul1741sb_cfg.es.of = 62.0    # 62 Hz over-frequency
-        ul1741sb_cfg.es.uf = 58.0    # 58 Hz under-frequency
-        ul1741sb_cfg.es.delay = 0.0  # Instant enter service (no delay)
-        ul1741sb_cfg.es.ramp_time = 0.0  # Instant ramp-up
+        ul1741sb_cfg.es.ov = 1.20  # 120% over-voltage
+        ul1741sb_cfg.es.uv = 0.70  # 70% under-voltage
+        ul1741sb_cfg.es.of = 62.0  # 62 Hz over-frequency
+        ul1741sb_cfg.es.uf = 58.0  # 58 Hz under-frequency
+        ul1741sb_cfg.es.delay = 0.016  # 0.16 seconds delay
+        ul1741sb_cfg.es.ramp_time = 0.016  # 5 minutes ramp time
+
+        # Voltage trip defaults (Category I)
+        ul1741sb_cfg.trips.vt.ov1.mag = 1.10  # 110%
+        ul1741sb_cfg.trips.vt.ov1.cts = 0.16  # 0.16s
+        ul1741sb_cfg.trips.vt.ov2.mag = 1.20  # 120%
+        ul1741sb_cfg.trips.vt.ov2.cts = 0.16  # 0.16s
+        ul1741sb_cfg.trips.vt.uv1.mag = 0.88  # 88%
+        ul1741sb_cfg.trips.vt.uv1.cts = 2.00  # 2.0s
+        ul1741sb_cfg.trips.vt.uv2.mag = 0.50  # 50%
+        ul1741sb_cfg.trips.vt.uv2.cts = 0.16  # 0.16s
+
+        # Frequency trip defaults (Category I)
+        ul1741sb_cfg.trips.ft.of1.mag = 61.2  # 61.2 Hz
+        ul1741sb_cfg.trips.ft.of1.cts = 300.0  # 5 minutes
+        ul1741sb_cfg.trips.ft.of2.mag = 62.0  # 62.0 Hz
+        ul1741sb_cfg.trips.ft.of2.cts = 0.16  # 0.16s
+        ul1741sb_cfg.trips.ft.uf1.mag = 58.8  # 58.8 Hz
+        ul1741sb_cfg.trips.ft.uf1.cts = 300.0  # 5 minutes
+        ul1741sb_cfg.trips.ft.uf2.mag = 57.0  # 57.0 Hz
+        ul1741sb_cfg.trips.ft.uf2.cts = 0.16  # 0.16s
+
+        # Frequency-Watt defaults
+        ul1741sb_cfg.fw.ena = 1  # ENABLED
+        ul1741sb_cfg.fw.of.db = 0.036
+        ul1741sb_cfg.fw.of.k = 0.05  # 5% power reduction per Hz
+        ul1741sb_cfg.fw.uf.db = 0.036
+        ul1741sb_cfg.fw.uf.k = 0.05  # 5% power reduction per Hz
+        ul1741sb_cfg.fw.olrt = 5.0  # 5 seconds response time
+
+        # Volt-Watt defaults
+        ul1741sb_cfg.vw.ena = 0  # DISABLED
+        ul1741sb_cfg.vw.crv.pts[0].x = 1.06  # 106% voltage
+        ul1741sb_cfg.vw.crv.pts[0].y = 1.00  # 100% power
+        ul1741sb_cfg.vw.crv.pts[1].x = 1.10  # 110% voltage
+        ul1741sb_cfg.vw.crv.pts[1].y = 0.00  # 0% power
+        ul1741sb_cfg.vw.olrt = 5.0  # 5 seconds response time
+
+        # Limit Active Power defaults
+        ul1741sb_cfg.lap.ena = 0  # DISABLED
+        ul1741sb_cfg.lap.ap = 1.00  # 100% power limit
+
+        # Constant Power Factor defaults
+        ul1741sb_cfg.cpf.ena = 1  # ENABLED
+        ul1741sb_cfg.cpf.pf = 1.00  # Unity power factor
+        ul1741sb_cfg.cpf.exct = 1  # OVER_EXCITED (assuming 1 = OVER_EXCITED)
+
+        # Constant Reactive Power defaults
+        ul1741sb_cfg.crp.ena = 0  # DISABLED
+        ul1741sb_cfg.crp.var = 0.00  # Zero reactive power
+
+        # Volt-Var defaults
+        ul1741sb_cfg.vv.ena = 0  # DISABLED
+        ul1741sb_cfg.vv.vref = 1.00  # 100% reference voltage
+        ul1741sb_cfg.vv.crv.pts[0].x = 0.92  # 92% voltage
+        ul1741sb_cfg.vv.crv.pts[0].y = 0.44  # 44% reactive power (injection)
+        ul1741sb_cfg.vv.crv.pts[1].x = 0.98  # 98% voltage
+        ul1741sb_cfg.vv.crv.pts[1].y = 0.00  # 0% reactive power
+        ul1741sb_cfg.vv.crv.pts[2].x = 1.02  # 102% voltage
+        ul1741sb_cfg.vv.crv.pts[2].y = 0.00  # 0% reactive power
+        ul1741sb_cfg.vv.crv.pts[3].x = 1.08  # 108% voltage
+        ul1741sb_cfg.vv.crv.pts[3].y = -0.44  # 44% reactive power (absorption)
+        ul1741sb_cfg.vv.olrt = 5.0  # 5 seconds response time
+        ul1741sb_cfg.vv.AutoVref.ena = 0  # DISABLED
+        ul1741sb_cfg.vv.AutoVref.olrt = 300.0  # 5 minutes response time
+
+        # Watt-Var defaults
+        ul1741sb_cfg.wv.ena = 0  # DISABLED
+        ul1741sb_cfg.wv.crv.pts[0].x = -1.0  # 0% power
+        ul1741sb_cfg.wv.crv.pts[0].y = 0.44  # 44% reactive power
+        ul1741sb_cfg.wv.crv.pts[1].x = -0.5  # 20% power
+        ul1741sb_cfg.wv.crv.pts[1].y = 0.00  # 44% reactive power
+        ul1741sb_cfg.wv.crv.pts[2].x = 0.00  # 30% power
+        ul1741sb_cfg.wv.crv.pts[2].y = 0.00  # 0% reactive power
+        ul1741sb_cfg.wv.crv.pts[3].x = 0.00  # 70% power
+        ul1741sb_cfg.wv.crv.pts[3].y = 0.00  # 0% reactive power
+        ul1741sb_cfg.wv.crv.pts[4].x = 0.50  # 80% power
+        ul1741sb_cfg.wv.crv.pts[4].y = 0.00  # 44% reactive power (absorption)
+        ul1741sb_cfg.wv.crv.pts[5].x = 1.00  # 100% power
+        ul1741sb_cfg.wv.crv.pts[5].y = -0.44  # 44% reactive power (absorption)
 
         # EUT configuration
         self.Prated = 5000
@@ -284,6 +369,7 @@ class DercEut(Eut):
 
     def run_step(self, dt=0.1, fault=False):
         derc.ul1741sb_step(byref(self.current_input), dt, fault, byref(self.current_cmd))
+        print('~')
 
     @property
     def p_out_w(self):
