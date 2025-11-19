@@ -3,7 +3,7 @@ from pyUL1741SB import Eut
 from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
 
 # Load DLL
-derc = CDLL('tests/derc/derc.dll')
+derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\Supervisory1741SB\derc\build\derc.dll')
 
 # Structures matching derc.h
 class CrvPt(Structure):
