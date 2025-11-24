@@ -5,7 +5,16 @@ import random
 Prated = 5e3
 class Env:  # step voltage, power, sleep, etc.
     def __init__(self):
+        self.results = {}
         self.time = datetime.now()
+
+    def validate(self, dct_label: dict):
+        df_row = pd.DataFrame([dct_label])
+        proc = dct_label.pop('proc')
+        if proc in self.results.keys():
+            self.results[proc] = pd.concat([self.results[proc], df_row])
+        else:
+            self.results[proc] = df_row
 
     def elapsed_since(self, interval: timedelta, start: datetime) -> bool:
         # return datetime.now() - start >= interval - what this should do during actual validation
@@ -59,6 +68,3 @@ class Env:  # step voltage, power, sleep, etc.
 
     def log(self, **kwargs):
         print(kwargs['msg'])
-
-    def validate(self, dct_label: dict):
-        print(''.join([f'{k}: {v}; ' for k, v in dct_label.items()]))

@@ -3,7 +3,7 @@ from pyUL1741SB import Eut
 from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
 
 # Load DLL
-derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\Supervisory1741SB\derc\build\derc.dll')
+derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\DerC\test\dll\build\derc.dll')
 
 # Structures matching derc.h
 class CrvPt(Structure):
@@ -77,7 +77,7 @@ class WVCfg(Structure):
 class TripsCfg(Structure):
     _fields_ = [('vt', VoltTrips), ('ft', FreqTrips)]
 
-class UL1741SbCfg(Structure):
+class DerCCfg(Structure):
     _fields_ = [
         ('es', ESCfg),
         ('trips', TripsCfg),
@@ -85,19 +85,19 @@ class UL1741SbCfg(Structure):
         ('cpf', CPFCfg), ('crp', CRPCfg), ('vv', VVCfg), ('wv', WVCfg)
     ]
 
-class UL1741SbInput(Structure):
+class DerCInput(Structure):
     _fields_ = [('v', c_float), ('f', c_float), ('ap', c_float)]
 
-class UL1741SbCmd(Structure):
+class DerCCmd(Structure):
     _fields_ = [('p', c_float), ('q', c_float), ('poc', c_int)]
 
 class DercEut(Eut):
     def __init__(self, **kwargs):
         # Initialize DLL
-        derc.ul1741sb_step.argtypes = [POINTER(UL1741SbInput), c_float, c_bool, POINTER(UL1741SbCmd)]
-        derc.ul1741sb_step.restype = c_int
+        derc.derc_step.argtypes = [POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
+        derc.derc_step.restype = c_int
         
-        self.cfg = UL1741SbCfg.in_dll(derc, 'ul1741sb_cfg')
+        self.cfg = DerCCfg.in_dll(derc, 'derc_cfg')
 
         self.cfg.es.ena = 1  # ENABLED
         self.cfg.es.ov = 1.20  # 120% over-voltage
@@ -220,8 +220,8 @@ class DercEut(Eut):
             delta_Psmall=0.1,
         )
 
-        self.current_cmd = UL1741SbCmd(p=0, q=0, poc=0)
-        self.current_input = UL1741SbInput(v=1.0, f=60.0, ap=1.0)
+        self.current_cmd = DerCCmd(p=0, q=0, poc=0)
+        self.current_input = DerCInput(v=1.0, f=60.0, ap=1.0)
 
     def dc_config(self, **kwargs):
         pass
@@ -367,7 +367,8 @@ class DercEut(Eut):
                 raise NotImplementedError
 
     def run_step(self, dt=0.1, fault=False):
-        derc.ul1741sb_step(byref(self.current_input), dt, fault, byref(self.current_cmd))
+        for i in range(int(round(dt/1e-3))):
+            derc.derc_step(byref(self.current_input), 1e-3, fault, byref(self.current_cmd))
 
     @property
     def p_out_w(self):

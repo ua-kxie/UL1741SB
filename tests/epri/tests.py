@@ -32,7 +32,8 @@ class EpriStd(UL1741SB):
             self.c_env.sleep(dt.timedelta(seconds=1))
         return None
 
-post = Post('tests/epri/results/')
+outdir = 'tests/epri/results/'
+post = Post(outdir)
 
 @pytest.fixture
 def std():
@@ -141,12 +142,7 @@ class TestMisc:
             assert std.c_env.results[proc].loc[:, pfcol].all()
 
     def test_lap(self, std):
-        std.lap_proc()
-        proc = 'lap'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.lap(outdir)
 
     def test_es_ramp(self, std):
         std.es_ramp_proc()

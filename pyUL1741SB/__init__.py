@@ -26,7 +26,7 @@ from plotly.subplots import make_subplots
 class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist, IEEE1547):
     pass
 
-palette = {
+boolean_palette = {
     False: 'rgba(215, 25, 25, 0.05)',
     True: 'rgba(25, 215, 25, 0.05)',
 }
@@ -192,7 +192,7 @@ class Post:
             label = labelfcn(row)
             fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
                           annotation_position='top left',
-                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+                          fillcolor=boolean_palette[all(row[pfcol] for pfcol in pfcols)])
 
         self.common(name, fig, titletext)
 
@@ -222,7 +222,7 @@ class Post:
             label = labelfcn(row)
             fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
                           annotation_position='top left',
-                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+                          fillcolor=boolean_palette[all(row[pfcol] for pfcol in pfcols)])
 
         self.common(name, fig, titletext)
 
@@ -267,7 +267,7 @@ class Post:
             label = labelfcn(row)
             fig.add_vrect(x0=start, x1=end, annotation_text=label, line_width=0.2, annotation_textangle=90,
                           annotation_position='top left',
-                          fillcolor=palette[all(row[pfcol] for pfcol in pfcols)])
+                          fillcolor=boolean_palette[all(row[pfcol] for pfcol in pfcols)])
 
         self.common(name, fig, titletext)
 

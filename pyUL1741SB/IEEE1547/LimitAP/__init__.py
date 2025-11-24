@@ -1,10 +1,23 @@
 from datetime import timedelta
+
+import pandas as pd
+
 from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
-
+from pyUL1741SB import viz
+proc = 'lap'
 
 class LAP(IEEE1547):
+    def lap(self, outdir):
+        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
+        self.meas = []  # df ts-index P Q V F
+        self.crit = {'P': []}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        try:
+            self.lap_proc()
+        finally:
+            self.lap_viz(outdir)
+
     def lap_proc(self):
         """"""
         dflt_fwchar = {
@@ -80,30 +93,68 @@ class LAP(IEEE1547):
                     vw_val = dflt_vwcrv.y_of_x(x) * self.c_eut.Prated
                     return min(vw_val, aplim_pu * self.c_eut.Prated)
 
-                lst_tup_steps = [
-                    # step label, perturbation, y_ss_target, olrt
-                    ('c', lambda: self.c_eut.set_lap(Ena=True, pu=aplim_pu), aplim_pu * self.c_eut.Prated, timedelta(seconds=30)),
-                    ('d1', lambda: self.c_env.ac_config(freq=59, rocof=self.c_eut.rocof()), y_of_fw(59),
-                     timedelta(seconds=dflt_fwchar.tr)),
-                    ('d2', lambda: self.c_env.ac_config(freq=60, rocof=self.c_eut.rocof()), y_of_fw(60),
-                     timedelta(seconds=dflt_fwchar.tr)),
-                    ('e1', lambda: self.c_env.ac_config(freq=61, rocof=self.c_eut.rocof()), y_of_fw(61),
-                     timedelta(seconds=dflt_fwchar.tr)),
-                    ('e2', lambda: self.c_env.ac_config(freq=60, rocof=self.c_eut.rocof()), y_of_fw(60),
-                     timedelta(seconds=dflt_fwchar.tr)),
-                    ('f1', lambda: self.c_env.ac_config(Vac=1.08 * self.c_eut.VN), y_of_vw(1.08), timedelta(seconds=dflt_vwcrv.Tr)),
-                    ('f2', lambda: self.c_env.ac_config(Vac=self.c_eut.VN), y_of_vw(1.0), timedelta(seconds=dflt_vwcrv.Tr))
-                ]
-                for tup in lst_tup_steps:
+                dct_steps = {
+                    'c': {
+                        'set_x': lambda x: self.c_eut.set_lap(Ena=True, pu=aplim_pu),
+                        'x': 0,
+                        'xMRA': 0,
+                        'y_of_x': lambda x: aplim_pu * self.c_eut.Prated,
+                        'olrt': timedelta(seconds=self.c_eut.olrt.lap),
+                    },
+                    'd1': {
+                        'set_x': lambda x: self.c_env.ac_config(freq=x, rocof=self.c_eut.rocof()),
+                        'x': 59,
+                        'xMRA': self.c_eut.mra.static.F,
+                        'y_of_x': y_of_fw,
+                        'olrt': timedelta(seconds=dflt_fwchar.tr),
+                    },
+                    'd2': {
+                        'set_x': lambda x: self.c_env.ac_config(freq=x, rocof=self.c_eut.rocof()),
+                        'x': 60,
+                        'xMRA': self.c_eut.mra.static.F,
+                        'y_of_x': y_of_fw,
+                        'olrt': timedelta(seconds=dflt_fwchar.tr),
+                    },
+                    'e1': {
+                        'set_x': lambda x: self.c_env.ac_config(freq=x, rocof=self.c_eut.rocof()),
+                        'x': 61,
+                        'xMRA': self.c_eut.mra.static.F,
+                        'y_of_x': y_of_fw,
+                        'olrt': timedelta(seconds=dflt_fwchar.tr),
+                    },
+                    'e2': {
+                        'set_x': lambda x: self.c_env.ac_config(freq=x, rocof=self.c_eut.rocof()),
+                        'x': 60,
+                        'xMRA': self.c_eut.mra.static.F,
+                        'y_of_x': y_of_fw,
+                        'olrt': timedelta(seconds=dflt_fwchar.tr),
+                    },
+                    'f1': {
+                        'set_x': lambda x: self.c_env.ac_config(Vac=x * self.c_eut.VN),
+                        'x': 1.08,
+                        'y_of_x': y_of_vw,
+                        'xMRA': self.c_eut.mra.static.V,
+                        'olrt': timedelta(seconds=dflt_vwcrv.Tr),
+                    },
+                    'f2': {
+                        'set_x': lambda x: self.c_env.ac_config(Vac=x * self.c_eut.VN),
+                        'x': 1.0,
+                        'y_of_x': y_of_vw,
+                        'xMRA': self.c_eut.mra.static.V,
+                        'olrt': timedelta(seconds=dflt_vwcrv.Tr),
+                    }
+                }
+
+                for key, dct_step in dct_steps.items():
                     dct_label = {
-                        'proc': 'lap',
+                        'proc': proc,
                         'iter': i,
                         'aplim_pu': aplim_pu,
-                        'step': tup[0],
+                        'step': key,
                     }
-                    self.lap_validation(dct_label, *tup[1:])
+                    self.lap_validation(dct_label, **dct_step)
 
-    def lap_validation(self, dct_label, perturbation, y_ss_target, olrt: timedelta):
+    def lap_validation(self, dct_label, set_x, x, y_of_x, xMRA, olrt):
         """"""
         '''
         IEEE 1547.1-2018
@@ -142,45 +193,46 @@ class LAP(IEEE1547):
         '''
         yarg = 'P'
         yMRA = self.c_eut.mra.static.P
-        df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, (yarg,))
+        perturbation = lambda: set_x(x)
+        df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
 
-        y_init = df_meas.loc[t_init, yarg]
-        y_olrt = df_meas.loc[t_olrt, yarg]
+        y_ss_target = y_of_x(x)
+        y_ss_min, y_ss_max = self.range_4p2(y_of_x, x, xMRA, yMRA)
+
         y_ss = df_meas.loc[t_ss0:, yarg].mean()
+        ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        olrt_s = olrt.total_seconds()
-        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
-        y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, 0, yMRA)
-        y_olrt_target = y_of_t(olrt_s)
-        olrt_valid = y_olrt <= y_olrt_max
+        # self.c_env.validate(dct_label={
+        #     **dct_label,
+        #     't_init': t_init,
+        #     't_olrt': t_olrt,
+        #     't_ss0': t_ss0,
+        #     't_ss1': t_ss1,
+        #
+        #     'y_ss': y_ss,
+        #     'y_ss_min': self.c_eut.Prated_prime,
+        #     'y_ss_target': y_ss_target,
+        #     'y_ss_max': y_ss_max,
+        #
+        #     'ss_valid': ss_valid,
+        # })
 
-
-        y_ss_max = y_ss_target + self.mra_scale * yMRA
-        ss_valid = y_ss <= y_ss_max
-
-        df_meas['y_ss_target'] = y_ss_target
-        df_meas['y_min'] = 0
-        df_meas['y_max'] = y_ss_max
-
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_init': t_init,
-            't_olrt': t_olrt,
-            't_ss0': t_ss0,
-            't_ss1': t_ss1,
-
-            'y_init': y_init,
-
-            'y_olrt_min': self.c_eut.Prated_prime,
-            'y_olrt_target': y_olrt_target,
-            'y_olrt_max': y_olrt_max,
-
-            'y_ss_min': self.c_eut.Prated_prime,
-            'y_ss_target': y_ss_target,
-            'y_ss_max': y_ss_max,
-
-            'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid,
-            'data': df_meas
+        self.meas.append(df_meas)
+        self.crit['P'].append(pd.DataFrame({
+            'ts': [t_init, t_olrt, t_ss0, t_ss1],
+            'min': [y_ss_min] * 4,
+            'targ': [y_ss_target] * 4,
+            'max': [y_ss_max] * 4,
+        }).set_index('ts'))
+        self.epochs.append({
+            'start': t_init,
+            'end': t_ss1,
+            'label': ''.join(f"{k}: {v}; " for k, v in {**dct_label, 'ss_valid': ss_valid}.items()),
+            'passed': ss_valid
         })
+
+    def lap_viz(self, outdir):
+        # visualization
+        self.crit['P'] = pd.concat(self.crit['P'])
+        viz.draw_new(proc, pd.concat(self.meas), self.crit, self.epochs, outdir)

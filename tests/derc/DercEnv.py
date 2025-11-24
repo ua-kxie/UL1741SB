@@ -51,14 +51,6 @@ class DercEnv(Env):
     def log(self, **kwargs):
         print(kwargs['msg'])
 
-    def validate(self, dct_label: dict):
-        df_row = pd.DataFrame([dct_label])
-        proc = dct_label.pop('proc')
-        if proc in self.results.keys():
-            self.results[proc] = pd.concat([self.results[proc], df_row])
-        else:
-            self.results[proc] = df_row
-
     def ac_config(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'Vac':
