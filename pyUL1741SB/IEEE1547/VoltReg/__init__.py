@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Callable
 from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547 import IEEE1547
+import pandas as pd
 
 class VoltReg(IEEE1547):
     def vv_wv_step_validate(self, dct_label: dict, perturb: Callable, xarg, yarg, y_of_x: Callable,
@@ -105,29 +106,18 @@ class VoltReg(IEEE1547):
         df_meas['y_min'] = y_ss_min
         df_meas['y_max'] = y_ss_max
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_init': t_init,
-            't_olrt': t_olrt,
-            't_ss0': t_ss0,
-            't_ss1': t_ss1,
-
-            'y_init': y_init,
-
-            'y_olrt': y_olrt,
-            'y_olrt_target': y_olrt_target,
-            'y_olrt_min': y_olrt_min,
-            'y_olrt_max': y_olrt_max,
-
-            'y_ss': y_ss,
-            'y_ss_target': y_ss_target,
-            'y_ss_min': y_ss_min,
-            'y_ss_max': y_ss_max,
-            
-            'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid,
-
-            'data': df_meas
+        self.meas.append(df_meas)
+        self.crit['Q'].append(pd.DataFrame({
+            'ts': [t_init, t_olrt, t_ss0, t_ss1],
+            'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
+            'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
+            'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
+        }).set_index('ts'))
+        self.epochs.append({
+            'start': t_init,
+            'end': t_ss1,
+            'label': ''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            'passed': olrt_valid and ss_valid
         })
 
     def cpf_crp_meas_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
@@ -138,7 +128,6 @@ class VoltReg(IEEE1547):
         '''
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
         self.c_env.log(msg=f"1741SB {slabel}")
-        xarg, yarg = 'P', 'Q'
-        meas_args = (xarg, yarg)
+        meas_args = ('P', 'Q', 'V', 'F')
         df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, meas_args)
         self.cpf_crp_validate(dct_label, df_meas, olrt, y_of_x)

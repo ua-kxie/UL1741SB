@@ -44,20 +44,10 @@ def std():
 
 class TestVoltreg:
     def test_cpf(self, std):
-        std.cpf_proc()
-        proc = 'cpf'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.cpf(outdir)
 
     def test_crp(self, std):
-        std.crp_proc()
-        proc = 'crp'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.crp(outdir)
 
     def test_vv(self, std):
         std.vv_proc()

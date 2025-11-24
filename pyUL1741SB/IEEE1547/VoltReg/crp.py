@@ -2,13 +2,20 @@ from datetime import timedelta
 from pyUL1741SB import Eut, Env
 
 from typing import Callable
-
+from pyUL1741SB import viz
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+import pandas as pd
 
-
+proc = 'crp'
 class CRP(VoltReg):
-    def crp_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
-        self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
+    def crp(self, outdir):
+        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
+        self.meas = []  # df ts-index P Q V F
+        self.crit = {'Q': []}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        try:
+            self.crp_proc()
+        finally:
+            self.crp_viz(outdir)
 
     def crp_proc(self):
         """
@@ -75,7 +82,7 @@ class CRP(VoltReg):
                 }
                 for k, perturbation in dct_steps.items():
                     self.crp_step_validate(
-                        dct_label={'proc': 'crp', 'Qset': f'{Qpu:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': proc, 'Qset': f'{Qpu:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturb=perturbation,
                         olrt=olrt,
                         y_of_x=lambda x: Qpu * self.c_eut.Qrated_inj if Qpu > 0 else Qpu * self.c_eut.Qrated_abs,
@@ -94,8 +101,18 @@ class CRP(VoltReg):
                 s) Verify all reactive/active power control functions are disabled.
                 '''
                 self.crp_step_validate(
-                    dct_label={'proc': 'crp', 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
+                    dct_label={'proc': proc, 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturb=lambda: self.c_eut.set_crp(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )
+
+
+    def crp_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
+        self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
+
+
+    def crp_viz(self, outdir):
+        # visualization
+        self.crit['Q'] = pd.concat(self.crit['Q'])
+        viz.draw_new(proc, pd.concat(self.meas), self.crit, self.epochs, outdir)

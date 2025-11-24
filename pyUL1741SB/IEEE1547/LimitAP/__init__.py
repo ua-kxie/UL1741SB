@@ -203,21 +203,6 @@ class LAP(IEEE1547):
         y_ss = df_meas.loc[t_ss0:, yarg].mean()
         ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        # self.c_env.validate(dct_label={
-        #     **dct_label,
-        #     't_init': t_init,
-        #     't_olrt': t_olrt,
-        #     't_ss0': t_ss0,
-        #     't_ss1': t_ss1,
-        #
-        #     'y_ss': y_ss,
-        #     'y_ss_min': self.c_eut.Prated_prime,
-        #     'y_ss_target': y_ss_target,
-        #     'y_ss_max': y_ss_max,
-        #
-        #     'ss_valid': ss_valid,
-        # })
-
         self.meas.append(df_meas)
         self.crit['P'].append(pd.DataFrame({
             'ts': [t_init, t_olrt, t_ss0, t_ss1],
