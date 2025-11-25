@@ -9,13 +9,11 @@ import pandas as pd
 proc = 'crp'
 class CRP(VoltReg):
     def crp(self, outdir):
-        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
-        self.meas = []  # df ts-index P Q V F
-        self.crit = {'Q': []}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        self.validator = viz.Validator(proc)
         try:
             self.crp_proc()
         finally:
-            self.crp_viz(outdir)
+            self.validator.draw_new(outdir)
 
     def crp_proc(self):
         """
@@ -111,8 +109,3 @@ class CRP(VoltReg):
     def crp_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
 
-
-    def crp_viz(self, outdir):
-        # visualization
-        self.crit['Q'] = pd.concat(self.crit['Q'])
-        viz.draw_new(proc, pd.concat(self.meas), self.crit, self.epochs, outdir)

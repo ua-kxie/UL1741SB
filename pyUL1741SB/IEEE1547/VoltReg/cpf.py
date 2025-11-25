@@ -1,9 +1,7 @@
 from datetime import timedelta
-from pyUL1741SB import Eut, Env
 
 from typing import Callable
 import math
-import pandas as pd
 from pyUL1741SB import viz
 
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
@@ -12,13 +10,11 @@ proc = 'cpf'
 
 class CPF(VoltReg):
     def cpf(self, outdir):
-        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
-        self.meas = []  # df ts-index P Q V F
-        self.crit = {'Q': []}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        self.validator = viz.Validator(proc)
         try:
             self.cpf_proc()
         finally:
-            self.cpf_viz(outdir)
+            self.validator.draw_new(outdir)
 
     def cpf_proc(self):
         """
@@ -171,8 +167,3 @@ class CPF(VoltReg):
     def cpf_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
 
-
-    def cpf_viz(self, outdir):
-        # visualization
-        self.crit['Q'] = pd.concat(self.crit['Q'])
-        viz.draw_new(proc, pd.concat(self.meas), self.crit, self.epochs, outdir)

@@ -6,17 +6,16 @@ from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB import viz
+
 proc = 'lap'
 
 class LAP(IEEE1547):
     def lap(self, outdir):
-        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
-        self.meas = []  # df ts-index P Q V F
-        self.crit = {'P': []}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        self.validator = viz.Validator(proc)
         try:
             self.lap_proc()
         finally:
-            self.lap_viz(outdir)
+            self.validator.draw_new(outdir)
 
     def lap_proc(self):
         """"""
@@ -203,21 +202,18 @@ class LAP(IEEE1547):
         y_ss = df_meas.loc[t_ss0:, yarg].mean()
         ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        self.meas.append(df_meas)
-        self.crit['P'].append(pd.DataFrame({
-            'ts': [t_init, t_olrt, t_ss0, t_ss1],
-            'min': [y_ss_min] * 4,
-            'targ': [y_ss_target] * 4,
-            'max': [y_ss_max] * 4,
-        }).set_index('ts'))
-        self.epochs.append({
-            'start': t_init,
-            'end': t_ss1,
-            'label': ''.join(f"{k}: {v}; " for k, v in {**dct_label, 'ss_valid': ss_valid}.items()),
-            'passed': ss_valid
-        })
-
-    def lap_viz(self, outdir):
-        # visualization
-        self.crit['P'] = pd.concat(self.crit['P'])
-        viz.draw_new(proc, pd.concat(self.meas), self.crit, self.epochs, outdir)
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'P': pd.DataFrame({
+                    'ts': [t_init, t_olrt, t_ss0, t_ss1],
+                    'min': [y_ss_min] * 4,
+                    'targ': [y_ss_target] * 4,
+                    'max': [y_ss_max] * 4,
+                }).set_index('ts'),
+            },
+            start=t_init,
+            end=t_ss1,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'ss_valid': ss_valid}.items()),
+            passed=ss_valid
+        )

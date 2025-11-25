@@ -106,19 +106,21 @@ class VoltReg(IEEE1547):
         df_meas['y_min'] = y_ss_min
         df_meas['y_max'] = y_ss_max
 
-        self.meas.append(df_meas)
-        self.crit['Q'].append(pd.DataFrame({
-            'ts': [t_init, t_olrt, t_ss0, t_ss1],
-            'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
-            'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
-            'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
-        }).set_index('ts'))
-        self.epochs.append({
-            'start': t_init,
-            'end': t_ss1,
-            'label': ''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
-            'passed': olrt_valid and ss_valid
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'Q': pd.DataFrame({
+                    'ts': [t_init, t_olrt, t_ss0, t_ss1],
+                    'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
+                    'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
+                    'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
+                }).set_index('ts'),
+            },
+            start=t_init,
+            end=t_ss1,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            passed=olrt_valid and ss_valid
+        )
 
     def cpf_crp_meas_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta,
                               y_of_x: Callable[[float], float]):
