@@ -124,11 +124,25 @@ class VWCurve:
 
 
 proc = 'vw'
-
-
 class VW(VoltReg):
-    def vw(self, outdir, final, **kwargs):
-        self.validator = viz.Validator(proc)
+    def vw_1pu(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vw-1pu')
+        try:
+            self.vw_proc(**kwargs)
+            final()
+        finally:
+            self.validator.draw_new(outdir)
+
+    def vw_pu66(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vw-pu66')
+        try:
+            self.vw_proc(**kwargs)
+            final()
+        finally:
+            self.validator.draw_new(outdir)
+
+    def vw_pu20(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vw-pu20')
         try:
             self.vw_proc(**kwargs)
             final()
@@ -306,6 +320,7 @@ class VW(VoltReg):
         # ss eval with 1741SB amendment
         y_ss_target = y_of_x(x_ss)
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
+        y_ss_min = self.c_eut.Prated_prime
         ss_valid = y_ss <= y_ss_max
 
         self.validator.record_epoch(

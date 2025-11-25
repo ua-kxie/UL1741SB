@@ -1,5 +1,5 @@
 import pytest
-from pyUL1741SB import UL1741SB, Post
+from pyUL1741SB import UL1741SB
 from EpriEnv import EpriEnv
 from EpriEut import EpriEut
 import plotly
@@ -36,8 +36,6 @@ class EpriStd(UL1741SB):
 
 
 outdir = 'tests/epri/results/'
-post = Post(outdir)
-
 
 @pytest.fixture
 def std():
@@ -46,75 +44,77 @@ def std():
     std = EpriStd(env, eut)
     return std
 
+def final():
+    pass
 
 class TestVoltreg:
     def test_cpf(self, std):
-        std.cpf(outdir, lambda: None)
+        std.cpf(outdir, final)
 
     def test_crp(self, std):
-        std.crp(outdir, lambda: None)
+        std.crp(outdir, final)
 
     def test_vv(self, std):
-        std.vv(outdir, lambda: None)
+        std.vv(outdir, final)
 
     def test_vv_vref(self, std):
-        std.vv_vref(outdir, lambda: None)
+        std.vv_vref(outdir, final)
 
     def test_wv(self, std):
-        std.wv(outdir, lambda: None)
+        std.wv(outdir, final)
 
     def test_vw_1pu(self, std):
-        std.vw(outdir, lambda: None, pwr_pus=(1.0,))
+        std.vw_1pu(outdir, final, pwr_pus=(1.0,))
 
     def test_vw_p66pu(self, std):
-        std.vw(outdir, lambda: None, pwr_pus=(0.66,))
+        std.vw_pu66(outdir, final, pwr_pus=(0.66,))
 
     def test_vw_p20pu(self, std):
-        std.vw(outdir, lambda: None, pwr_pus=(0.2,))
+        std.vw_pu20(outdir, final, pwr_pus=(0.2,))
 
 
 class TestFreqsupp:
     def test_fwo(self, std):
-        std.fwo(outdir, lambda: None)
+        std.fwo(outdir, final)
 
     def test_fwu(self, std):
-        std.fwu(outdir, lambda: None)
+        std.fwu(outdir, final)
 
 
 class TestMisc:
     def test_pri(self, std):
-        std.pri(outdir, lambda: None)
+        std.pri(outdir, final)
 
     def test_lap(self, std):
-        std.lap(outdir, lambda: None)
+        std.lap(outdir, final)
 
     def test_es_ramp(self, std):
-        std.es_ramp(outdir, lambda: None)
+        std.es_ramp(outdir, final)
 
 
 class TestTrip:
     def test_uvt(self, std):
-        std.uvt(outdir, lambda: None)
+        std.uvt(outdir, final)
 
     def test_ovt(self, std):
-        std.ovt(outdir, lambda: None)
+        std.ovt(outdir, final)
 
     def test_uft(self, std):
-        std.uft(outdir, lambda: None)
+        std.uft(outdir, final)
 
     def test_oft(self, std):
-        std.oft(outdir, lambda: None)
+        std.oft(outdir, final)
 
 
 class TestRidethrough:
     def test_lvrt(self, std):
-        std.lvrt(outdir, lambda: None)
+        std.lvrt(outdir, final)
 
     def test_hvrt(self, std):
-        std.hvrt(outdir, lambda: None)
+        std.hvrt(outdir, final)
 
     def test_lfrt(self, std):
-        std.lfrt(outdir, lambda: None)
+        std.lfrt(outdir, final)
 
     def test_hfrt(self, std):
-        std.hfrt(outdir, lambda: None)
+        std.hfrt(outdir, final)

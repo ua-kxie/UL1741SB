@@ -3,7 +3,7 @@ import datetime as dt
 import sys
 _ = os.path.dirname
 sys.path.append(_(_(_(__file__))))
-from pyUL1741SB import UL1741SB, Post
+from pyUL1741SB import UL1741SB
 from DercEnv import DercEnv
 from DercEut import DercEut
 
@@ -45,6 +45,3 @@ std = DercStd(env, eut)
 # std.pri_proc()
 # std.lap_proc()
 std.es_ramp_proc()
-proc = 'pri'
-post = Post('tests/derc/results/')
-post.post(proc, std.c_env.results[proc], proc)
