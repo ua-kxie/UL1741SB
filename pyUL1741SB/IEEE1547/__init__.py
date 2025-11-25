@@ -107,8 +107,17 @@ class IEEE1547:
                 break
             self.c_env.sleep(timedelta(seconds=tstep_s))
         dfs.append(self.c_env.meas_single(*meas_args))
-        self.c_env.validate(
-            {**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
+
+        df_meas = pd.concat(dfs)
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': ceased}.items()),
+            passed=ceased
+        )
 
     def conn_to_grid(self):
         # vdc to nom

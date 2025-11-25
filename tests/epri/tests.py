@@ -94,91 +94,27 @@ class TestMisc:
 
 class TestTrip:
     def test_uvt(self, std):
-        std.uvt_proc()
-        proc = 'uvt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ceased']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.uvt(outdir, lambda: None)
 
     def test_ovt(self, std):
-        std.ovt_proc()
-        proc = 'ovt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ceased']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.ovt(outdir, lambda: None)
 
     def test_uft(self, std):
-        std.uft_proc()
-        proc = 'uft'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ceased']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.uft(outdir, lambda: None)
 
     def test_oft(self, std):
-        std.oft_proc()
-        proc = 'oft'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ceased']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.oft(outdir, lambda: None)
 
 
 class TestRidethrough:
     def test_lvrt(self, std):
-        std.lvrt_proc()
-        proc = 'lvrt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.lvrt(outdir, lambda: None)
 
     def test_hvrt(self, std):
-        std.hvrt_proc()
-        proc = 'hvrt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.hvrt(outdir, lambda: None)
 
     def test_lfrt(self, std):
-        std.lfrt_proc()
-        proc = 'lfrt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.lfrt(outdir, lambda: None)
 
     def test_hfrt(self, std):
-        std.hfrt_proc()
-        proc = 'hfrt'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
-
-
-def rtest_pri_corruption(std):
-    std.vv_vref_proc()
-    std.vw_proc()
-    std.pri_proc()
-    proc = 'pri'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['p_valid', 'q_valid']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
-
-
-def rtest_uvt_nrst(std):
-    std.lap_proc()
-    ts = dt.datetime.strftime(dt.datetime.now(), "%Y-%m-%d %H:%M:%S")
-    print('\n')
-    print(ts)
-    std.uvt_proc()
-    proc = 'uvt'
-    post.post(proc, std.c_env.results[proc], proc)
-    pfcols = ['ceased']
-    for pfcol in pfcols:
-        assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.hfrt(outdir, lambda: None)

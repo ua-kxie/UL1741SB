@@ -10,6 +10,7 @@ from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547 import IEEE1547
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB import Eut, Env
+from pyUL1741SB import viz
 
 
 """
@@ -100,6 +101,14 @@ class VoltDist(IEEE1547):
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
     OpMdkey = 'OpMd'
+
+    def ovt(self, outdir, final):
+        self.validator = viz.Validator('ovt')
+        try:
+            self.ovt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def ovt_proc(self):
         """"""
@@ -194,8 +203,16 @@ class VoltDist(IEEE1547):
             Vac=trip_vpu * self.c_eut.VN - 2 * vMRA)
         def step1(): return self.c_env.ac_config(
             Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
-        meas_args = ('P', 'Q', 'V')
+        meas_args = ('P', 'Q', 'V', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
+
+    def uvt(self, outdir, final):
+        self.validator = viz.Validator('uvt')
+        try:
+            self.uvt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def uvt_proc(self):
         """"""
@@ -293,8 +310,16 @@ class VoltDist(IEEE1547):
             Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
         def step1(): return self.c_env.ac_config(
             Vac=max(0, trip_vpu * self.c_eut.VN - 2 * vMRA))
-        meas_args = ('P', 'Q', 'V')
+        meas_args = ('P', 'Q', 'V', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
+
+    def lvrt(self, outdir, final):
+        self.validator = viz.Validator('lvrt')
+        try:
+            self.lvrt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def lvrt_proc(self):
         """"""
@@ -434,11 +459,23 @@ class VoltDist(IEEE1547):
         else:
             raise ValueError(cond.opmd)
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            'valid': valid,
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': valid}.items()),
+            passed=valid
+        )
+
+    def hvrt(self, outdir, final):
+        self.validator = viz.Validator('hvrt')
+        try:
+            self.hvrt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def hvrt_proc(self):
         """"""
@@ -511,7 +548,7 @@ class VoltDist(IEEE1547):
         with the resistive load bank or ac test source. Following the momentary cessation event the EUT shall
         comply with the Restore Output requirements of 6.4.2.7 of IEEE Std 1547-2018.
         '''
-        meas_args = ('V', 'P', 'Q')
+        meas_args = ('P', 'Q', 'V', 'F')
         ntrvl = timedelta(seconds=cond.dur_s)
 
         def perturb():
@@ -545,8 +582,13 @@ class VoltDist(IEEE1547):
         else:
             raise ValueError(cond.opmd)
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            'valid': valid,
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': valid}.items()),
+            passed=valid
+        )
+

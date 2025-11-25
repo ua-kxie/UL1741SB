@@ -3,11 +3,20 @@ IEEE 1547.1-2020 5.5
 """
 from datetime import timedelta
 from pyUL1741SB import Eut, Env
+from pyUL1741SB import viz
 
 from pyUL1741SB.IEEE1547 import IEEE1547
 
 
 class FreqDist(IEEE1547):
+    def oft(self, outdir, final):
+        self.validator = viz.Validator('oft')
+        try:
+            self.oft_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
+
     def oft_proc(self):
         '''
         '''
@@ -88,8 +97,16 @@ class FreqDist(IEEE1547):
             freq=trip_fhz * 0.99, rocof=self.c_eut.rocof())
         def step1(): return self.c_env.ac_config(
             freq=trip_fhz * 1.1, rocof=self.c_eut.rocof())
-        meas_args = ('P', 'Q', 'F')
+        meas_args = ('P', 'Q', 'V', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
+
+    def uft(self, outdir, final):
+        self.validator = viz.Validator('uft')
+        try:
+            self.uft_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def uft_proc(self):
         '''
@@ -178,8 +195,16 @@ class FreqDist(IEEE1547):
             freq=trip_fhz * 1.01, rocof=self.c_eut.rocof())
         def step1(): return self.c_env.ac_config(
             freq=trip_fhz * 0.90, rocof=self.c_eut.rocof())
-        meas_args = ('P', 'Q', 'F')
+        meas_args = ('P', 'Q', 'V', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
+
+    def hfrt(self, outdir, final):
+        self.validator = viz.Validator('hfrt')
+        try:
+            self.hfrt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def hfrt_proc(self):
         """"""
@@ -282,6 +307,14 @@ class FreqDist(IEEE1547):
         test requirements for the EUT’s Abnormal Operating Performance Category.
         '''
         self.frt_validate(dct_label, perturbation, ntrvl)
+
+    def lfrt(self, outdir, final):
+        self.validator = viz.Validator('lfrt')
+        try:
+            self.lfrt_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
 
     def lfrt_proc(self):
         """"""
@@ -391,8 +424,12 @@ class FreqDist(IEEE1547):
         valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated)
                  < self.mra_scale * self.c_eut.mra.static.P).all()
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            'valid': valid,
-            'data': df_meas,
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': valid}.items()),
+            passed=valid
+        )
