@@ -55,13 +55,13 @@ class TestVoltreg:
         std.wv(outdir, final)
 
     def test_vw_1pu(self, std):
-        std.vw(outdir, final, pwr_pus=(1.0,))
+        std.vw_1pu(outdir, final, pwr_pus=(1.0,))
 
     def test_vw_p66pu(self, std):
-        std.vw(outdir, final, pwr_pus=(0.66,))
+        std.vw_pu66(outdir, final, pwr_pus=(0.66,))
 
     def test_vw_p20pu(self, std):
-        std.vw(outdir, final, pwr_pus=(0.2,))
+        std.vw_pu20(outdir, final, pwr_pus=(0.2,))
 
 
 class TestFreqsupp:

@@ -2,7 +2,7 @@ from ctypes import *
 import os
 
 # Load DLL from current directory
-derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\DerC\test\dll\build\derc.dll')
+derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\CDerC\test\dll\build\derc.dll')
 
 
 # Define structures matching derc.h
