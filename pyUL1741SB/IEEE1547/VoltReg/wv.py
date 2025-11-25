@@ -3,6 +3,7 @@ from datetime import timedelta
 from typing import Callable
 from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+from pyUL1741SB import viz
 
 
 class WVCurve:
@@ -94,7 +95,15 @@ class WVCurve:
             Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
+proc = 'wv'
 class WV(VoltReg):
+    def wv(self, outdir, final):
+        self.validator = viz.Validator(proc)
+        try:
+            self.wv_proc()
+            final()
+        finally:
+            self.validator.draw_new(outdir)
     def wv_proc(self):
         """
         """

@@ -9,11 +9,12 @@ from pyUL1741SB.IEEE1547.VoltReg import VoltReg
 proc = 'cpf'
 
 class CPF(VoltReg):
-    def cpf(self, outdir):
+    def cpf(self, outdir, final):
         self.validator = viz.Validator(proc)
         try:
             self.cpf_proc()
         finally:
+            final()
             self.validator.draw_new(outdir)
 
     def cpf_proc(self):

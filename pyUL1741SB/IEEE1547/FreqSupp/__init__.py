@@ -5,8 +5,10 @@ from pyUL1741SB import Eut, Env
 from datetime import timedelta
 from typing import Callable
 import numpy as np
+import pandas as pd
 
 from pyUL1741SB.IEEE1547 import IEEE1547
+from pyUL1741SB import viz
 
 
 class FWChar:
@@ -70,6 +72,14 @@ The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
 class FreqSupp(IEEE1547):
+    def fwo(self, outdir, final):
+        self.validator = viz.Validator('fwo')
+        try:
+            self.fwo_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
+
     def fwo_proc(self):
         """"""
         # chars = char1, char2, char1 with Pmin if needed
@@ -182,6 +192,14 @@ class FreqSupp(IEEE1547):
             'o': lambda: self.c_env.ac_config(rocof=self.c_eut.rocof(), freq=self.c_eut.fN),
         }
         return ret
+
+    def fwu(self, outdir, final):
+        self.validator = viz.Validator('fwo')
+        try:
+            self.fwu_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
 
     def fwu_proc(self):
         """"""
@@ -296,7 +314,7 @@ class FreqSupp(IEEE1547):
         xarg, yarg = 'F', 'P'
         # need to apply different validation depending on DeltaPsmall/large
         # assume criteria for deltaPsmall for all steps, more stringent criteria
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
 
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
         # get y_init
@@ -322,30 +340,18 @@ class FreqSupp(IEEE1547):
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_ss_target
-        df_meas['y_min'] = y_ss_min
-        df_meas['y_max'] = y_ss_max
-
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_init': t_init,
-            't_olrt': t_olrt,
-            't_ss0': t_ss0,
-            't_ss1': t_ss1,
-
-            'y_init': y_init,
-
-            'y_olrt': y_olrt,
-            'y_olrt_target': y_olrt_target,
-            'y_olrt_min': y_olrt_min,
-            'y_olrt_max': y_olrt_max,
-
-            'y_ss': y_ss,
-            'y_ss_target': y_ss_target,
-            'y_ss_min': y_ss_min,
-            'y_ss_max': y_ss_max,
-
-            'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid,
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'P': pd.DataFrame({
+                    'ts': [t_init, t_olrt, t_ss0, t_ss1],
+                    'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
+                    'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
+                    'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
+                }).set_index('ts'),
+            },
+            start=t_init,
+            end=t_ss1,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            passed=olrt_valid and ss_valid
+        )

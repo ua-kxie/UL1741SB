@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
-
+from pyUL1741SB import viz
 
 class VVCurve:
     '''IEEE 1547.1-2020 Tables 25-27'''
@@ -86,6 +86,14 @@ class VVCurve:
                        Tr=90)
 
 class VV(VoltReg):
+    def vv(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vv')
+        try:
+            self.vv_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
+
     def vv_traverse_steps(self, vv_crv: VVCurve, VL, VH, av):
         """
         """
@@ -221,6 +229,14 @@ class VV(VoltReg):
 
         self.vv_wv_step_validate(dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
+    def vv_vref(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vv')
+        try:
+            self.vv_vref_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
+
     def vv_vref_proc(self):
         """
         """
@@ -316,7 +332,7 @@ class VV(VoltReg):
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
         self.c_env.log(msg=f"1741SB {slabel}")
         yarg = 'Q'
-        meas_args = (yarg,)
+        meas_args = ('P', 'Q', 'V', 'F')
 
         t_step = timedelta(seconds=self.c_eut.mra.static.T(olrt.total_seconds()))
         resp, valids = [], []
@@ -341,9 +357,12 @@ class VV(VoltReg):
         # get first of last 10 meas, check time is not more than olrt
         # seem dubious, validation similar to vv test would make more sense. e.g. within allowance at olrt
         # but test procedure passes as long as response is faster
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'valid': crit1 and crit2,}.items()),
+            passed=crit1 and crit2
+        )
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            'valid': crit1 and crit2,
-            'data': df_meas
-        })

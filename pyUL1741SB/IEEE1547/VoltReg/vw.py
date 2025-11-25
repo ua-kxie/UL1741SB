@@ -4,6 +4,9 @@ from datetime import timedelta
 
 from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
+from pyUL1741SB import viz
+
+import pandas as pd
 
 
 class VWCurve:
@@ -118,7 +121,16 @@ class VWCurve:
             V2=1.1, P2=-1, Tr=0.5
         )
 
+proc = 'vw'
 class VW(VoltReg):
+    def vw(self, outdir, final, **kwargs):
+        self.validator = viz.Validator(proc)
+        try:
+            self.vw_proc(**kwargs)
+            final()
+        finally:
+            self.validator.draw_new(outdir)
+
     def vw_pwr_crv_mat(self, pwr_pus, vw_crvs):
         """"""
         '''
@@ -262,7 +274,7 @@ class VW(VoltReg):
         self.c_env.log(msg=f"{slabel}")
         xarg, yarg = 'V', 'P'
 
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
 
         # get y_init
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
@@ -289,31 +301,18 @@ class VW(VoltReg):
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_ss_target
-        df_meas['y_min'] = y_ss_min
-        df_meas['y_max'] = y_ss_max
-
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_init': t_init,
-            't_olrt': t_olrt,
-            't_ss0': t_ss0,
-            't_ss1': t_ss1,
-
-            'y_init': y_init,
-
-            'y_olrt': y_olrt,
-            'y_olrt_target': y_olrt_target,
-            'y_olrt_min': self.c_eut.Prated_prime,
-            'y_olrt_max': y_olrt_max,
-
-            'y_ss': y_ss,
-            'y_ss_target': y_ss_target,
-            'y_ss_min': self.c_eut.Prated_prime,
-            'y_ss_max': y_ss_max,
-
-            'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid,
-
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'P': pd.DataFrame({
+                    'ts': [t_init, t_olrt, t_ss0, t_ss1],
+                    'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
+                    'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
+                    'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
+                }).set_index('ts'),
+            },
+            start=t_init,
+            end=t_ss1,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            passed=olrt_valid and ss_valid
+        )

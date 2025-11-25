@@ -44,83 +44,35 @@ def std():
 
 class TestVoltreg:
     def test_cpf(self, std):
-        std.cpf(outdir)
+        std.cpf(outdir, lambda: None)
 
     def test_crp(self, std):
-        std.crp(outdir)
+        std.crp(outdir, lambda: None)
 
     def test_vv(self, std):
-        std.vv_proc()
-        proc = 'vv'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.vv(outdir, lambda: None)
 
     def test_vv_vref(self, std):
-        std.vv_vref_proc()
-        proc = 'vv-vref'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.vv_vref(outdir, lambda: None)
 
     def test_wv(self, std):
-        std.wv_proc()
-        proc = 'wv'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
-
-    def test_vw_fast(self, std):
-        std.vw_proc(pwr_pus=(0.66,), crvs=(1,))
-        proc = 'vw'
-        post.post(proc, std.c_env.results[proc], 'vw-fast')
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.wv(outdir, lambda: None)
 
     def test_vw_1pu(self, std):
-        std.vw_proc(pwr_pus=(1,))
-        proc = 'vw'
-        post.post(proc, std.c_env.results[proc], 'vw-1pu')
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.vw(outdir, lambda: None, pwr_pus=(1.0,))
 
     def test_vw_p66pu(self, std):
-        std.vw_proc(pwr_pus=(0.66,))
-        proc = 'vw'
-        post.post(proc, std.c_env.results[proc], 'vw-p66pu')
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.vw(outdir, lambda: None, pwr_pus=(0.66,))
 
     def test_vw_p20pu(self, std):
-        std.vw_proc(pwr_pus=(0.2,))
-        proc = 'vw'
-        post.post(proc, std.c_env.results[proc], 'vw-p20pu')
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.vw(outdir, lambda: None, pwr_pus=(0.2,))
 
 class TestFreqsupp:
     def test_fwo(self, std):
-        std.fwo_proc()
-        proc = 'fwo'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.fwo(outdir, lambda: None)
 
     def test_fwu(self, std):
-        std.fwu_proc()
-        proc = 'fwu'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['ss_valid', 'olrt_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.fwu(outdir, lambda: None)
 
 class TestMisc:
     def test_pri(self, std):

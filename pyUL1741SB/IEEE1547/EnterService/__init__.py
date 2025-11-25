@@ -42,7 +42,7 @@ df_es_cases = pd.DataFrame({
 class ES(IEEE1547):
     def es_ramp_proc(self):
         """"""
-        meas_args = ('P', 'F', 'V')
+        meas_args = ('P', 'Q', 'F', 'V')
         for i, df_row in df_es_cases.iterrows():
             dct_label = {
                 'proc': 'es-ramp',

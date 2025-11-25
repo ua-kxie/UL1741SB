@@ -365,7 +365,7 @@ class FreqDist(IEEE1547):
 
     def frt_validate(self, dct_label, perturbation, ntrvl):
         """"""
-        df_meas = self.meas_perturb(perturbation, ntrvl, ntrvl, ('P', 'Q', 'F'))
+        df_meas = self.meas_perturb(perturbation, ntrvl, ntrvl, ('P', 'Q', 'V', 'F'))
         valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated) < self.mra_scale * self.c_eut.mra.static.P).all()
 
         self.c_env.validate(dct_label={

@@ -8,10 +8,11 @@ import pandas as pd
 
 proc = 'crp'
 class CRP(VoltReg):
-    def crp(self, outdir):
+    def crp(self, outdir, final):
         self.validator = viz.Validator(proc)
         try:
             self.crp_proc()
+            final()
         finally:
             self.validator.draw_new(outdir)
 

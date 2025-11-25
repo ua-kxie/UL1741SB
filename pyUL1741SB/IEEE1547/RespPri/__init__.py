@@ -233,7 +233,7 @@ class RespPri(IEEE1547):
         the Y parameter and Psteady is the X parameter.
         """
         # meas vac, fac, p, q
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('V', 'F', 'P', 'Q'))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         row_ss = df_meas.loc[df_meas.index[0] + olrt:, :].mean()
         p_target = df_steprow['e_ap_pu'] * self.c_eut.Prated
 

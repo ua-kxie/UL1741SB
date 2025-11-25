@@ -354,7 +354,7 @@ class VoltDist(IEEE1547):
         the ac test source. Following the momentary cessation event, the EUT shall comply with the
         Restore Output requirements of 6.4.2.7 of IEEE Std 1547-2018.
         '''
-        meas_args = ('V', 'P', 'Q')
+        meas_args = ('P', 'Q', 'V', 'F')
         ntrvl = timedelta(seconds=cond.dur_s)
         def perturb():
             self.c_env.ac_config(Vac=cond.vpu * self.c_eut.VN)

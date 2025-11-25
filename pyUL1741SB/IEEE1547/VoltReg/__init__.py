@@ -7,7 +7,7 @@ import pandas as pd
 class VoltReg(IEEE1547):
     def vv_wv_step_validate(self, dct_label: dict, perturb: Callable, xarg, yarg, y_of_x: Callable,
                             olrt: timedelta, xMRA, yMRA):
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, (xarg, yarg))
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         self.vv_wv_validate(dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
 
     def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg, yarg, xMRA, yMRA):
@@ -37,33 +37,21 @@ class VoltReg(IEEE1547):
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, xMRA, yMRA)
         ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_ss_target
-        df_meas['y_min'] = y_ss_min
-        df_meas['y_max'] = y_ss_max
-
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_init': t_init,
-            't_olrt': t_olrt,
-            't_ss0': t_ss0,
-            't_ss1': t_ss1,
-
-            'y_init': y_init,
-
-            'y_olrt': y_olrt,
-            'y_olrt_target': y_olrt_target,
-            'y_olrt_min': y_olrt_min,
-            'y_olrt_max': y_olrt_max,
-
-            'y_ss': y_ss,
-            'y_ss_target': y_ss_target,
-            'y_ss_min': y_ss_min,
-            'y_ss_max': y_ss_max,
-
-            'olrt_valid': olrt_valid,
-            'ss_valid': ss_valid,
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'Q': pd.DataFrame({
+                    'ts': [t_init, t_olrt, t_ss0, t_ss1],
+                    'min': [y_init, y_olrt_min, y_ss_min, y_ss_min],
+                    'targ': [y_init, y_olrt_target, y_ss_target, y_ss_target],
+                    'max': [y_init, y_olrt_max, y_ss_max, y_ss_max],
+                }).set_index('ts'),
+            },
+            start=t_init,
+            end=t_ss1,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            passed=olrt_valid and ss_valid
+        )
 
     def cpf_crp_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable[[float], float]):
         xarg, yarg = 'P', 'Q'
@@ -102,10 +90,6 @@ class VoltReg(IEEE1547):
         '''
         ss_valid = y_ss_min <= y_ss <= y_ss_max
 
-        df_meas['y_ss_target'] = y_ss_target
-        df_meas['y_min'] = y_ss_min
-        df_meas['y_max'] = y_ss_max
-
         self.validator.record_epoch(
             df_meas=df_meas,
             dct_crits={
@@ -130,6 +114,5 @@ class VoltReg(IEEE1547):
         '''
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
         self.c_env.log(msg=f"1741SB {slabel}")
-        meas_args = ('P', 'Q', 'V', 'F')
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, meas_args)
+        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         self.cpf_crp_validate(dct_label, df_meas, olrt, y_of_x)
