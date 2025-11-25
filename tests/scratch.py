@@ -1,12 +1,13 @@
 from opender import DER_BESS
 der_obj = DER_BESS()
 derfile = der_obj.der_file
-default = {key: getattr(derfile, key) for key in dir(derfile) if 'ENABLE' in key}
+default = {key: getattr(derfile, key)
+           for key in dir(derfile) if 'ENABLE' in key}
 # der_obj.der_file.CONST_PF_MODE_ENABLE=True
 # der_obj.der_file.CONST_PF=0.9
 # der_obj.der_file.QV_MODE_ENABLE=True
-der_obj.der_file.CONST_Q_MODE_ENABLE=True
-der_obj.der_file.CONST_Q=0.1
+der_obj.der_file.CONST_Q_MODE_ENABLE = True
+der_obj.der_file.CONST_Q = 0.1
 der_obj.der_file.NP_PHASE = "SINGLE"
 der_obj.update_der_input(v_pu=1, f=60, p_dem_pu=1)
 # Configure dynamic simulation timestep
@@ -16,7 +17,8 @@ der_obj.run()
 der_obj.update_der_input(f=58.5)
 der_obj.update_der_input(f=61.2)
 
-der_obj.der_file.QP_MODE_ENABLE=True
+der_obj.der_file.QP_MODE_ENABLE = True
+
 
 class RMSVolts(float):
     def __new__(cls, value):
@@ -27,7 +29,8 @@ class RMSVolts(float):
         if isinstance(other, RMSVolts):
             return RMSVolts(super().__add__(other))
         else:
-            raise ValueError(f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")
+            raise ValueError(
+                f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")
 
     def __mul__(self, other):
         if isinstance(other, RMSAmps):
@@ -35,7 +38,9 @@ class RMSVolts(float):
         elif isinstance(other, float):
             return RMSVolts(super().__mul__(other))
         else:
-            raise ValueError(f"Cannot mul {type(self)} to {type(other)}, must be {type(RMSAmps)} or {type(float)}")
+            raise ValueError(
+                f"Cannot mul {type(self)} to {type(other)}, must be {type(RMSAmps)} or {type(float)}")
+
 
 class RMSAmps(float):
     def __new__(cls, value):
@@ -46,7 +51,8 @@ class RMSAmps(float):
         if isinstance(other, RMSAmps):
             return RMSAmps(super().__add__(other))
         else:
-            raise ValueError(f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")
+            raise ValueError(
+                f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")
 
     def __mul__(self, other):
         if isinstance(other, RMSVolts):
@@ -54,7 +60,9 @@ class RMSAmps(float):
         elif isinstance(other, float):
             return RMSAmps(super().__mul__(other))
         else:
-            raise ValueError(f"Cannot mul {type(self)} to {type(other)}, must be {type(RMSVolts)} or {type(float)}")
+            raise ValueError(
+                f"Cannot mul {type(self)} to {type(other)}, must be {type(RMSVolts)} or {type(float)}")
+
 
 class AvgAP(float):
     def __new__(cls, value):
@@ -65,4 +73,5 @@ class AvgAP(float):
         if isinstance(other, AvgAP):
             return AvgAP(super().__add__(other))
         else:
-            raise ValueError(f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")
+            raise ValueError(
+                f"Cannot add {type(self)} to {type(other)}, must be {type(self)} and {type(self)}")

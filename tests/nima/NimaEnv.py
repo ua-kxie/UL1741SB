@@ -6,6 +6,7 @@ import opender as der
 
 DTS = 0.1
 
+
 class NimaEnv(Env):
     def __init__(self, eut: NimaEut):
         super().__init__()
@@ -66,9 +67,9 @@ class NimaEnv(Env):
         for k, v in kwargs.items():
             if k == 'Vac':
                 self.eut.vac = v
-            elif k =='freq':
+            elif k == 'freq':
                 self.eut.fac = v
-            elif k =='rocof':
+            elif k == 'rocof':
                 pass
             else:
                 raise NotImplementedError(k)

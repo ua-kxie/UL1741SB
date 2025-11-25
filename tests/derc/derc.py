@@ -105,10 +105,13 @@ class DerCCmd(Structure):
 derc_cfg = DerCCfg.in_dll(derc, 'derc_cfg')
 
 # Configure function prototypes
-derc.derc_step.argtypes = [POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
+derc.derc_step.argtypes = [
+    POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
 derc.derc_step.restype = c_int
 
 # Configuration functions
+
+
 def enable_volt_var(vref=1.0, olrt=5.0, curve_points=None):
     derc_cfg.vv.ena = 1  # ENABLED
     derc_cfg.vv.vref = vref

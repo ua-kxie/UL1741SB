@@ -6,20 +6,27 @@ from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
 derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\DerC\test\dll\build\derc.dll')
 
 # Structures matching derc.h
+
+
 class CrvPt(Structure):
     _fields_ = [('x', c_float), ('y', c_float)]
+
 
 class VoltVarCrv(Structure):
     _fields_ = [('pts', CrvPt * 4)]
 
+
 class WattVarCrv(Structure):
     _fields_ = [('pts', CrvPt * 6)]
+
 
 class VoltWattCrv(Structure):
     _fields_ = [('pts', CrvPt * 2)]
 
+
 class TripPt(Structure):
     _fields_ = [('mag', c_float), ('cts', c_float)]
+
 
 class VoltTrips(Structure):
     _fields_ = [
@@ -27,11 +34,13 @@ class VoltTrips(Structure):
         ('uv1', TripPt), ('uv2', TripPt)
     ]
 
+
 class FreqTrips(Structure):
     _fields_ = [
         ('of1', TripPt), ('of2', TripPt),
         ('uf1', TripPt), ('uf2', TripPt)
     ]
+
 
 class ESCfg(Structure):
     _fields_ = [
@@ -39,8 +48,10 @@ class ESCfg(Structure):
         ('of', c_float), ('uf', c_float), ('delay', c_float), ('ramp_time', c_float)
     ]
 
+
 class FreqWattCfg(Structure):
     _fields_ = [('db', c_float), ('k', c_float)]
+
 
 class FWCfg(Structure):
     _fields_ = [
@@ -50,20 +61,26 @@ class FWCfg(Structure):
         ('olrt', c_float)
     ]
 
+
 class VWCfg(Structure):
     _fields_ = [('ena', c_int), ('crv', VoltWattCrv), ('olrt', c_float)]
+
 
 class LAPCfg(Structure):
     _fields_ = [('ena', c_int), ('ap', c_float)]
 
+
 class CPFCfg(Structure):
     _fields_ = [('ena', c_int), ('pf', c_float), ('exct', c_int)]
+
 
 class CRPCfg(Structure):
     _fields_ = [('ena', c_int), ('var', c_float)]
 
+
 class AutoVrefCfg(Structure):
     _fields_ = [("ena", c_int), ("olrt", c_float)]
+
 
 class VVCfg(Structure):
     _fields_ = [
@@ -71,11 +88,14 @@ class VVCfg(Structure):
         ('AutoVref', AutoVrefCfg)
     ]
 
+
 class WVCfg(Structure):
     _fields_ = [('ena', c_int), ('crv', WattVarCrv)]
 
+
 class TripsCfg(Structure):
     _fields_ = [('vt', VoltTrips), ('ft', FreqTrips)]
+
 
 class DerCCfg(Structure):
     _fields_ = [
@@ -85,18 +105,22 @@ class DerCCfg(Structure):
         ('cpf', CPFCfg), ('crp', CRPCfg), ('vv', VVCfg), ('wv', WVCfg)
     ]
 
+
 class DerCInput(Structure):
     _fields_ = [('v', c_float), ('f', c_float), ('ap', c_float)]
+
 
 class DerCCmd(Structure):
     _fields_ = [('p', c_float), ('q', c_float), ('poc', c_int)]
 
+
 class DercEut(Eut):
     def __init__(self, **kwargs):
         # Initialize DLL
-        derc.derc_step.argtypes = [POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
+        derc.derc_step.argtypes = [
+            POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
         derc.derc_step.restype = c_int
-        
+
         self.cfg = DerCCfg.in_dll(derc, 'derc_cfg')
 
         self.cfg.es.ena = 1  # ENABLED
@@ -368,7 +392,8 @@ class DercEut(Eut):
 
     def run_step(self, dt=0.1, fault=False):
         for i in range(int(round(dt/1e-3))):
-            derc.derc_step(byref(self.current_input), 1e-3, fault, byref(self.current_cmd))
+            derc.derc_step(byref(self.current_input), 1e-3,
+                           fault, byref(self.current_cmd))
 
     @property
     def p_out_w(self):

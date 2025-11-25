@@ -6,6 +6,7 @@ import opender as der
 
 DTS = 0.1
 
+
 class EpriEnv(Env):
     def __init__(self, eut: EpriEut):
         super().__init__()
@@ -71,10 +72,11 @@ class EpriEnv(Env):
         '''
         for k, v in kwargs.items():
             if k == 'Vac':
-                self.eut.der.update_der_input(v_pu=v/self.eut.der.der_file.NP_AC_V_NOM)
-            elif k =='freq':
+                self.eut.der.update_der_input(
+                    v_pu=v/self.eut.der.der_file.NP_AC_V_NOM)
+            elif k == 'freq':
                 self.eut.der.update_der_input(f=v)
-            elif k =='rocof':
+            elif k == 'rocof':
                 pass
             else:
                 raise NotImplementedError(k)

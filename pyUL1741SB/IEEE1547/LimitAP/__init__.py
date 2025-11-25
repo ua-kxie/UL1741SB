@@ -9,6 +9,7 @@ from pyUL1741SB import viz
 
 proc = 'lap'
 
+
 class LAP(IEEE1547):
     def lap(self, outdir, final):
         self.validator = viz.Validator(proc)
@@ -42,7 +43,8 @@ class LAP(IEEE1547):
         category of the DER. Enable voltage-active power mode.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
@@ -86,7 +88,8 @@ class LAP(IEEE1547):
                     else:
                         ymin_pu = 0
                     ymax_pu = 1
-                    fw_val = dflt_fwchar.y_of_x(x, ymin_pu, aplim_pu, ymax_pu) * self.c_eut.Prated
+                    fw_val = dflt_fwchar.y_of_x(
+                        x, ymin_pu, aplim_pu, ymax_pu) * self.c_eut.Prated
                     return fw_val
 
                 def y_of_vw(x):
@@ -193,8 +196,9 @@ class LAP(IEEE1547):
         '''
         yarg = 'P'
         yMRA = self.c_eut.mra.static.P
-        perturbation = lambda: set_x(x)
-        df_meas = self.meas_perturb(perturbation, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        def perturbation(): return set_x(x)
+        df_meas = self.meas_perturb(
+            perturbation, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
 
         y_ss_target = y_of_x(x)
@@ -215,6 +219,7 @@ class LAP(IEEE1547):
             },
             start=t_init,
             end=t_ss1,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'ss_valid': ss_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'ss_valid': ss_valid}.items()),
             passed=ss_valid
         )

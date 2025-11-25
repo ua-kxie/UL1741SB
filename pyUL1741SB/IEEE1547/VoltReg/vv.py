@@ -7,8 +7,10 @@ import pandas as pd
 from pyUL1741SB.IEEE1547.VoltReg import VoltReg
 from pyUL1741SB import viz
 
+
 class VVCurve:
     '''IEEE 1547.1-2020 Tables 25-27'''
+
     def __init__(self, **kwargs):
         self.VRef = kwargs['VRef']
         self.V2 = kwargs['V2']
@@ -85,6 +87,7 @@ class VVCurve:
                        V1=0.9, Q1=1.0 * inj_scale, V4=1.1, Q4=-1.0 * abs_scale,
                        Tr=90)
 
+
 class VV(VoltReg):
     def vv(self, outdir, final, **kwargs):
         self.validator = viz.Validator('vv')
@@ -150,11 +153,13 @@ class VV(VoltReg):
             'dd': lambda: self.c_env.ac_config(Vac=vv_crv.VRef * self.c_eut.VN)
         }
         if VH < vv_crv.V4 * self.c_eut.VN:
-            self.c_env.log(msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4 * self.c_eut.VN}]')
+            self.c_env.log(
+                msg=f'steps j, k, m, n will be skipped since VH [{VH}] < V4 [{vv_crv.V4 * self.c_eut.VN}]')
             for step in ['j', 'k', 'm', 'n']:
                 ret.pop(step)
         if VL > vv_crv.V1 * self.c_eut.VN:
-            self.c_env.log(msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1 * self.c_eut.VN}]')
+            self.c_env.log(
+                msg=f'steps v, w, y, z will be skipped since VH [{VL}] > V1 [{vv_crv.V1 * self.c_eut.VN}]')
             for step in ['v', 'w', 'y', 'z']:
                 ret.pop(step)
         return ret
@@ -165,7 +170,8 @@ class VV(VoltReg):
         VH, VN, VL, Pmin, Prated = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated
         av = self.mra_scale * self.c_eut.mra.static.V
         if self.c_eut.Cat == self.c_eut.Category.A:
-            vv_crvs = [('1A', VVCurve.Crv_1A())]  # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
+            # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
+            vv_crvs = [('1A', VVCurve.Crv_1A())]
         elif self.c_eut.Cat == self.c_eut.Category.B:
             vv_crvs = [('1B', VVCurve.Crv_1B())]
         else:
@@ -208,12 +214,14 @@ class VV(VoltReg):
                     dct_vvsteps = self.vv_traverse_steps(vv_crv, VL, VH, av)
                     self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
                     for stepname, perturbation in dct_vvsteps.items():
-                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
+                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}',
+                                     'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
                         self.vv_step_validate(
                             dct_label=dct_label,
                             perturb=perturbation,
                             olrt=timedelta(seconds=vv_crv.Tr),
-                            y_of_x=lambda x: vv_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Srated,
+                            y_of_x=lambda x: vv_crv.y_of_x(
+                                x / self.c_eut.VN) * self.c_eut.Srated,
                         )
 
     def vv_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
@@ -227,7 +235,8 @@ class VV(VoltReg):
         self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'V', 'Q'
 
-        self.vv_wv_step_validate(dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+        self.vv_wv_step_validate(
+            dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
     def vv_vref(self, outdir, final, **kwargs):
         self.validator = viz.Validator('vv')
@@ -283,11 +292,14 @@ class VV(VoltReg):
             i) Step the ac test source voltage to (V2 + V1)/2.
             '''
             for step, perturbation, is_valid in [
-                ('h', lambda: self.c_env.ac_config(Vac=self.c_eut.VN * (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
-                ('i', lambda: self.c_env.ac_config(Vac=self.c_eut.VN * (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
+                ('h', lambda: self.c_env.ac_config(Vac=self.c_eut.VN *
+                 (crv.V3 + crv.V4) / 2), lambda x: abs(x) < abs(crv.Q4 * 0.1)),
+                ('i', lambda: self.c_env.ac_config(Vac=self.c_eut.VN *
+                 (crv.V2 + crv.V1) / 2), lambda x: abs(x) < abs(crv.Q1 * 0.1)),
             ]:
                 dct_label = {'proc': 'vv-vref', 'Tref': Tref_s, 'step': step}
-                self.vv_vref_validate(dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
+                self.vv_vref_validate(
+                    dct_label, perturbation, timedelta(seconds=Tref_s), is_valid)
 
     def vv_vref_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, is_valid: Callable[[float], bool]):
         """"""
@@ -334,7 +346,8 @@ class VV(VoltReg):
         yarg = 'Q'
         meas_args = ('P', 'Q', 'V', 'F')
 
-        t_step = timedelta(seconds=self.c_eut.mra.static.T(olrt.total_seconds()))
+        t_step = timedelta(
+            seconds=self.c_eut.mra.static.T(olrt.total_seconds()))
         resp, valids = [], []
         resp.append(self.c_env.meas_single(*meas_args))
         ts = self.c_env.time_now()
@@ -352,7 +365,8 @@ class VV(VoltReg):
         df_meas = pd.concat(resp)
 
         crit1 = df_meas.loc[df_meas.index[-10]:, 'Q'].apply(is_valid).all()
-        crit2 = (df_meas.index[-10] - df_meas.index[0]).total_seconds() < olrt.total_seconds() * 4
+        crit2 = (df_meas.index[-10] - df_meas.index[0]
+                 ).total_seconds() < olrt.total_seconds() * 4
         # get last 10 meas, check all values in last 10 meas are valid
         # get first of last 10 meas, check time is not more than olrt
         # seem dubious, validation similar to vv test would make more sense. e.g. within allowance at olrt
@@ -362,7 +376,7 @@ class VV(VoltReg):
             dct_crits={},
             start=df_meas.index[0],
             end=df_meas.index[-1],
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'valid': crit1 and crit2,}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': crit1 and crit2, }.items()),
             passed=crit1 and crit2
         )
-

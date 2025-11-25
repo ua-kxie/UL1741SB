@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import random
 Prated = 5e3
+
+
 class Env:  # step voltage, power, sleep, etc.
     def __init__(self):
         self.results = {}
@@ -16,7 +18,8 @@ class Env:  # step voltage, power, sleep, etc.
         return self.time
 
     def sleep(self, td: timedelta):
-        self.time += td + timedelta(seconds=0.001)  # add a little to simulate extra time taken to run code
+        # add a little to simulate extra time taken to run code
+        self.time += td + timedelta(seconds=0.001)
 
     def meas_single(self, *args) -> pd.DataFrame:
         self.time += timedelta(seconds=random.random() * 0.001)
@@ -28,12 +31,14 @@ class Env:  # step voltage, power, sleep, etc.
         # Create DataFrame with time as the index
         df = pd.DataFrame(data, index=[self.time])
         if 'P' in df.columns:
-            df['P'] = df['P'] * Prated  # Assuming Prated is an instance variable
+            # Assuming Prated is an instance variable
+            df['P'] = df['P'] * Prated
         return df
 
     def meas_for(self, dur: timedelta, tres: timedelta, *args) -> pd.DataFrame:
         self.time += dur
-        self.time += timedelta(seconds=random.random() * 0.001)  # add a little to simulate extra time taken to run code
+        # add a little to simulate extra time taken to run code
+        self.time += timedelta(seconds=random.random() * 0.001)
         # Calculate number of periods based on duration and time resolution
         num_periods = int(dur.total_seconds() / tres.total_seconds())
 

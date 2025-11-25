@@ -4,11 +4,14 @@ from pyUL1741SB import Eut, Env
 from pyUL1741SB.IEEE1547 import IEEE1547
 import pandas as pd
 
+
 class VoltReg(IEEE1547):
     def vv_wv_step_validate(self, dct_label: dict, perturb: Callable, xarg, yarg, y_of_x: Callable,
                             olrt: timedelta, xMRA, yMRA):
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
-        self.vv_wv_validate(dct_label, df_meas, olrt, y_of_x, xarg, yarg, xMRA, yMRA)
+        df_meas = self.meas_perturb(
+            perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        self.vv_wv_validate(dct_label, df_meas, olrt,
+                            y_of_x, xarg, yarg, xMRA, yMRA)
 
     def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg, yarg, xMRA, yMRA):
         # get y_init
@@ -24,7 +27,7 @@ class VoltReg(IEEE1547):
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
         olrt_s = olrt.total_seconds()
-        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        def y_of_t(t): return self.expapp(olrt_s, t, y_init, y_ss)
         y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
         y_olrt_target = y_of_t(olrt_s)
         olrt_valid = y_olrt_min <= y_olrt <= y_olrt_max
@@ -49,7 +52,8 @@ class VoltReg(IEEE1547):
             },
             start=t_init,
             end=t_ss1,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
             passed=olrt_valid and ss_valid
         )
 
@@ -70,7 +74,7 @@ class VoltReg(IEEE1547):
         y_ss_min, y_ss_max = self.range_4p2(y_of_x, x_ss, 0, yMRA)
 
         olrt_s = olrt.total_seconds()
-        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        def y_of_t(t): return self.expapp(olrt_s, t, y_init, y_ss)
 
         y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, 0, yMRA)
         y_olrt_min = min(y_olrt_min, y_ss_min)
@@ -102,7 +106,8 @@ class VoltReg(IEEE1547):
             },
             start=t_init,
             end=t_ss1,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
             passed=olrt_valid and ss_valid
         )
 
@@ -114,5 +119,6 @@ class VoltReg(IEEE1547):
         '''
         slabel = ''.join([f'{k}: {v}; ' for k, v in dct_label.items()])
         self.c_env.log(msg=f"1741SB {slabel}")
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        df_meas = self.meas_perturb(
+            perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         self.cpf_crp_validate(dct_label, df_meas, olrt, y_of_x)

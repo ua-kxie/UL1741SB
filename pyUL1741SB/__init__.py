@@ -23,13 +23,16 @@ import plotly
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
+
 class UL1741SB(CPF, CRP, VV, VW, WV, FreqSupp, RespPri, LAP, ES, VoltDist, FreqDist, IEEE1547):
     pass
+
 
 boolean_palette = {
     False: 'rgba(215, 25, 25, 0.05)',
     True: 'rgba(25, 215, 25, 0.05)',
 }
+
 
 class Post:
     def __init__(self, outdir):
@@ -44,22 +47,34 @@ class Post:
         olrt = f'{key}_olrt_target'
         ss = f'{key}_ss_target'
         dmin = pd.concat([
-            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
-            df_rslts.loc[:, ['t_olrt', olrtmin]].rename(columns={"t_olrt": "t", olrtmin: "y"}),
-            df_rslts.loc[:, ['t_ss0', ssmin]].rename(columns={"t_ss0": "t", ssmin: "y"}),
-            df_rslts.loc[:, ['t_ss1', ssmin]].rename(columns={"t_ss1": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_init', ini]].rename(
+                columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrtmin]].rename(
+                columns={"t_olrt": "t", olrtmin: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmin]].rename(
+                columns={"t_ss0": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmin]].rename(
+                columns={"t_ss1": "t", ssmin: "y"}),
         ]).set_index('t').sort_index()
         targ = pd.concat([
-            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
-            df_rslts.loc[:, ['t_olrt', olrt]].rename(columns={"t_olrt": "t", olrt: "y"}),
-            df_rslts.loc[:, ['t_ss0', ss]].rename(columns={"t_ss0": "t", ss: "y"}),
-            df_rslts.loc[:, ['t_ss1', ss]].rename(columns={"t_ss1": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_init', ini]].rename(
+                columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrt]].rename(
+                columns={"t_olrt": "t", olrt: "y"}),
+            df_rslts.loc[:, ['t_ss0', ss]].rename(
+                columns={"t_ss0": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss1', ss]].rename(
+                columns={"t_ss1": "t", ss: "y"}),
         ]).set_index('t').sort_index()
         dmax = pd.concat([
-            df_rslts.loc[:, ['t_init', ini]].rename(columns={"t_init": "t", ini: "y"}),
-            df_rslts.loc[:, ['t_olrt', olrtmax]].rename(columns={"t_olrt": "t", olrtmax: "y"}),
-            df_rslts.loc[:, ['t_ss0', ssmax]].rename(columns={"t_ss0": "t", ssmax: "y"}),
-            df_rslts.loc[:, ['t_ss1', ssmax]].rename(columns={"t_ss1": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_init', ini]].rename(
+                columns={"t_init": "t", ini: "y"}),
+            df_rslts.loc[:, ['t_olrt', olrtmax]].rename(
+                columns={"t_olrt": "t", olrtmax: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmax]].rename(
+                columns={"t_ss0": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmax]].rename(
+                columns={"t_ss1": "t", ssmax: "y"}),
         ]).set_index('t').sort_index()
 
         return dmin, targ, dmax
@@ -69,19 +84,28 @@ class Post:
         ssmax = f'{key}_max'
         ss = f'{key}_target'
         dmin = pd.concat([
-            df_rslts.loc[:, ['t_ss0', ssmin]].rename(columns={"t_ss0": "t", ssmin: "y"}),
-            df_rslts.loc[:, ['t_ss1', ssmin]].rename(columns={"t_ss1": "t", ssmin: "y"}),
-            df_rslts.loc[:, ['t_ss2', ssmin]].rename(columns={"t_ss2": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmin]].rename(
+                columns={"t_ss0": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmin]].rename(
+                columns={"t_ss1": "t", ssmin: "y"}),
+            df_rslts.loc[:, ['t_ss2', ssmin]].rename(
+                columns={"t_ss2": "t", ssmin: "y"}),
         ]).set_index('t').sort_index()
         targ = pd.concat([
-            df_rslts.loc[:, ['t_ss0', ss]].rename(columns={"t_ss0": "t", ss: "y"}),
-            df_rslts.loc[:, ['t_ss1', ss]].rename(columns={"t_ss1": "t", ss: "y"}),
-            df_rslts.loc[:, ['t_ss2', ss]].rename(columns={"t_ss2": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss0', ss]].rename(
+                columns={"t_ss0": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss1', ss]].rename(
+                columns={"t_ss1": "t", ss: "y"}),
+            df_rslts.loc[:, ['t_ss2', ss]].rename(
+                columns={"t_ss2": "t", ss: "y"}),
         ]).set_index('t').sort_index()
         dmax = pd.concat([
-            df_rslts.loc[:, ['t_ss0', ssmax]].rename(columns={"t_ss0": "t", ssmax: "y"}),
-            df_rslts.loc[:, ['t_ss1', ssmax]].rename(columns={"t_ss1": "t", ssmax: "y"}),
-            df_rslts.loc[:, ['t_ss2', ssmax]].rename(columns={"t_ss2": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss0', ssmax]].rename(
+                columns={"t_ss0": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss1', ssmax]].rename(
+                columns={"t_ss1": "t", ssmax: "y"}),
+            df_rslts.loc[:, ['t_ss2', ssmax]].rename(
+                columns={"t_ss2": "t", ssmax: "y"}),
         ]).set_index('t').sort_index()
 
         return dmin, targ, dmax
@@ -168,7 +192,6 @@ class Post:
         )
         plotly.offline.plot(fig, filename=f'{self.outdir}{name}.html')
 
-
     def draw_cpf_type(self, name, df, lst_traces, labelfcn, pfcols, titletext, yname):
         fig = make_subplots(rows=len(lst_traces), cols=1, shared_xaxes=True)
         df_data = pd.concat(df.loc[:, 'data'].values)
@@ -205,9 +228,11 @@ class Post:
         for i, traces in enumerate(lst_traces):
             for k in traces:
                 if k == 'P':
-                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'p', 'P', i + 1)
+                    fig = self.valid_range_by_key_pri(
+                        fig, df_rslts, 'p', 'P', i + 1)
                 if k == 'Q':
-                    fig = self.valid_range_by_key_pri(fig, df_rslts, 'q', 'Q', i + 1)
+                    fig = self.valid_range_by_key_pri(
+                        fig, df_rslts, 'q', 'Q', i + 1)
                 fig.add_trace(
                     go.Scatter(
                         x=df_data.index, y=df_data[k], name=k, mode='lines', opacity=.5,
@@ -275,7 +300,9 @@ class Post:
         if proc == 'cpf':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['Vin', 'PF', 'Step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CPF y(x) = Q(P)'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
@@ -283,7 +310,9 @@ class Post:
         elif proc == 'crp':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['Qset', 'Vin', 'Step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'CRP y(x) = Q'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
@@ -291,7 +320,9 @@ class Post:
         elif proc == 'vv':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['crv', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['Q'], ['V']]
             title = 'VV y(x) = Q(V)'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
@@ -299,7 +330,9 @@ class Post:
         elif proc == 'vv-vref':
             pfcols = ['valid']
             lst_labels = ['Tref', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['Q']]
             title = 'VV-vref'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
@@ -307,7 +340,9 @@ class Post:
         elif proc == 'wv':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['crv', 'dir', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q']]
             title = 'WV y(x) = Q(P)'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'Q')
@@ -315,7 +350,9 @@ class Post:
         elif proc == 'vw-bare':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['pwr', 'crv', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['V']]
             title = 'VW y(x) = P(V)'
             self.draw_bare_type(name, df, traces, title, 'P')
@@ -323,7 +360,9 @@ class Post:
         elif proc == 'vw':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['pwr', 'crv', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['V']]
             title = 'VW y(x) = P(V)'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
@@ -331,7 +370,9 @@ class Post:
         elif proc in ['fwo', 'fwu']:
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['crv', 'pwr_pu', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['F']]
             title = f'{proc.upper()} y(x) = P(F)'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
@@ -339,7 +380,9 @@ class Post:
         elif proc == 'pri':
             pfcols = ['p_valid', 'q_valid']
             lst_labels = ['vars_ctrl', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['Q'], ['V'], ['F']]
             title = 'PRI'
             self.draw_pri(name, df, traces, labelfcn, pfcols, title)
@@ -347,7 +390,9 @@ class Post:
         elif proc == 'lap':
             pfcols = ['ss_valid', 'olrt_valid']
             lst_labels = ['iter', 'aplim_pu', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P']]
             title = 'LAP'
             self.draw_cpf_type(name, df, traces, labelfcn, pfcols, title, 'P')
@@ -355,7 +400,9 @@ class Post:
         elif proc == 'es-ramp':
             pfcols = ['valid']
             lst_labels = ['case', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P'], ['F'], ['V']]
             title = 'ES (ramp)'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
@@ -363,7 +410,9 @@ class Post:
         elif proc in ['uvt', 'ovt']:
             pfcols = ['ceased']
             lst_labels = ['region', 'time', 'mag', 'iter'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['V']]
             title = f'{proc.upper()}'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
@@ -371,7 +420,9 @@ class Post:
         elif proc in ['uft', 'oft']:
             pfcols = ['ceased']
             lst_labels = ['region', 'time', 'mag', 'iter'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['F']]
             title = f'{proc.upper()}'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
@@ -379,7 +430,9 @@ class Post:
         elif proc in ['lvrt', 'hvrt']:
             pfcols = ['valid']
             lst_labels = ['pwr_pu', 'cond'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['V']]
             title = f'{proc.upper()}'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)
@@ -387,7 +440,8 @@ class Post:
         elif proc in ['lfrt', 'hfrt']:
             pfcols = ['valid']
             lst_labels = ['iter', 'step'] + pfcols
-            labelfcn = lambda row: eval(f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
+            def labelfcn(row): return eval(
+                f"""f'{''.join([f'{k}: {{row["{k}"]}}; ' for k in lst_labels])}'""")
             traces = [['P', 'Q'], ['F']]
             title = f'{proc.upper()}'
             self.draw_notarg_type(name, df, traces, labelfcn, pfcols, title)

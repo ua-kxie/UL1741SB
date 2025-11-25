@@ -11,6 +11,7 @@ import pandas as pd
 
 class VWCurve:
     '''IEEE 1547.1-2020 Tables 31-33'''
+
     def __init__(self, **kwargs):
         self.V1 = kwargs['V1']
         self.P1 = kwargs['P1']
@@ -121,7 +122,10 @@ class VWCurve:
             V2=1.1, P2=-1, Tr=0.5
         )
 
+
 proc = 'vw'
+
+
 class VW(VoltReg):
     def vw(self, outdir, final, **kwargs):
         self.validator = viz.Validator(proc)
@@ -152,10 +156,12 @@ class VW(VoltReg):
                 '''
                 self.c_eut.set_vw(Ena=True, crv=vw_crv)
                 for k, v in self.vw_traverse_steps(vw_crv).items():
-                    dct_label = {'proc': 'vw', 'pwr': pwr_pu, 'crv': crv_name, 'step': k}
-                    self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
+                    dct_label = {'proc': 'vw', 'pwr': pwr_pu,
+                                 'crv': crv_name, 'step': k}
+                    self.vw_validate(dct_label, lambda: self.c_env.ac_config(Vac=v), timedelta(
+                        seconds=vw_crv.Tr), lambda x: vw_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Prated)
 
-    def vw_proc(self, pwr_pus=(1, 0.2, 0.66), crvs=(1,2,3)):
+    def vw_proc(self, pwr_pus=(1, 0.2, 0.66), crvs=(1, 2, 3)):
         """
         """
         '''
@@ -274,7 +280,8 @@ class VW(VoltReg):
         self.c_env.log(msg=f"{slabel}")
         xarg, yarg = 'V', 'P'
 
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        df_meas = self.meas_perturb(
+            perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
 
         # get y_init
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
@@ -288,7 +295,7 @@ class VW(VoltReg):
         P(tr) at olrt +/- 1.5 tMRA [...] shall be not more than 0.9 * (Pfinal - Pinitial) + Pinitial + 1.5 * pMRA
         '''
         olrt_s = olrt.total_seconds()
-        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        def y_of_t(t): return self.expapp(olrt_s, t, y_init, y_ss)
         y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
         y_olrt_target = y_of_t(olrt_s)
         olrt_valid = y_olrt <= y_olrt_max
@@ -313,6 +320,7 @@ class VW(VoltReg):
             },
             start=t_init,
             end=t_ss1,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
             passed=olrt_valid and ss_valid
         )

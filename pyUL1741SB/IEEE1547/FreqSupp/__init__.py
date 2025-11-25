@@ -30,6 +30,7 @@ class FWChar:
         def of_region():
             crv = yn - ((x - 60 - self.dbof_hz) / 60 / self.kof)
             return max(ymin, crv)
+
         def uf_region():
             crv = yn + ((60 - self.dbuf_hz - x) / 60 / self.kuf)
             return min(ymax, crv)
@@ -47,17 +48,28 @@ class FWChar:
                 return of_region()
 
     @staticmethod
-    def CatI_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatI_CharI(): return FWChar(
+        dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+
     @staticmethod
-    def CatII_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatII_CharI(): return FWChar(
+        dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+
     @staticmethod
-    def CatIII_CharI(): return FWChar(dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+    def CatIII_CharI(): return FWChar(
+        dbof_hz=0.036, kof=0.05, dbuf_hz=0.036, kuf=0.05, tr=5)
+
     @staticmethod
-    def CatI_CharII(): return FWChar(dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
+    def CatI_CharII(): return FWChar(
+        dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
+
     @staticmethod
-    def CatII_CharII(): return FWChar(dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
+    def CatII_CharII(): return FWChar(
+        dbof_hz=0.017, kof=0.03, dbuf_hz=0.017, kuf=0.03, tr=1)
+
     @staticmethod
-    def CatIII_CharII(): return FWChar(dbof_hz=0.017, kof=0.02, dbuf_hz=0.017, kuf=0.02, tr=0.2)
+    def CatIII_CharII(): return FWChar(
+        dbof_hz=0.017, kof=0.02, dbuf_hz=0.017, kuf=0.02, tr=0.2)
 
 '''
 The manufacturer shall state the following parameters of the EUT for this test:
@@ -71,6 +83,8 @@ EUT’s abnormal operating performance category defined by IEEE Std 1547-2018
 The additional parameter shall be calculated as follows:
 delta_fsmall = delta_Psmall * fN * kOF
 '''
+
+
 class FreqSupp(IEEE1547):
     def fwo(self, outdir, final):
         self.validator = viz.Validator('fwo')
@@ -135,14 +149,19 @@ class FreqSupp(IEEE1547):
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+                self.c_env.ac_config(
+                    Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
                 self.c_eut.set_ap(Ena=True, pu=pwr_pu)
                 self.c_eut.set_fw(Ena=True, crv=crv)
-                self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state
-                y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * self.c_eut.Prated
-                dct_steps = self.fwo_traverse_steps(crv, af=self.c_eut.mra.static.F)
+                # wait for AP steady state
+                self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
+                def y_of_x(x): return crv.y_of_x(
+                    x, -1, pwr_pu, 1) * self.c_eut.Prated
+                dct_steps = self.fwo_traverse_steps(
+                    crv, af=self.c_eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
-                    dct_label = {'proc': 'fwo', 'crv': crv_key, 'pwr_pu': pwr_pu, 'step': step_key}
+                    dct_label = {'proc': 'fwo', 'crv': crv_key,
+                                 'pwr_pu': pwr_pu, 'step': step_key}
                     self.fwo_validate(dct_label, step_fcn, olrt, y_of_x)
 
     def fwo_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
@@ -247,15 +266,20 @@ class FreqSupp(IEEE1547):
             '''
             f) Verify frequency-watt mode is reported as active and that the correct characteristic is reported.
             '''
-            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+            self.c_env.ac_config(
+                Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
             self.c_eut.set_ap(Ena=True, pu=1.0)
             self.c_eut.set_lap(Ena=True, pu=pwr_pu)
             self.c_eut.set_fw(Ena=True, crv=crv)
-            self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))  # wait for AP steady state
-            y_of_x = lambda x: crv.y_of_x(x, -1, pwr_pu, 1) * self.c_eut.Prated
-            dct_steps = self.fwu_traverse_steps(crv, af=self.c_eut.mra.static.F)
+            # wait for AP steady state
+            self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
+            def y_of_x(x): return crv.y_of_x(
+                x, -1, pwr_pu, 1) * self.c_eut.Prated
+            dct_steps = self.fwu_traverse_steps(
+                crv, af=self.c_eut.mra.static.F)
             for step_key, step_fcn in dct_steps.items():
-                dct_label = {'proc': 'fwu', 'crv': crv_key, 'pwr_pu': pwr_pu, 'step': step_key}
+                dct_label = {'proc': 'fwu', 'crv': crv_key,
+                             'pwr_pu': pwr_pu, 'step': step_key}
                 self.fwu_validate(dct_label, step_fcn, olrt, y_of_x)
 
     def fwu_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
@@ -314,7 +338,8 @@ class FreqSupp(IEEE1547):
         xarg, yarg = 'F', 'P'
         # need to apply different validation depending on DeltaPsmall/large
         # assume criteria for deltaPsmall for all steps, more stringent criteria
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        df_meas = self.meas_perturb(
+            perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
 
         t_init, t_olrt, t_ss0, t_ss1 = self.ts_of_interest(df_meas.index, olrt)
         # get y_init
@@ -327,7 +352,7 @@ class FreqSupp(IEEE1547):
         [...] the EUT shall reach 90% × (Qfinal – Qinitial) + Qinitial within 1.5*MRA at olrt within 1.5*MRA 
         '''
         olrt_s = olrt.total_seconds()
-        y_of_t = lambda t: self.expapp(olrt_s, t, y_init, y_ss)
+        def y_of_t(t): return self.expapp(olrt_s, t, y_init, y_ss)
         y_olrt_min, y_olrt_max = self.range_4p2(y_of_t, olrt_s, tMRA, yMRA)
         y_olrt_target = y_of_t(olrt_s)
         olrt_valid = y_olrt <= y_olrt_max
@@ -352,6 +377,7 @@ class FreqSupp(IEEE1547):
             },
             start=t_init,
             end=t_ss1,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'olrt_valid': olrt_valid, 'ss_valid': ss_valid}.items()),
             passed=olrt_valid and ss_valid
         )

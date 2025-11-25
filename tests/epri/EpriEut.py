@@ -98,7 +98,7 @@ class EpriEut(Eut):
             else:
                 raise NotImplementedError
 
-    def set_vv(self, Ena: bool, crv: VVCurve=None, vrefEna=None, vrefTr_s=None):
+    def set_vv(self, Ena: bool, crv: VVCurve = None, vrefEna=None, vrefTr_s=None):
         self.der.der_file.QV_MODE_ENABLE = Ena
         if crv is not None:
             self.der.der_file.QV_CURVE_Q1 = crv.Q1
@@ -115,7 +115,7 @@ class EpriEut(Eut):
         if vrefTr_s is not None:
             self.der.der_file.QV_VREF_TIME = vrefTr_s
 
-    def set_wv(self, Ena: bool, crv: WVCurve=None):
+    def set_wv(self, Ena: bool, crv: WVCurve = None):
         self.der.der_file.QP_MODE_ENABLE = Ena
         if crv is not None:
             self.der.der_file.QP_CURVE_Q1_GEN = crv.Q1
@@ -131,7 +131,7 @@ class EpriEut(Eut):
             self.der.der_file.QP_CURVE_P2_LOAD = crv.P2_prime
             self.der.der_file.QP_CURVE_P3_LOAD = crv.P3_prime
 
-    def set_vw(self, Ena: bool, crv: VWCurve=None):
+    def set_vw(self, Ena: bool, crv: VWCurve = None):
         self.der.der_file.PV_MODE_ENABLE = Ena
         if crv is not None:
             self.der.der_file.PV_CURVE_P1 = crv.P1
@@ -185,7 +185,7 @@ class EpriEut(Eut):
     def has_tripped(self):
         return self.der.der_status == 'Trip'
 
-    def set_fw(self, Ena: bool, crv: FWChar=None):
+    def set_fw(self, Ena: bool, crv: FWChar = None):
         """
         :param kwargs: Ena, DbOf, DbUf, KOf, KUf, RespTms, PMin
         :return:
@@ -216,4 +216,3 @@ class EpriEut(Eut):
                 self.der.der_file.ES_F_LOW = v
             else:
                 raise NotImplementedError
-

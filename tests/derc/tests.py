@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 import datetime as dt
 import os
 
+
 class DercStd(UL1741SB):
     def __init__(self, env: DercEnv, eut: DercEut):
         super().__init__(env, eut)
@@ -15,7 +16,8 @@ class DercStd(UL1741SB):
         self.trip_rpt = 5  # 5 in standard
 
     def conn_to_grid(self):
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_env.sleep(dt.timedelta(seconds=10.0))
 
     def trip_rst(self):
@@ -25,7 +27,9 @@ class DercStd(UL1741SB):
             self.c_env.sleep(dt.timedelta(seconds=1))
         return None
 
+
 post = Post('tests/derc/results/')
+
 
 @pytest.fixture
 def std():
@@ -33,6 +37,7 @@ def std():
     env = DercEnv(eut)
     std = DercStd(env, eut)
     return std
+
 
 class TestVoltreg:
     def test_cpf(self, std):
@@ -107,6 +112,7 @@ class TestVoltreg:
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
 
+
 class TestFreqsupp:
     def test_fwo(self, std):
         std.fwo_proc()
@@ -123,6 +129,7 @@ class TestFreqsupp:
         pfcols = ['ss_valid', 'olrt_valid']
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 class TestMisc:
     def test_pri(self, std):
@@ -148,6 +155,7 @@ class TestMisc:
         pfcols = ['valid']
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 class TestTrip:
     def test_uvt(self, std):
@@ -181,6 +189,7 @@ class TestTrip:
         pfcols = ['ceased']
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 class TestRidethrough:
     def test_lvrt(self, std):
@@ -225,6 +234,7 @@ def rtest_pri_corruption(std):
     pfcols = ['p_valid', 'q_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 def rtest_uvt_nrst(std):
     std.lap_proc()

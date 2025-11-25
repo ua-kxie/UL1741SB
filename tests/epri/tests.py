@@ -6,6 +6,7 @@ import plotly
 from plotly.subplots import make_subplots
 import datetime as dt
 
+
 class EpriStd(UL1741SB):
     def __init__(self, env: EpriEnv, eut: EpriEut):
         super().__init__(env, eut)
@@ -21,7 +22,8 @@ class EpriStd(UL1741SB):
     def trip_rst(self):
         # return to continuous op after tripping
         # set VDC, (Vg) to 0
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.dc_config(Vdc=0)
         # wait 1 second
         self.c_env.sleep(dt.timedelta(seconds=1))
@@ -32,8 +34,10 @@ class EpriStd(UL1741SB):
             self.c_env.sleep(dt.timedelta(seconds=1))
         return None
 
+
 outdir = 'tests/epri/results/'
 post = Post(outdir)
+
 
 @pytest.fixture
 def std():
@@ -41,6 +45,7 @@ def std():
     env = EpriEnv(eut)
     std = EpriStd(env, eut)
     return std
+
 
 class TestVoltreg:
     def test_cpf(self, std):
@@ -67,12 +72,14 @@ class TestVoltreg:
     def test_vw_p20pu(self, std):
         std.vw(outdir, lambda: None, pwr_pus=(0.2,))
 
+
 class TestFreqsupp:
     def test_fwo(self, std):
         std.fwo(outdir, lambda: None)
 
     def test_fwu(self, std):
         std.fwu(outdir, lambda: None)
+
 
 class TestMisc:
     def test_pri(self, std):
@@ -83,6 +90,7 @@ class TestMisc:
 
     def test_es_ramp(self, std):
         std.es_ramp(outdir, lambda: None)
+
 
 class TestTrip:
     def test_uvt(self, std):
@@ -116,6 +124,7 @@ class TestTrip:
         pfcols = ['ceased']
         for pfcol in pfcols:
             assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 class TestRidethrough:
     def test_lvrt(self, std):
@@ -160,6 +169,7 @@ def rtest_pri_corruption(std):
     pfcols = ['p_valid', 'q_valid']
     for pfcol in pfcols:
         assert std.c_env.results[proc].loc[:, pfcol].all()
+
 
 def rtest_uvt_nrst(std):
     std.lap_proc()

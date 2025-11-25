@@ -7,6 +7,8 @@ from pyUL1741SB.IEEE1547.VoltReg import VoltReg
 import pandas as pd
 
 proc = 'crp'
+
+
 class CRP(VoltReg):
     def crp(self, outdir, final):
         self.validator = viz.Validator(proc)
@@ -22,10 +24,13 @@ class CRP(VoltReg):
         self.c_env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=self.c_eut.olrt.crp)
         Qpusets = [
-            1 * self.c_eut.Qrated_inj / self.c_eut.Srated, -1 * self.c_eut.Qrated_abs / self.c_eut.Srated,
-            0.5 * self.c_eut.Qrated_inj / self.c_eut.Srated, -0.5 * self.c_eut.Qrated_abs / self.c_eut.Srated
+            1 * self.c_eut.Qrated_inj / self.c_eut.Srated, -
+            1 * self.c_eut.Qrated_abs / self.c_eut.Srated,
+            0.5 * self.c_eut.Qrated_inj / self.c_eut.Srated, -
+            0.5 * self.c_eut.Qrated_abs / self.c_eut.Srated
         ]
-        Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min, self.c_eut.Vin_max] if v is not None]
+        Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min,
+                            self.c_eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase
         VL, VN, VH = self.c_eut.VL, self.c_eut.VN, self.c_eut.VH
         av = self.mra_scale * self.c_eut.mra.static.V
@@ -81,7 +86,8 @@ class CRP(VoltReg):
                 }
                 for k, perturbation in dct_steps.items():
                     self.crp_step_validate(
-                        dct_label={'proc': proc, 'Qset': f'{Qpu:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
+                        dct_label={'proc': proc, 'Qset': f'{Qpu:.2f}',
+                                   'Vin': f'{Vin:.2f}', 'Step': f'{k}'},
                         perturb=perturbation,
                         olrt=olrt,
                         y_of_x=lambda x: Qpu * self.c_eut.Qrated_inj if Qpu > 0 else Qpu * self.c_eut.Qrated_abs,
@@ -100,13 +106,12 @@ class CRP(VoltReg):
                 s) Verify all reactive/active power control functions are disabled.
                 '''
                 self.crp_step_validate(
-                    dct_label={'proc': proc, 'Qset': f'{0:.2f}', 'Vin': f'{Vin:.2f}', 'Step': f'r'},
+                    dct_label={'proc': proc, 'Qset': f'{0:.2f}',
+                               'Vin': f'{Vin:.2f}', 'Step': f'r'},
                     perturb=lambda: self.c_eut.set_crp(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )
 
-
     def crp_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
-

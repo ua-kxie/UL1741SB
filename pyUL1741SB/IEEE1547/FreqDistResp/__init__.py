@@ -6,6 +6,7 @@ from pyUL1741SB import Eut, Env
 
 from pyUL1741SB.IEEE1547 import IEEE1547
 
+
 class FreqDist(IEEE1547):
     def oft_proc(self):
         '''
@@ -17,7 +18,8 @@ class FreqDist(IEEE1547):
         for the eut.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         m) Repeat steps c) through l) for each overfrequency operating region.
         '''
@@ -41,7 +43,8 @@ class FreqDist(IEEE1547):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
+                    self.c_eut.set_ft(
+                        **{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum [maximum] overfrequency trip magnitude setting within the
@@ -49,7 +52,8 @@ class FreqDist(IEEE1547):
                         e) Set (or verify) the EUT parameters to the minimum [maximum] overfrequency trip duration setting within the
                         range of adjustment specified by the manufacturer.
                         '''
-                        dct_label = {'proc': 'oft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fhz, 'iter': i}
+                        dct_label = {'proc': 'oft', 'region': trip_key,
+                                     'time': trip_cts, 'mag': trip_fhz, 'iter': i}
                         self.oft_validate(dct_label, trip_fhz, trip_cts)
                         self.trip_rst()
 
@@ -79,8 +83,11 @@ class FreqDist(IEEE1547):
         '''
         tMRA = self.c_eut.mra.static.T(trip_cts)
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        step0 = lambda: self.c_env.ac_config(freq=trip_fhz * 0.99, rocof=self.c_eut.rocof())
-        step1 = lambda: self.c_env.ac_config(freq=trip_fhz * 1.1, rocof=self.c_eut.rocof())
+
+        def step0(): return self.c_env.ac_config(
+            freq=trip_fhz * 0.99, rocof=self.c_eut.rocof())
+        def step1(): return self.c_env.ac_config(
+            freq=trip_fhz * 1.1, rocof=self.c_eut.rocof())
         meas_args = ('P', 'Q', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
@@ -95,7 +102,8 @@ class FreqDist(IEEE1547):
         operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         m) Repeat steps c) through l) for each underfrequency operating region.
         '''
@@ -119,7 +127,8 @@ class FreqDist(IEEE1547):
                     '''
                     j) Repeat steps d) through i) four times for a total of five tests.
                     '''
-                    self.c_eut.set_ft(**{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
+                    self.c_eut.set_ft(
+                        **{trip_key: {'freq': trip_fhz, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         d) Set (or verify) EUT parameters to the minimum underfrequency trip magnitude setting within
@@ -133,7 +142,8 @@ class FreqDist(IEEE1547):
                         1.5 times the clearing time setting.
                         i) Record the frequency at which the unit trips and the clearing time.
                         '''
-                        dct_label = {'proc': 'uft', 'region': trip_key, 'time': trip_cts, 'mag': trip_fhz, 'iter': i}
+                        dct_label = {'proc': 'uft', 'region': trip_key,
+                                     'time': trip_cts, 'mag': trip_fhz, 'iter': i}
                         self.uft_validate(dct_label, trip_fhz, trip_cts)
                         self.trip_rst()
 
@@ -163,8 +173,11 @@ class FreqDist(IEEE1547):
         '''
         tMRA = self.c_eut.mra.static.T(trip_cts)
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        step0 = lambda: self.c_env.ac_config(freq=trip_fhz * 1.01, rocof=self.c_eut.rocof())
-        step1 = lambda: self.c_env.ac_config(freq=trip_fhz * 0.90, rocof=self.c_eut.rocof())
+
+        def step0(): return self.c_env.ac_config(
+            freq=trip_fhz * 1.01, rocof=self.c_eut.rocof())
+        def step1(): return self.c_env.ac_config(
+            freq=trip_fhz * 0.90, rocof=self.c_eut.rocof())
         meas_args = ('P', 'Q', 'F')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
@@ -182,7 +195,8 @@ class FreqDist(IEEE1547):
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
@@ -202,7 +216,8 @@ class FreqDist(IEEE1547):
         if self.c_eut.vfo_capable:
             raise NotImplementedError
         else:
-            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+            self.c_env.ac_config(
+                Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
 
         '''
         i) Repeat steps f) and g) twice for a total of three tests.
@@ -234,12 +249,14 @@ class FreqDist(IEEE1547):
             else:
                 self.hfrt_validate(
                     {'proc': 'hfrt', 'iter': iteration, 'step': 'g'},
-                    lambda: self.c_env.ac_config(freq=62, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        freq=62, rocof=self.c_eut.rocof()),
                     timedelta(seconds=299)
                 )
                 self.hfrt_validate(
                     {'proc': 'hfrt', 'iter': iteration, 'step': 'h'},
-                    lambda: self.c_env.ac_config(freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
                     timedelta(seconds=1)
                 )
         '''
@@ -280,7 +297,8 @@ class FreqDist(IEEE1547):
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         b) Set or verify that the EUT is programmed using default settings.
         c) Set the frequency droop function and droop values to make the active power change with respect to
@@ -300,7 +318,8 @@ class FreqDist(IEEE1547):
         if self.c_eut.vfo_capable:
             raise NotImplementedError
         else:
-            self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+            self.c_env.ac_config(
+                Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         i) Repeat steps f) and g) twice for a total of three tests. 
         '''
@@ -331,12 +350,14 @@ class FreqDist(IEEE1547):
             else:
                 self.lfrt_validate(
                     {'proc': 'lfrt', 'iter': iteration, 'step': 'g'},
-                    lambda: self.c_env.ac_config(freq=56.8, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        freq=56.8, rocof=self.c_eut.rocof()),
                     timedelta(seconds=299)
                 )
                 self.lfrt_validate(
                     {'proc': 'lfrt', 'iter': iteration, 'step': 'h'},
-                    lambda: self.c_env.ac_config(freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
                     timedelta(seconds=1)
                 )
         '''
@@ -365,8 +386,10 @@ class FreqDist(IEEE1547):
 
     def frt_validate(self, dct_label, perturbation, ntrvl):
         """"""
-        df_meas = self.meas_perturb(perturbation, ntrvl, ntrvl, ('P', 'Q', 'V', 'F'))
-        valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated) < self.mra_scale * self.c_eut.mra.static.P).all()
+        df_meas = self.meas_perturb(
+            perturbation, ntrvl, ntrvl, ('P', 'Q', 'V', 'F'))
+        valid = ((df_meas.loc[:, 'P'] - self.c_eut.Prated)
+                 < self.mra_scale * self.c_eut.mra.static.P).all()
 
         self.c_env.validate(dct_label={
             **dct_label,

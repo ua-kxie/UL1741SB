@@ -8,6 +8,7 @@ from pyUL1741SB import viz
 
 class WVCurve:
     '''IEEE 1547.1-2020 Tables 28-30'''
+
     def __init__(self, **kwargs):
         self.P3 = kwargs['P3']
         self.P2 = kwargs['P2']
@@ -32,7 +33,8 @@ class WVCurve:
     @staticmethod
     def Crv_1A(eut: Eut):
         """Create WV Curve 1A using Category A values from Table 28 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -43,7 +45,8 @@ class WVCurve:
     @staticmethod
     def Crv_1B(eut: Eut):
         """Create WV Curve 1B using Category B values from Table 28 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -54,7 +57,8 @@ class WVCurve:
     @staticmethod
     def Crv_2A(eut: Eut):
         """Create WV Curve 2A using Category A values from Table 29 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -65,7 +69,8 @@ class WVCurve:
     @staticmethod
     def Crv_2B(eut: Eut):
         """Create WV Curve 2B using Category B values from Table 29 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -76,7 +81,8 @@ class WVCurve:
     @staticmethod
     def Crv_3A(eut: Eut):
         """Create WV Curve 3A using Category A values from Table 30 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -87,7 +93,8 @@ class WVCurve:
     @staticmethod
     def Crv_3B(eut: Eut):
         """Create WV Curve 3B using Category B values from Table 30 (per unit)"""
-        P1_prime = 0 if eut.Prated_prime == 0 else min(-0.2, -eut.Pmin_prime / eut.Prated_prime)
+        P1_prime = 0 if eut.Prated_prime == 0 else min(
+            -0.2, -eut.Pmin_prime / eut.Prated_prime)
         return WVCurve(
             P3=1.0, P2=0.5, P1=max(0.2, eut.Pmin / eut.Prated),
             P1_prime=P1_prime, P2_prime=-0.5, P3_prime=-1.0,
@@ -95,7 +102,10 @@ class WVCurve:
             Q1_prime=0, Q2_prime=0.44, Q3_prime=0.44
         )
 
+
 proc = 'wv'
+
+
 class WV(VoltReg):
     def wv(self, outdir, final):
         self.validator = viz.Validator(proc)
@@ -104,6 +114,7 @@ class WV(VoltReg):
             final()
         finally:
             self.validator.draw_new(outdir)
+
     def wv_proc(self):
         """
         """
@@ -132,7 +143,8 @@ class WV(VoltReg):
         be turned off.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         vttbl = self.c_eut.voltshalltrip_tbl
         self.c_eut.set_vt(**{
             'OV1': {'cts': vttbl.OV1.cts, 'vpu': vttbl.OV1.volt_pu},
@@ -156,14 +168,17 @@ class WV(VoltReg):
             z) If this EUT can absorb active power, repeat steps g) through y) using PN' values instead of PN.
             '''
             if self.c_eut.Prated_prime < 0:
-                lst_dct_steps.append(('abs', self.wv_traverse_steps_abs(wv_crv)))
+                lst_dct_steps.append(
+                    ('abs', self.wv_traverse_steps_abs(wv_crv)))
 
             # validate for all steps
             for direction, dct_steps in lst_dct_steps:
                 for k, step in dct_steps.items():
-                    dct_label = {'proc': 'wv', 'crv': crv_key, 'dir': direction, 'step': k}
+                    dct_label = {'proc': 'wv', 'crv': crv_key,
+                                 'dir': direction, 'step': k}
                     self.wv_step_validate(
-                        dct_label, lambda: self.c_eut.set_ap(Ena=True, pu=max(min(step, 1), -1)), olrt,
+                        dct_label, lambda: self.c_eut.set_ap(
+                            Ena=True, pu=max(min(step, 1), -1)), olrt,
                         lambda x: wv_crv.y_of_x(x / self.c_eut.Prated) * self.c_eut.Prated)
 
     def wv_traverse_steps_inj(self, wv_crv: WVCurve):
@@ -253,4 +268,5 @@ class WV(VoltReg):
         self.c_env.log(msg=f"1741SB {slabel}")
         xarg, yarg = 'P', 'Q'
 
-        self.vv_wv_step_validate(dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
+        self.vv_wv_step_validate(
+            dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)

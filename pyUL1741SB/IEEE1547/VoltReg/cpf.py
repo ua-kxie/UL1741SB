@@ -8,6 +8,7 @@ from pyUL1741SB.IEEE1547.VoltReg import VoltReg
 
 proc = 'cpf'
 
+
 class CPF(VoltReg):
     def cpf(self, outdir, final):
         self.validator = viz.Validator(proc)
@@ -33,7 +34,8 @@ class CPF(VoltReg):
         PFmid,ab: A power factor setting chosen to be less than 1 and greater than PFmin,ab
         '''
         if self.c_eut.Cat == self.c_eut.Category.A:
-            targetPFs = [0.9, 0.97, 0.95, 0.98]  # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
+            # PFmin,inj, PFmin,ab, PFmid,inj, PFmid,ab
+            targetPFs = [0.9, 0.97, 0.95, 0.98]
         elif self.c_eut.Cat == self.c_eut.Category.B:
             targetPFs = [0.9, 0.9, 0.95, 0.95]
         else:
@@ -66,7 +68,8 @@ class CPF(VoltReg):
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
-        Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min, self.c_eut.Vin_max] if v is not None]
+        Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min,
+                            self.c_eut.Vin_max] if v is not None]
         for Vin in Vins:
             self.c_eut.dc_config(Vdc=Vin)
             """
@@ -115,7 +118,8 @@ class CPF(VoltReg):
                 }
                 for k, perturbation in dct_steps.items():
                     self.cpf_step_validate(
-                        dct_label={'proc': proc, 'Vin': f'{Vin:.2f}', 'PF': f'{PF:.2f}{Exct}', 'Step': f'{k}'},
+                        dct_label={'proc': proc, 'Vin': f'{Vin:.2f}',
+                                   'PF': f'{PF:.2f}{Exct}', 'Step': f'{k}'},
                         perturb=perturbation,
                         olrt=olrt,
                         y_of_x=y_of_x,
@@ -145,10 +149,10 @@ class CPF(VoltReg):
                     for grid_config in [
                         lambda: self.c_env.ac_config(Vac=VN),
                         lambda: self.c_env.ac_config_asym(mag=[1.08 * VN, 0.9 * VN, 0.9 * VN],
-                                                    pha=[0, -120, 120]),
+                                                          pha=[0, -120, 120]),
                         lambda: self.c_env.ac_config(Vac=VN),
                         lambda: self.c_env.ac_config_asym(mag=[0.9 * VN, 1.08 * VN, 1.08 * VN],
-                                                    pha=[0, -120, 120]),
+                                                          pha=[0, -120, 120]),
                         lambda: self.c_env.ac_config(Vac=VN),
                     ]:
                         grid_config()
@@ -158,13 +162,12 @@ class CPF(VoltReg):
                 r) Verify all reactive/active power control functions are disabled.
                 '''
                 self.cpf_step_validate(
-                    dct_label={'proc': proc, 'Vin': f'{Vin:.2f}', 'PF': f'off', 'Step': f'q'},
+                    dct_label={'proc': proc, 'Vin': f'{Vin:.2f}',
+                               'PF': f'off', 'Step': f'q'},
                     perturb=lambda: self.c_eut.set_cpf(Ena=False),
                     olrt=olrt,
                     y_of_x=lambda x: 0,
                 )
 
-
     def cpf_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         self.cpf_crp_meas_validate(dct_label, perturb, olrt, y_of_x)
-

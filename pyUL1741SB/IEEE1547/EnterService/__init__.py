@@ -29,7 +29,8 @@ NOTE - Voltages are in per unit (p.u.) of the nominal EUT ac voltage.
 df_es_cases = pd.DataFrame({
     'case': [1, 2, 3, 4, 5, 6],
     'ES delay (s)': [300, 0, 600, 0, 0, 0],
-    'ES period (ramp) (s)': [300, 300, 1000, 1000, 1, 1],  # same values for randomized delay
+    # same values for randomized delay
+    'ES period (ramp) (s)': [300, 300, 1000, 1000, 1, 1],
     'ES voltage high (p.u.)': [1.05, 1.05, 1.06, 1.06, 1.05, 1.05],
     'ES voltage low (p.u.)': [0.917, 0.917, 0.95, 0.95, 0.88, 0.88],
     'ES frequency high (Hz)': [60.1, 60.1, 61.0, 61.0, 60.1, 60.1],
@@ -39,6 +40,7 @@ df_es_cases = pd.DataFrame({
     'Initial frequency (Hz)': [60.0, 59.48, 60.0, 61.02, 60.0, 58.98],
     'Final frequency (Hz)': [60.0, 59.52, 60.0, 60.98, 60.0, 59.92]
 })
+
 
 class ES(IEEE1547):
     def es_ramp(self, outdir, final):
@@ -68,7 +70,8 @@ class ES(IEEE1547):
             self.c_env.sleep(timedelta(seconds=5))
             ntrvl = timedelta(seconds=1)
             df_meas = self.meas_perturb(
-                lambda: self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
+                lambda: self.c_env.ac_config(
+                    Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof()),
                 ntrvl, ntrvl, meas_args
             )
             self.es_ramp_validate(dct_label, step='c', df_meas=df_meas)
@@ -106,7 +109,8 @@ class ES(IEEE1547):
             fhz = df_row['Initial frequency (Hz)']
 
             def perturb():
-                self.c_env.ac_config(Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof())
+                self.c_env.ac_config(
+                    Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof())
                 self.c_eut.set_es(Ena=True)
 
             ntrvl = timedelta(seconds=max(60, 2 * df_row['ES delay (s)']))
@@ -126,7 +130,8 @@ class ES(IEEE1547):
                 fhz = df_row['Final frequency (Hz)']
                 ntrvl = timedelta(seconds=df_row['ES delay (s)'] * 0.25)
                 df_meas0 = self.meas_perturb(
-                    lambda: self.c_env.ac_config(Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
                     ntrvl, ntrvl, meas_args
                 )
 
@@ -134,11 +139,13 @@ class ES(IEEE1547):
                 fhz = df_row['Initial frequency (Hz)']
                 ntrvl = timedelta(seconds=0.05)
                 df_meas1 = self.meas_perturb(
-                    lambda: self.c_env.ac_config(Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
+                    lambda: self.c_env.ac_config(
+                        Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
                     ntrvl, ntrvl, meas_args
                 )
 
-                self.es_ramp_validate(dct_label, step='i', df_meas=pd.concat([df_meas0, df_meas1]))
+                self.es_ramp_validate(
+                    dct_label, step='i', df_meas=pd.concat([df_meas0, df_meas1]))
             '''
             j) Set the ac test source to the final voltage and frequency specified in Table 11. Wait until EUT
             active power stabilizes at its rated value.
@@ -146,9 +153,11 @@ class ES(IEEE1547):
             '''
             vpu = df_row['Final voltage (p.u.)']
             fhz = df_row['Final frequency (Hz)']
-            ntrvl = timedelta(seconds=df_row['ES delay (s)'] + df_row['ES period (ramp) (s)'] + self.c_eut.olrt.lap)
+            ntrvl = timedelta(
+                seconds=df_row['ES delay (s)'] + df_row['ES period (ramp) (s)'] + self.c_eut.olrt.lap)
             df_meas = self.meas_perturb(
-                lambda: self.c_env.ac_config(Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
+                lambda: self.c_env.ac_config(
+                    Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof()),
                 ntrvl, ntrvl, meas_args
             )
             self.es_ramp_validate(dct_label, step='j', df_meas=df_meas,
@@ -159,7 +168,8 @@ class ES(IEEE1547):
                 lambda: self.c_eut.set_es(Ena=False),
                 ntrvl, ntrvl, meas_args
             )
-            self.es_ramp_validate(dct_label, step='k', df_meas=df_meas, ntrvl=timedelta(seconds=2))
+            self.es_ramp_validate(dct_label, step='k',
+                                  df_meas=df_meas, ntrvl=timedelta(seconds=2))
             # wait for cessation
             '''
             l) Enable the permit service setting. Wait 5 s. This step shall be omitted for test cases where the ES
@@ -215,7 +225,8 @@ class ES(IEEE1547):
             limited = (df_meas.loc[:idx985, 'P'] < self.c_eut.Prated).all()
             valid = limited
         elif step in ['k']:
-            valid = (df_meas.loc[df_meas.index.asof(df_meas.index[1] + ntrvl):, 'P'] < self.c_eut.mra.static.P).all()
+            valid = (df_meas.loc[df_meas.index.asof(
+                df_meas.index[1] + ntrvl):, 'P'] < self.c_eut.mra.static.P).all()
         else:
             raise ValueError(f'Invalid step key {step}')
 
@@ -225,7 +236,7 @@ class ES(IEEE1547):
             dct_crits={},
             start=df_meas.index[0],
             end=df_meas.index[-1],
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'valid': valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'valid': valid}.items()),
             passed=valid
         )
-

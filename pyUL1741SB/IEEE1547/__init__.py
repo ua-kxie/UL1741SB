@@ -7,6 +7,7 @@ import pandas as pd
 from pyUL1741SB import Eut, Env
 import math
 
+
 class IEEE1547:
     def __init__(self, env: Env, eut: Eut):
         self.c_env = env
@@ -38,8 +39,10 @@ class IEEE1547:
         IEEE 1547.1-2020 4.2
         '''
         s1p5 = self.mra_scale
-        y_min = min(y_of_x(x - s1p5 * xMRA), y_of_x(x + s1p5 * xMRA)) - s1p5 * yMRA
-        y_max = max(y_of_x(x - s1p5 * xMRA), y_of_x(x + s1p5 * xMRA)) + s1p5 * yMRA
+        y_min = min(y_of_x(x - s1p5 * xMRA),
+                    y_of_x(x + s1p5 * xMRA)) - s1p5 * yMRA
+        y_max = max(y_of_x(x - s1p5 * xMRA),
+                    y_of_x(x + s1p5 * xMRA)) + s1p5 * yMRA
         return y_min, y_max
 
     def meas_perturb(self, perturb: Callable, olrt: timedelta, interval: timedelta, meas_args: tuple):
@@ -48,7 +51,8 @@ class IEEE1547:
         t_step = self.c_eut.mra.static.T(olrt.total_seconds())
         init = self.c_env.meas_single(*meas_args)
         perturb()
-        resp = self.c_env.meas_for(interval, timedelta(seconds=t_step), *meas_args)
+        resp = self.c_env.meas_for(
+            interval, timedelta(seconds=t_step), *meas_args)
         df = pd.concat([init, resp])
         return df
 
@@ -76,17 +80,20 @@ class IEEE1547:
             Qlim = self.c_eut.Srated * 0.1
         else:
             Qlim = self.c_eut.Srated * 0.03
-        lst_PQlims = [self.c_eut.mra.static.P * self.mra_scale, Qlim + self.c_eut.mra.static.Q * self.mra_scale]
+        lst_PQlims = [self.c_eut.mra.static.P * self.mra_scale,
+                      Qlim + self.c_eut.mra.static.Q * self.mra_scale]
         zipped = zip(df_meas_single.iloc[0, :].values, lst_PQlims)
         return all([v < thresh for v, thresh in zipped])
 
     def trip_step(self, dct_label, dur: timedelta, tstep_s, step0, step1, meas_args):
         # reset eut input
         dfs = []
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         dfs.append(self.c_env.meas_single(*meas_args))
         step0()
-        dfs.append(self.c_env.meas_for(dur, timedelta(seconds=tstep_s), *meas_args))
+        dfs.append(self.c_env.meas_for(
+            dur, timedelta(seconds=tstep_s), *meas_args))
 
         ts = self.c_env.time_now()
         step1()
@@ -100,7 +107,8 @@ class IEEE1547:
                 break
             self.c_env.sleep(timedelta(seconds=tstep_s))
         dfs.append(self.c_env.meas_single(*meas_args))
-        self.c_env.validate({**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
+        self.c_env.validate(
+            {**dct_label, 'ceased': ceased, 'data': pd.concat(dfs)})
 
     def conn_to_grid(self):
         # vdc to nom
@@ -110,7 +118,8 @@ class IEEE1547:
     def trip_rst(self):
         # return to continuous op after tripping
         # set VDC, (Vg) to 0
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.dc_config(Vdc=0)
         # wait 1 second
         self.c_env.sleep(timedelta(seconds=1))

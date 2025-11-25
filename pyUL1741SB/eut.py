@@ -1,6 +1,7 @@
 import enum
 import numpy as np
 
+
 class VoltShallTripValue:
     def __init__(self, volt, cts, volt_min=None, volt_max=None, cts_min=None, cts_max=None):
         self.__volt_pu = volt
@@ -13,12 +14,15 @@ class VoltShallTripValue:
     @property
     def volt_pu(self):
         return self.__volt_pu
+
     @volt_pu.setter
     def volt_pu(self, value):
         self.__volt_pu = np.clip(value, self.__volt_min, self.__volt_max)
+
     @property
     def cts(self):
         return self.__cts
+
     @cts.setter
     def cts(self, value):
         self.__cts = np.clip(value, self.__cts_min, self.__cts_max)
@@ -26,15 +30,19 @@ class VoltShallTripValue:
     @property
     def volt_pu_min(self):
         return self.__volt_min
+
     @property
     def volt_pu_max(self):
         return self.__volt_max
+
     @property
     def cts_min(self):
         return self.__cts_min
+
     @property
     def cts_max(self):
         return self.__cts_max
+
 
 class VoltShallTripTable:
     def __init__(self, ov2: VoltShallTripValue, ov1: VoltShallTripValue, uv1: VoltShallTripValue, uv2: VoltShallTripValue):
@@ -49,10 +57,10 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 11
         '''
         return VoltShallTripTable(
-            VoltShallTripValue(1.20 , 0.16),  # OV2: fixed values
-            VoltShallTripValue(1.10 , 2.0, 1.10 , 1.20 , 1.0, 13.0),  # OV1
-            VoltShallTripValue(0.70 , 2.0, 0.0 , 0.88 , 2.0, 21.0),  # UV1
-            VoltShallTripValue(0.45 , 0.16, 0.0 , 0.50 , 0.16, 2.0)   # UV2
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10, 2.0, 1.10, 1.20, 1.0, 13.0),  # OV1
+            VoltShallTripValue(0.70, 2.0, 0.0, 0.88, 2.0, 21.0),  # UV1
+            VoltShallTripValue(0.45, 0.16, 0.0, 0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
@@ -61,10 +69,11 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 12
         '''
         return VoltShallTripTable(
-            VoltShallTripValue( 1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue( 1.10, 2.0,  1.10,  1.20, 1.0, 13.0),  # OV1
-            VoltShallTripValue( 0.70, 10.0,  0.0,  0.88, 2.0, 21.0),  # UV1 (different default time)
-            VoltShallTripValue( 0.45, 0.16,  0.0,  0.50, 0.16, 2.0)   # UV2
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            VoltShallTripValue(1.10, 2.0,  1.10,  1.20, 1.0, 13.0),  # OV1
+            # UV1 (different default time)
+            VoltShallTripValue(0.70, 10.0,  0.0,  0.88, 2.0, 21.0),
+            VoltShallTripValue(0.45, 0.16,  0.0,  0.50, 0.16, 2.0)   # UV2
         )
 
     @staticmethod
@@ -73,11 +82,15 @@ class VoltShallTripTable:
         IEEE 1547-2018 Table 13
         '''
         return VoltShallTripTable(
-            VoltShallTripValue( 1.20, 0.16),  # OV2: fixed values
-            VoltShallTripValue( 1.10, 13.0, 1.10, 1.20, 1.0, 13.0),  # OV1 (different default time)
-            VoltShallTripValue( 0.88, 21.0, 0.0, 0.88, 21.0, 50.0),  # UV1 (different values)
-            VoltShallTripValue( 0.50, 2.0, 0.0, 0.50, 2.0, 21.0)    # UV2 (different values)
+            VoltShallTripValue(1.20, 0.16),  # OV2: fixed values
+            # OV1 (different default time)
+            VoltShallTripValue(1.10, 13.0, 1.10, 1.20, 1.0, 13.0),
+            VoltShallTripValue(0.88, 21.0, 0.0, 0.88, 21.0,
+                               50.0),  # UV1 (different values)
+            # UV2 (different values)
+            VoltShallTripValue(0.50, 2.0, 0.0, 0.50, 2.0, 21.0)
         )
+
 
 class FreqShallTripValue:
     def __init__(self, hertz, cts, hertz_min=None, hertz_max=None, cts_min=None, cts_max=None):
@@ -91,12 +104,15 @@ class FreqShallTripValue:
     @property
     def hertz(self):
         return self.__hertz
+
     @hertz.setter
     def hertz(self, value):
         self.__hertz = np.clip(value, self.__hertz_min, self.__hertz_max)
+
     @property
     def cts(self):
         return self.__cts
+
     @cts.setter
     def cts(self, value):
         self.__cts = np.clip(value, self.__cts_min, self.__cts_max)
@@ -104,15 +120,19 @@ class FreqShallTripValue:
     @property
     def cts_min(self):
         return self.__cts_min
+
     @property
     def cts_max(self):
         return self.__cts_max
+
     @property
     def hertz_min(self):
         return self.__hertz_min
+
     @property
     def hertz_max(self):
         return self.__hertz_max
+
 
 class FreqShallTripTable:
     def __init__(self, of2: FreqShallTripValue, of1: FreqShallTripValue, uf1: FreqShallTripValue, uf2: FreqShallTripValue):
@@ -134,6 +154,7 @@ class FreqShallTripTable:
             FreqShallTripValue(56.5, 0.16, 50, 57, 0.16, 1e3),
         )
 
+
 """
 IEEE 1547-2018 Table 21 
 Rate of Change of Frequency (ROCOF) Ride-Through Requirements
@@ -145,6 +166,7 @@ for DER of Abnormal Operating Performance Categories I, II, and III
 |  0.5 Hz/s |  2.0 Hz/s |  3.0 Hz/s |
 +-----------+-----------+-----------+
 """
+
 
 class Eut:
     class State(enum.Enum):
@@ -159,6 +181,7 @@ class Eut:
         SHUTTING_DOWN = 6
         FAULT = 7
         STANDBY = 8
+
     class AOPCat(enum.Enum):
         """
         abnormal performance category
@@ -166,13 +189,16 @@ class Eut:
         I = 1
         II = 2
         III = 3
+
     class Category(enum.Enum):
         A = 1
         B = 2
+
     class Comms(enum.Enum):
         SEP2 = 0
         DNP3 = 1
         SUNS = 2
+
     class MRA:
         '''
         Minimum required accuracy (MRA) (per Table 3 of IEEE Std 1547-2018)
@@ -217,12 +243,14 @@ class Eut:
         def __init__(self, v_nominal, s_rated):
             self.static = self.Static(v_nominal, s_rated)
             self.dynamic = self.Dynamic(v_nominal)
+
     class Olrt:
         def __init__(self, crp, cpf, wv, lap):
             self.crp = min(crp, 10)  # max 10 seconds
             self.cpf = min(cpf, 10)  # max 10 seconds
             self.wv = min(wv, 10)  # max 10 seconds
             self.lap = min(lap, 30)  # max 30 seconds
+
     def __init__(self, **kwargs):
         # general params
         k, t = 'Cat', self.Category
@@ -248,23 +276,35 @@ class Eut:
             self.freqshalltrip_tbl = kwargs[k]
         else:
             raise TypeError(f"{k} must be of type {t.__name__}.")
-        self.Comms = kwargs['Comms']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
-        self.multiphase = kwargs['multiphase']  # comms protocols to test - sunspec, dnp3, I3E 2030.5
+        # comms protocols to test - sunspec, dnp3, I3E 2030.5
+        self.Comms = kwargs['Comms']
+        # comms protocols to test - sunspec, dnp3, I3E 2030.5
+        self.multiphase = kwargs['multiphase']
         self.Prated = kwargs['Prated']  # output power rating (W)
-        self.Prated_prime = kwargs['Prated_prime']  # for EUTs that can sink power, output power rating while sinking power (W)
+        # for EUTs that can sink power, output power rating while sinking power (W)
+        self.Prated_prime = kwargs['Prated_prime']
         self.Srated = kwargs['Srated']  # apparent power rating (VA)
         # Volt Reg params
-        self.Vin_nom = kwargs['Vin_nom']  # for an EUT with an electrical input, nominal input voltage (V)
-        self.Vin_min = kwargs['Vin_min']  # for an EUT with an electrical input, minimum input voltage (V)
-        self.Vin_max = kwargs['Vin_max']  # for an EUT with an electrical input, maximum input voltage (V)
+        # for an EUT with an electrical input, nominal input voltage (V)
+        self.Vin_nom = kwargs['Vin_nom']
+        # for an EUT with an electrical input, minimum input voltage (V)
+        self.Vin_min = kwargs['Vin_min']
+        # for an EUT with an electrical input, maximum input voltage (V)
+        self.Vin_max = kwargs['Vin_max']
         self.VN = kwargs['VN']  # nominal output voltage (V)
-        self.VL = kwargs['VL']  # minimum output voltage in the continuous operating region (V)
-        self.VH = kwargs['VH']  # maximum output voltage in the continuous operating region (V)
+        # minimum output voltage in the continuous operating region (V)
+        self.VL = kwargs['VL']
+        # maximum output voltage in the continuous operating region (V)
+        self.VH = kwargs['VH']
         self.Pmin = kwargs['Pmin']  # minimum active power (W)
-        self.Pmin_prime = kwargs['Pmin_prime']  # for EUTs that can sink power, minimum active power while sinking power (W)
-        self.Qrated_abs = kwargs['Qrated_abs']  # maximum absorbed reactive power (var)
-        self.Qrated_inj = kwargs['Qrated_inj']  # minimum injected reactive power (var)
-        self.Qrated_inj = kwargs['Qrated_inj']  # minimum injected reactive power (var)
+        # for EUTs that can sink power, minimum active power while sinking power (W)
+        self.Pmin_prime = kwargs['Pmin_prime']
+        # maximum absorbed reactive power (var)
+        self.Qrated_abs = kwargs['Qrated_abs']
+        # minimum injected reactive power (var)
+        self.Qrated_inj = kwargs['Qrated_inj']
+        # minimum injected reactive power (var)
+        self.Qrated_inj = kwargs['Qrated_inj']
         # Freq Reg params
         self.fL = kwargs['fL']
         self.fN = kwargs['fN']
@@ -279,7 +319,8 @@ class Eut:
             raise TypeError(f"{k} must be of type {t.__name__}.")
         # vfo
         self.vfo_capable = kwargs['vfo_capable']  # (see frt tests)
-        self.demonstrable_rocof = kwargs['demonstrable_rocof']  # der capable rocof, should exceed required value from aopCat
+        # der capable rocof, should exceed required value from aopCat
+        self.demonstrable_rocof = kwargs['demonstrable_rocof']
         self.delta_Psmall = kwargs['delta_Psmall']  # see fw tests
 
     def dc_config(self, **kwargs):

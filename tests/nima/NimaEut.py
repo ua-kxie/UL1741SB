@@ -9,6 +9,7 @@ from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
 import wrapper as nc
 import datetime as dt
 
+
 class NimaEut(Eut):
     def __init__(self):
         nc.init()
@@ -70,7 +71,8 @@ class NimaEut(Eut):
         nc.set_emc(**emc_kwargs)
 
     def set_lap(self, Ena: bool, pu):
-        nc.set_emc(P_lim_enable=Ena, P_lim_cmd=int(pu * 100))  # Convert pu to percentage
+        nc.set_emc(P_lim_enable=Ena, P_lim_cmd=int(
+            pu * 100))  # Convert pu to percentage
 
     def set_ap(self, **kwargs):
         for k, v in kwargs.items():

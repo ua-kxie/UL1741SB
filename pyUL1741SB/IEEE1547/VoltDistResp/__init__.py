@@ -27,11 +27,13 @@ shall not deliver active power
 reactive power limited to 3 (10) % for DER rated less (more) than 500kVA
 """
 
+
 class OpMode(enum.Enum):
     ContOp = 1
     MandOp = 2
     MandOpC = 3  # During this test condition, the EUT may stay in momentary cessation for voltages less than 0.5 p.u. but shall not trip
     MomCess = 4
+
 
 class CondName(enum.Enum):
     A = 1
@@ -41,6 +43,7 @@ class CondName(enum.Enum):
     D = 5
     E = 6
     F = 7
+
 
 class VrtCond:
     def __init__(self, name: CondName, vpu, vpu_min, vpu_max, dur_s, opmd: OpMode):
@@ -91,11 +94,13 @@ class VrtCond:
     def catIII_hvrt_condC():
         return VrtCond(name=CondName.D, vpu=1.1, vpu_min=1.0, vpu_max=1.1, dur_s=120.0, opmd=OpMode.ContOp)
 
+
 class VoltDist(IEEE1547):
     Vminkey = 'Vmin'
     Vmaxkey = 'Vmax'
     Durkey = 'dur_s'
     OpMdkey = 'OpMd'
+
     def ovt_proc(self):
         """"""
         multiphase = self.c_eut.multiphase
@@ -109,7 +114,8 @@ class VoltDist(IEEE1547):
         b) Set all source parameters to the nominal operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         k) Repeat steps c) through k) for each overvoltage operating trip region.
         '''
@@ -123,12 +129,16 @@ class VoltDist(IEEE1547):
             '''
             j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
-            trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
+            trip_times = list(
+                # init in set to remove redundant
+                {trip_region.cts_min, trip_region.cts_max})
             for trip_cts in trip_times:
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at the [minimum] maximum of the range.
                 '''
-                trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
+                trip_mags = list(
+                    # init in set to remove redundant
+                    {trip_region.volt_pu_min, trip_region.volt_pu_max})
                 for trip_vpu in trip_mags:
                     trip_vpu = max(trip_vpu, (VN + 2 * vMRA) / VN)
                     '''
@@ -138,12 +148,14 @@ class VoltDist(IEEE1547):
                     h) For multiphase units, repeat steps e) through g) for the applicable voltage on each phase or phase
                     pair individually, and all phases simultaneously.
                     '''
-                    self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
+                    self.c_eut.set_vt(
+                        **{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         e), f)
                         '''
-                        dct_label = {'proc': 'ovt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
+                        dct_label = {'proc': 'ovt', 'region': trip_key,
+                                     'time': trip_cts, 'mag': trip_vpu, 'iter': i}
                         self.ovt_validate(dct_label, trip_cts, trip_vpu)
                         self.trip_rst()
 
@@ -177,8 +189,11 @@ class VoltDist(IEEE1547):
         tMRA = self.c_eut.mra.static.T(trip_cts)
         vMRA = self.c_eut.mra.static.V
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        step0 = lambda: self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN - 2 * vMRA)
-        step1 = lambda: self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
+
+        def step0(): return self.c_env.ac_config(
+            Vac=trip_vpu * self.c_eut.VN - 2 * vMRA)
+        def step1(): return self.c_env.ac_config(
+            Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
         meas_args = ('P', 'Q', 'V')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
@@ -196,7 +211,8 @@ class VoltDist(IEEE1547):
         b) Set all source parameters to the nominal operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         k) Repeat steps c) through j) for each undervoltage operating trip region.
         '''
@@ -212,12 +228,16 @@ class VoltDist(IEEE1547):
             '''
             j) Set the trip time setting to the maximum and repeat steps e) through i).
             '''
-            trip_times = list({trip_region.cts_min, trip_region.cts_max})  # init in set to remove redundant
+            trip_times = list(
+                # init in set to remove redundant
+                {trip_region.cts_min, trip_region.cts_max})
             for trip_cts in trip_times:
                 '''
                 i) If the trip magnitude is adjustable, repeat steps e) through h) at minimum of the range.
                 '''
-                trip_mags = list({trip_region.volt_pu_min, trip_region.volt_pu_max})  # init in set to remove redundant
+                trip_mags = list(
+                    # init in set to remove redundant
+                    {trip_region.volt_pu_min, trip_region.volt_pu_max})
                 for trip_vpu in trip_mags:
                     trip_vpu = min(trip_vpu, (VN - 2 * vMRA) / VN)
                     '''
@@ -227,7 +247,8 @@ class VoltDist(IEEE1547):
                     '''
                     g) Repeat steps e) through f) four times for a total of five tests.
                     '''
-                    self.c_eut.set_vt(**{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
+                    self.c_eut.set_vt(
+                        **{trip_key: {'vpu': trip_vpu, 'cts': trip_cts}})
                     for i in range(self.trip_rpt):
                         '''
                         e) Record applicable settings.
@@ -240,7 +261,8 @@ class VoltDist(IEEE1547):
                         ±0.02 p.u.
                         f) Record all voltage magnitudes when the unit trips.
                         '''
-                        dct_label = {'proc': 'uvt', 'region': trip_key, 'time': trip_cts, 'mag': trip_vpu, 'iter': i}
+                        dct_label = {'proc': 'uvt', 'region': trip_key,
+                                     'time': trip_cts, 'mag': trip_vpu, 'iter': i}
                         self.uvt_validate(dct_label, trip_cts, trip_vpu)
                         self.trip_rst()
 
@@ -266,8 +288,11 @@ class VoltDist(IEEE1547):
         tMRA = self.c_eut.mra.static.T(trip_cts)
         vMRA = self.c_eut.mra.static.V
         dur = timedelta(seconds=trip_cts + 2 * tMRA)
-        step0 = lambda: self.c_env.ac_config(Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
-        step1 = lambda: self.c_env.ac_config(Vac=max(0, trip_vpu * self.c_eut.VN - 2 * vMRA))
+
+        def step0(): return self.c_env.ac_config(
+            Vac=trip_vpu * self.c_eut.VN + 2 * vMRA)
+        def step1(): return self.c_env.ac_config(
+            Vac=max(0, trip_vpu * self.c_eut.VN - 2 * vMRA))
         meas_args = ('P', 'Q', 'V')
         self.trip_step(dct_label, dur, tMRA, step0, step1, meas_args)
 
@@ -293,10 +318,14 @@ class VoltDist(IEEE1547):
         elif self.c_eut.aopCat == self.c_eut.AOPCat.III:
             fwchar = FWChar.CatIII_CharI()
             seq = [
-                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
-                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
-                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
-                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condCprime(), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(
+                ), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(
+                ), VrtCond.catIII_lvrt_condC(), VrtCond.catIII_lvrt_condD(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condC(
+                ), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
+                VrtCond.catIII_lvrt_condA(), VrtCond.catIII_lvrt_condB(), VrtCond.catIII_lvrt_condCprime(
+                ), VrtCond.catIII_lvrt_condD(), VrtCond.catIII_lvrt_condE(),
             ]
         else:
             raise ValueError(self.c_eut.Cat)
@@ -315,7 +344,8 @@ class VoltDist(IEEE1547):
         The frequency-active power control mode of the EUT shall be set to the default settings.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_vt(**vt_args)
         self.c_eut.set_vv(Ena=True, crv=vvcrv)
         self.c_eut.set_vw(Ena=False)
@@ -356,26 +386,33 @@ class VoltDist(IEEE1547):
         '''
         meas_args = ('P', 'Q', 'V', 'F')
         ntrvl = timedelta(seconds=cond.dur_s)
+
         def perturb():
             self.c_env.ac_config(Vac=cond.vpu * self.c_eut.VN)
         df_meas = self.meas_perturb(perturb, ntrvl, ntrvl, meas_args)
         resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
 
         def contop_valid():
-            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 +
+                 df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > self.c_eut.mra.static.P * self.mra_scale  # ap is subject to vv-modulation due to Srated
+            # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * self.mra_scale
 
         def momcess_valid():
-            p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
+            # response time not specified, just going to use mean
+            p = df_meas.loc[resp_idx:, 'P'].mean()
             q = df_meas.loc[resp_idx:, 'Q'].mean()
-            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
-            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * self.c_eut.Srated # IEEE 1547.1-2018 4.5
+            # not explicitly stipulated, just says shall not deliver AP to grid
+            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN
+            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * \
+                self.c_eut.Srated  # IEEE 1547.1-2018 4.5
             return p < p_thresh and q < q_thresh
 
         def mandop_valid():
-            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[resp_idx:, 'Q'] ** 2) ** 0.5).mean()
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 +
+                 df_meas.loc[resp_idx:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             return (s / v) > (0.8 * self.predist_apparent_current)
 
@@ -388,7 +425,8 @@ class VoltDist(IEEE1547):
         elif cond.opmd == OpMode.MandOpC:
             momcess_valid = momcess_valid()
             mandop_valid = mandop_valid()
-            valid = (momcess_valid and self.prev_st == OpMode.MomCess) or mandop_valid
+            valid = (momcess_valid and self.prev_st ==
+                     OpMode.MomCess) or mandop_valid
             self.prev_st = OpMode.MandOp
         elif cond.opmd == OpMode.MandOp:
             valid = mandop_valid()
@@ -439,9 +477,11 @@ class VoltDist(IEEE1547):
         of IEEE Std 1547-2018 for the applicable performance category, and enabled.
         '''
         self.conn_to_grid()
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_vv(Ena=True, crv=vvcrv)
-        self.c_eut.set_vw(Ena=False)  # not specified but helps identify cont.op
+        # not specified but helps identify cont.op
+        self.c_eut.set_vw(Ena=False)
         '''
         The ride-through tests shall be performed at two output power levels, high and low, and at any convenient
         power factor greater than 0.90. High power is more than 0.9 of rated, low is between 0.25 to 0.5 of rated
@@ -481,16 +521,21 @@ class VoltDist(IEEE1547):
         resp_idx = df_meas.index.asof(df_meas.index[0] + resptm)
 
         def contop_valid():
-            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 + df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
+            s = ((df_meas.loc[resp_idx:, 'P'] ** 2 +
+                 df_meas.loc[:, 'Q'] ** 2) ** 0.5).mean()
             v = df_meas.loc[resp_idx:, 'V'].mean()
             self.predist_apparent_current = s/v
-            return s > self.c_eut.mra.static.P * self.mra_scale  # ap is subject to vv-modulation due to Srated
+            # ap is subject to vv-modulation due to Srated
+            return s > self.c_eut.mra.static.P * self.mra_scale
 
         def momcess_valid():
-            p = df_meas.loc[resp_idx:, 'P'].mean()  # response time not specified, just going to use mean
+            # response time not specified, just going to use mean
+            p = df_meas.loc[resp_idx:, 'P'].mean()
             q = df_meas.loc[resp_idx:, 'Q'].mean()
-            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN  # not explicitly stipulated, just says shall not deliver AP to grid
-            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * self.c_eut.Srated # IEEE 1547.1-2018 4.5
+            # not explicitly stipulated, just says shall not deliver AP to grid
+            p_thresh = 0.01 * self.c_eut.Srated / self.c_eut.VN
+            q_thresh = 0.1 * self.c_eut.Srated if self.c_eut.Srated < 500e3 else 0.03 * \
+                self.c_eut.Srated  # IEEE 1547.1-2018 4.5
             return p < p_thresh and q < q_thresh
 
         if cond.opmd == OpMode.ContOp:

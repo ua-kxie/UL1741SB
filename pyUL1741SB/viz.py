@@ -15,13 +15,16 @@ dct_trace_order = {
     'F': 'y4',
 }
 
+
 class Validator:
     def __init__(self, proc):
         self.proc = proc
 
-        self.epochs = []  # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
+        # {'start': ts, 'end': ts, 'label': string, 'passed': bool}
+        self.epochs = []
         self.meas = []  # df ts-index P Q V F
-        self.crit = {c: [] for c in ['P', 'Q', 'V', 'F']}  # one or multiple of P, Q, V, F. df ts-index min targ max
+        # one or multiple of P, Q, V, F. df ts-index min targ max
+        self.crit = {c: [] for c in ['P', 'Q', 'V', 'F']}
 
     def record_epoch(self, df_meas, dct_crits, **kwargs):
         self.meas.append(df_meas)
@@ -140,12 +143,13 @@ class Validator:
             heights = pq_heights
 
         # get domain size
-        fig = make_subplots(rows=4, cols=1, shared_xaxes=True, row_heights=heights)
+        fig = make_subplots(
+            rows=4, cols=1, shared_xaxes=True, row_heights=heights)
         domains = dict(
-            y1d = fig.layout.yaxis.domain,
-            y2d = fig.layout.yaxis2.domain,
-            y3d = fig.layout.yaxis3.domain,
-            y4d = fig.layout.yaxis4.domain
+            y1d=fig.layout.yaxis.domain,
+            y2d=fig.layout.yaxis2.domain,
+            y3d=fig.layout.yaxis3.domain,
+            y4d=fig.layout.yaxis4.domain
         )
 
         # make subplots using go.Figure - make subplots don't work with hover subplots
@@ -159,7 +163,8 @@ class Validator:
             yaxis2=dict(domain=domains['y2d'], anchor='x'),
             yaxis3=dict(domain=domains['y3d'], anchor='x'),
             yaxis4=dict(domain=domains['y4d'], anchor='x'),
-            xaxis=dict(title="Time", ticks='outside', anchor='y4', hoverformat='%H:%M:%S.%L', tickformat='%H:%M:%S'),
+            xaxis=dict(title="Time", ticks='outside', anchor='y4',
+                       hoverformat='%H:%M:%S.%L', tickformat='%H:%M:%S'),
         )
         fig = go.Figure(layout=layout)
 
@@ -171,4 +176,3 @@ class Validator:
         self._draw_epochs(fig, domains)
 
         plotly.offline.plot(fig, filename=f'{outdir}{self.proc}.html')
-

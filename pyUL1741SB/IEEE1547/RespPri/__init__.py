@@ -13,6 +13,7 @@ from pyUL1741SB import viz
 
 import pandas as pd
 
+
 class RespPri(IEEE1547):
     """"""
     """
@@ -101,7 +102,8 @@ class RespPri(IEEE1547):
         self.c_eut.set_vv(Ena=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
-        self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+        self.c_env.ac_config(
+            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.
@@ -151,7 +153,8 @@ class RespPri(IEEE1547):
 
         def crp_cfg():
             self.c_eut.set_vv(Ena=False)
-            self.c_eut.set_crp(Ena=True, pu=0.44 * self.c_eut.Prated / self.c_eut.Srated)
+            self.c_eut.set_crp(Ena=True, pu=0.44 *
+                               self.c_eut.Prated / self.c_eut.Srated)
 
         def cpf_cfg():
             self.c_eut.set_crp(Ena=False)
@@ -161,7 +164,8 @@ class RespPri(IEEE1547):
             self.c_eut.set_cpf(Ena=False)
             self.c_eut.set_wv(Ena=True, crv=wvcrv)
 
-        cfgs = [('e_vv_rp_pu', vv_cfg), ('e_crp_rp_pu', crp_cfg), ('e_cpf_pf', cpf_cfg), ('e_wv_rp_pu', wv_cfg)]
+        cfgs = [('e_vv_rp_pu', vv_cfg), ('e_crp_rp_pu', crp_cfg),
+                ('e_cpf_pf', cpf_cfg), ('e_wv_rp_pu', wv_cfg)]
         for vars_key, cfg in cfgs:
             cfg()
             '''
@@ -196,8 +200,11 @@ class RespPri(IEEE1547):
                     'e_cpf_pf': (self.c_eut.olrt.cpf, 'P', self.c_eut.mra.static.P, pf_of_x),
                     'e_wv_rp_pu': (self.c_eut.olrt.wv, 'V', self.c_eut.mra.static.V, lambda x: row['e_wv_rp_pu'] * self.c_eut.Prated),
                 }
-                olrt = timedelta(seconds=max(fwchar.tr, vwcrv.Tr, dct_q_tup[vars_key][0]))
-                perturbation = lambda: self.c_env.ac_config(Vac=row['vpu_ac'] * self.c_eut.VN, freq=row['fhz_ac'])
+                olrt = timedelta(seconds=max(
+                    fwchar.tr, vwcrv.Tr, dct_q_tup[vars_key][0]))
+
+                def perturbation(): return self.c_env.ac_config(
+                    Vac=row['vpu_ac'] * self.c_eut.VN, freq=row['fhz_ac'])
                 dct_label = {
                     'proc': 'pri',
                     'vars_ctrl': vars_key,
@@ -242,13 +249,16 @@ class RespPri(IEEE1547):
         the Y parameter and Psteady is the X parameter.
         """
         # meas vac, fac, p, q
-        df_meas = self.meas_perturb(perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
+        df_meas = self.meas_perturb(
+            perturb, olrt, 4 * olrt, ('P', 'Q', 'V', 'F'))
         row_ss = df_meas.loc[df_meas.index[0] + olrt:, :].mean()
         p_target = df_steprow['e_ap_pu'] * self.c_eut.Prated
 
         # ap validation
-        fwmin, fwmax = self.range_4p2(lambda x: p_target, 0, self.c_eut.mra.static.F, self.c_eut.mra.static.P)
-        vwmin, vwmax = self.range_4p2(lambda x: p_target, 0, self.c_eut.mra.static.V, self.c_eut.mra.static.P)
+        fwmin, fwmax = self.range_4p2(
+            lambda x: p_target, 0, self.c_eut.mra.static.F, self.c_eut.mra.static.P)
+        vwmin, vwmax = self.range_4p2(
+            lambda x: p_target, 0, self.c_eut.mra.static.V, self.c_eut.mra.static.P)
         pmin, pmax = min(fwmin, vwmin), max(fwmax, vwmax)
         p_valid = pmin < row_ss['P'] < pmax
 
@@ -258,7 +268,8 @@ class RespPri(IEEE1547):
         # cpf: x is P
         # wv: x is P
         q_target = q_of_x(row_ss[qx])
-        qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, self.c_eut.mra.static.Q)
+        qmin, qmax = self.range_4p2(
+            q_of_x, row_ss[qx], qxMRA, self.c_eut.mra.static.Q)
         q_valid = qmin < row_ss['Q'] < qmax
 
         t_start = df_meas.index[0]
@@ -281,7 +292,8 @@ class RespPri(IEEE1547):
             },
             start=t_start,
             end=t_end,
-            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'p_valid': p_valid, 'q_valid': q_valid}.items()),
+            label=''.join(f"{k}: {v}; " for k, v in {
+                          **dct_label, 'p_valid': p_valid, 'q_valid': q_valid}.items()),
             passed=p_valid and q_valid
         )
 
