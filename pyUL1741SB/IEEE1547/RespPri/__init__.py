@@ -9,6 +9,7 @@ from pyUL1741SB.IEEE1547.FreqSupp import FWChar
 from pyUL1741SB.IEEE1547.VoltReg.vw import VWCurve
 from pyUL1741SB.IEEE1547.VoltReg.vv import VVCurve
 from pyUL1741SB.IEEE1547.VoltReg.wv import WVCurve
+from pyUL1741SB import viz
 
 import pandas as pd
 
@@ -75,6 +76,14 @@ class RespPri(IEEE1547):
             'e_wv_rp_pu': [0, 0, 0, 0, 0, 0, 0, -0.18]
         }
         return pd.DataFrame(data).set_index('step')
+
+    def pri(self, outdir, final):
+        self.validator = viz.Validator('pri')
+        try:
+            self.pri_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
 
     def pri_proc(self):
         """"""
@@ -252,26 +261,29 @@ class RespPri(IEEE1547):
         qmin, qmax = self.range_4p2(q_of_x, row_ss[qx], qxMRA, self.c_eut.mra.static.Q)
         q_valid = qmin < row_ss['Q'] < qmax
 
-        self.c_env.validate(dct_label={
-            **dct_label,
-            't_ss0': df_meas.index[0],
-            't_ss1': df_meas.index.asof(df_meas.index[0] + olrt),
-            't_ss2': df_meas.index[-1],
-
-            'p_meas': row_ss['P'],
-            'p_target': p_target,
-            'p_min': pmin,
-            'p_max': pmax,
-            'p_valid': p_valid,
-
-            'q_meas': row_ss['Q'],
-            'q_target': q_target,
-            'q_min': qmin,
-            'q_max': qmax,
-            'q_valid': q_valid,
-
-            'data': df_meas
-        })
+        t_start = df_meas.index[0]
+        t_end = df_meas.index[-1]
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={
+                'P': pd.DataFrame({
+                    'ts': [t_start, t_end],
+                    'min': [pmin] * 2,
+                    'targ': [p_target] * 2,
+                    'max': [pmax] * 2,
+                }).set_index('ts'),
+                'Q': pd.DataFrame({
+                    'ts': [t_start, t_end],
+                    'min': [qmin] * 2,
+                    'targ': [q_target] * 2,
+                    'max': [qmax] * 2,
+                }).set_index('ts'),
+            },
+            start=t_start,
+            end=t_end,
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'p_valid': p_valid, 'q_valid': q_valid}.items()),
+            passed=p_valid and q_valid
+        )
 
     def vv_wv_validate(self, dct_label: dict, df_meas, olrt: timedelta, y_of_x: Callable, xarg,
                        yarg, xMRA, yMRA):

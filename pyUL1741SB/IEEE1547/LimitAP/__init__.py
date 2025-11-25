@@ -10,11 +10,12 @@ from pyUL1741SB import viz
 proc = 'lap'
 
 class LAP(IEEE1547):
-    def lap(self, outdir):
+    def lap(self, outdir, final):
         self.validator = viz.Validator(proc)
         try:
             self.lap_proc()
         finally:
+            final()
             self.validator.draw_new(outdir)
 
     def lap_proc(self):

@@ -76,23 +76,13 @@ class TestFreqsupp:
 
 class TestMisc:
     def test_pri(self, std):
-        std.pri_proc()
-        proc = 'pri'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['p_valid', 'q_valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.pri(outdir, lambda: None)
 
     def test_lap(self, std):
-        std.lap(outdir)
+        std.lap(outdir, lambda: None)
 
     def test_es_ramp(self, std):
-        std.es_ramp_proc()
-        proc = 'es-ramp'
-        post.post(proc, std.c_env.results[proc], proc)
-        pfcols = ['valid']
-        for pfcol in pfcols:
-            assert std.c_env.results[proc].loc[:, pfcol].all()
+        std.es_ramp(outdir, lambda: None)
 
 class TestTrip:
     def test_uvt(self, std):

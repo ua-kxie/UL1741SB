@@ -7,6 +7,7 @@ from pyUL1741SB import Eut, Env
 import pandas as pd
 
 from pyUL1741SB.IEEE1547 import IEEE1547
+from pyUL1741SB import viz
 
 """
 IEEE 1547.1-2020
@@ -40,6 +41,14 @@ df_es_cases = pd.DataFrame({
 })
 
 class ES(IEEE1547):
+    def es_ramp(self, outdir, final):
+        self.validator = viz.Validator('es-ramp')
+        try:
+            self.es_ramp_proc()
+        finally:
+            final()
+            self.validator.draw_new(outdir)
+
     def es_ramp_proc(self):
         """"""
         meas_args = ('P', 'Q', 'F', 'V')
@@ -211,9 +220,12 @@ class ES(IEEE1547):
             raise ValueError(f'Invalid step key {step}')
 
         df_meas.insert(0, 'case', dct_label['case'])
-        self.c_env.validate(dct_label={
-            **dct_label,
-            'step': step,
-            'valid': valid,
-            'data': df_meas
-        })
+        self.validator.record_epoch(
+            df_meas=df_meas,
+            dct_crits={},
+            start=df_meas.index[0],
+            end=df_meas.index[-1],
+            label=''.join(f"{k}: {v}; " for k, v in {**dct_label, 'valid': valid}.items()),
+            passed=valid
+        )
+
