@@ -339,34 +339,34 @@ class Eut:
         return max(self.demonstrable_rocof, required_rocof)
 
     def set_cpf(self, **kwargs):
-        raise NotImplementedError
+        pass
 
     def set_lap(self, Ena: bool, pu):
-        raise NotImplementedError
+        pass
 
     def set_ap(self, **kwargs):
-        raise NotImplementedError
+        pass
 
     def set_crp(self, **kwargs):
-        raise NotImplementedError
+        pass
 
     def set_vv(self, Ena: bool, crv=None, vrefEna=None, vrefTr_s=None):
-        raise NotImplementedError
+        pass
 
     def set_wv(self, Ena: bool, crv=None):
-        raise NotImplementedError
+        pass
 
     def set_vw(self, Ena: bool, crv=None):
-        raise NotImplementedError
+        pass
 
     def set_vt(self, **kwargs):
-        raise NotImplementedError
+        pass
 
     def set_ft(self, **kwargs):
-        raise NotImplementedError
+        pass
 
     def has_tripped(self):
-        raise NotImplementedError
+        pass
 
     def set_fw(self, Ena: bool, crv=None):
-        raise NotImplementedError
+        pass

@@ -155,7 +155,7 @@ class WV(VoltReg):
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
-        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
         '''

@@ -107,7 +107,6 @@ class FreqSupp(IEEE1547):
         if not self.c_eut.Prated_prime < 0:
             # discard second CharI run if eut cannot absorb active power
             fw_crvs = fw_crvs[:-1]
-        # fw_crvs = [[crv_key, crv, p_min_pu]
         '''
         IEEE 1547.1-2020 5.15.3.2:
         "Frequency is ramped at the ROCOF for the category of the self.c_eut."
@@ -121,7 +120,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
-        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
         '''
@@ -245,7 +244,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
-        self.c_eut.set_vv(Ena=False)
+        self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
         '''
