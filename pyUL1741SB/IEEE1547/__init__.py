@@ -7,6 +7,15 @@ import pandas as pd
 from pyUL1741SB import Eut, Env
 import math
 
+dct_esfast = {
+    'Ena': True,
+    'esDelay': 1.0,
+    'esPeriod': 0.0,
+    'esVpuHi': 1.06,
+    'esVpuLo': 0.88,
+    'esfHzHi': 61,
+    'esfHzLo': 59,
+}
 
 class IEEE1547:
     def __init__(self, env: Env, eut: Eut):
@@ -15,6 +24,10 @@ class IEEE1547:
 
         self.mra_scale = 1.5  # 1.5 in standard
         self.trip_rpt = 5  # 5 in standard
+
+    def set_esfast(self):
+        # make enter service fast so that test go fast
+        self.c_eut.set_es(**dct_esfast)
 
     def ts_of_interest(self, index, olrt):
         t_init = index[0]
@@ -125,16 +138,4 @@ class IEEE1547:
         pass
 
     def trip_rst(self):
-        # return to continuous op after tripping
-        # set VDC, (Vg) to 0
-        self.c_env.ac_config(
-            Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-        self.c_eut.dc_config(Vdc=0)
-        # wait 1 second
-        self.c_env.sleep(timedelta(seconds=1))
-        # set VDC to nominal
-        self.c_eut.dc_config(Vdc=self.c_eut.Vin_nom)
-        self.c_env.log(msg='waiting for re-energization...')
-        while self.c_env.meas_single('P').iloc[0, 0] < self.c_eut.Prated * 0.5:
-            self.c_env.sleep(timedelta(seconds=1))
-        return None
+        pass

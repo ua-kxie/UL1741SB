@@ -2,11 +2,9 @@
 IEEE 1547.1-2020 5.5
 """
 from datetime import timedelta
-from pyUL1741SB import Eut, Env
 from pyUL1741SB import viz
 
 from pyUL1741SB.IEEE1547 import IEEE1547
-
 
 class FreqDist(IEEE1547):
     def oft(self, outdir, final):
@@ -27,6 +25,7 @@ class FreqDist(IEEE1547):
         for the eut.
         '''
         self.conn_to_grid()
+        self.set_esfast()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -119,6 +118,7 @@ class FreqDist(IEEE1547):
         operating conditions for the eut.
         '''
         self.conn_to_grid()
+        self.set_esfast()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''

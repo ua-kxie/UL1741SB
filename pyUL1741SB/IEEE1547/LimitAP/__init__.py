@@ -43,6 +43,7 @@ class LAP(IEEE1547):
         category of the DER. Enable voltage-active power mode.
         '''
         self.conn_to_grid()
+        self.set_esfast()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_cpf(Ena=False)

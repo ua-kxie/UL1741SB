@@ -237,6 +237,6 @@ class ES(IEEE1547):
             start=df_meas.index[0],
             end=df_meas.index[-1],
             label=''.join(f"{k}: {v}; " for k, v in {
-                          **dct_label, 'valid': valid}.items()),
+                          **dct_label, 'step': step, 'valid': valid}.items()),
             passed=valid
         )

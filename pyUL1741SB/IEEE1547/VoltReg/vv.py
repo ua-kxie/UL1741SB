@@ -186,6 +186,7 @@ class VV(VoltReg):
         requirements.
         '''
         self.conn_to_grid()
+        self.set_esfast()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
@@ -239,7 +240,7 @@ class VV(VoltReg):
             dct_label, perturb, xarg, yarg, y_of_x, olrt, xMRA, yMRA)
 
     def vv_vref(self, outdir, final, **kwargs):
-        self.validator = viz.Validator('vv')
+        self.validator = viz.Validator('vv-vref')
         try:
             self.vv_vref_proc()
         finally:
@@ -259,6 +260,7 @@ class VV(VoltReg):
         a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
         '''
         self.conn_to_grid()
+        self.set_esfast()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

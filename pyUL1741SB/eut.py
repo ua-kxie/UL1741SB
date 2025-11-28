@@ -370,3 +370,6 @@ class Eut:
 
     def set_fw(self, Ena: bool, crv=None):
         pass
+
+    def set_es(self, **kwargs):
+        pass
