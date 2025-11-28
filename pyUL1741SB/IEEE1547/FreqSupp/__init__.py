@@ -117,7 +117,7 @@ class FreqSupp(IEEE1547):
         power control functions.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
@@ -232,6 +232,8 @@ class FreqSupp(IEEE1547):
         if not self.c_eut.Prated_prime < 0:
             # discard second CharI run if eut can not absorb active power
             fw_crvs = fw_crvs[:-1]
+        else:
+            fw_crvs = fw_crvs[:-1]  # temporarily disable, as LAP cannot be set to negative via sunspec TODO
         '''
         IEEE 1547.1-2020 5.15.3.2:
         "Frequency is ramped at the ROCOF for the category of the self.c_eut."
@@ -242,13 +244,13 @@ class FreqSupp(IEEE1547):
         power control functions.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_ap(Ena=True, pu=1)
         '''
         o) Repeat steps b) through n) for Characteristic 2.
         p) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
@@ -269,7 +271,7 @@ class FreqSupp(IEEE1547):
             '''
             self.c_env.ac_config(
                 Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_lap(Ena=True, pu=pwr_pu)
             self.c_eut.set_fw(Ena=True, crv=crv)
             # wait for AP steady state
             self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))

@@ -96,7 +96,7 @@ class RespPri(IEEE1547):
         c) Set all ac test source parameters to the nominal operating voltage and frequency.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)

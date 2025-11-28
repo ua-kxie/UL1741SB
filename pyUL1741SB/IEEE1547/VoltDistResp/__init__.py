@@ -123,7 +123,7 @@ class VoltDist(IEEE1547):
         b) Set all source parameters to the nominal operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -229,7 +229,7 @@ class VoltDist(IEEE1547):
         b) Set all source parameters to the nominal operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -371,6 +371,7 @@ class VoltDist(IEEE1547):
         The frequency-active power control mode of the EUT shall be set to the default settings.
         '''
         self.conn_to_grid()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         self.c_eut.set_vt(**vt_args)

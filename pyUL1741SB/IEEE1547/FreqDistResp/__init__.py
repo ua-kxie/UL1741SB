@@ -25,7 +25,7 @@ class FreqDist(IEEE1547):
         for the eut.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -118,7 +118,7 @@ class FreqDist(IEEE1547):
         operating conditions for the eut.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -220,6 +220,7 @@ class FreqDist(IEEE1547):
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
         self.conn_to_grid()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''
@@ -330,6 +331,7 @@ class FreqDist(IEEE1547):
         a) Connect the EUT to ac test source according to manufacturer’s instructions.
         '''
         self.conn_to_grid()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         '''

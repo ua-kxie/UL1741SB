@@ -7,7 +7,6 @@ from plotly.subplots import make_subplots
 import datetime as dt
 import os
 
-
 class DercStd(UL1741SB):
     def __init__(self, env: DercEnv, eut: DercEut):
         super().__init__(env, eut)
@@ -27,9 +26,9 @@ class DercStd(UL1741SB):
             self.c_env.sleep(dt.timedelta(seconds=1))
         return None
 
+eut = DercEut()
 @pytest.fixture
 def std():
-    eut = DercEut()
     env = DercEnv(eut)
     std = DercStd(env, eut)
     return std

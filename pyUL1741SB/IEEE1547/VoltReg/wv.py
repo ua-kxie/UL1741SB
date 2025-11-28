@@ -143,7 +143,7 @@ class WV(VoltReg):
         be turned off.
         '''
         self.conn_to_grid()
-        self.set_esfast()
+        self.default_cfg()
         self.c_env.ac_config(
             Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
         vttbl = self.c_eut.voltshalltrip_tbl

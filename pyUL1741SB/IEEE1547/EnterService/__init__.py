@@ -66,6 +66,7 @@ class ES(IEEE1547):
             self.c_eut. Make available sufficient input power for the EUT to reach its rated active power.
             '''
             self.conn_to_grid()
+            self.default_cfg()
             self.c_eut.set_es(Ena=False)
             self.c_env.sleep(timedelta(seconds=5))
             ntrvl = timedelta(seconds=1)
