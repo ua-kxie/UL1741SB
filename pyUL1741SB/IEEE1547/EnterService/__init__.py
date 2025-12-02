@@ -110,8 +110,8 @@ class ES(IEEE1547):
             fhz = df_row['Initial frequency (Hz)']
 
             def perturb():
-                self.c_env.ac_config(
-                    Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof())
+                self.c_env.ac_config(Vac=vpu * self.c_eut.VN, freq=fhz, rocof=self.c_eut.rocof())
+                self.c_env.sleep(timedelta(seconds=0.2))
                 self.c_eut.set_es(Ena=True)
 
             ntrvl = timedelta(seconds=max(60, 2 * df_row['ES delay (s)']))
