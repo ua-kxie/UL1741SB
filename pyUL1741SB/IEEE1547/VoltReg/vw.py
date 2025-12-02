@@ -39,7 +39,7 @@ class VWCurve:
         """Create VW Curve 1A using Category A values from Table 31 (per-unit)"""
         return VWCurve(
             V1=1.06, P1=1.0,
-            V2=1.1, P2=0, Tr=10
+            V2=1.1, P2=0.0, Tr=10
         )
 
     @staticmethod
@@ -55,7 +55,7 @@ class VWCurve:
         """Create VW Curve 1B using Category B values from Table 31 (per-unit)"""
         return VWCurve(
             V1=1.06, P1=1.0,
-            V2=1.1, P2=0, Tr=10
+            V2=1.1, P2=0.0, Tr=10
         )
 
     @staticmethod
@@ -71,7 +71,7 @@ class VWCurve:
         """Create VW Curve 2A using Category A values from Table 32 (per-unit)"""
         return VWCurve(
             V1=1.05, P1=1.0,
-            V2=1.1, P2=-1, Tr=60
+            V2=1.1, P2=-1.0, Tr=60
         )
 
     @staticmethod
@@ -87,7 +87,7 @@ class VWCurve:
         """Create VW Curve 2B using Category B values from Table 32 (per-unit)"""
         return VWCurve(
             V1=1.05, P1=1.0,
-            V2=1.1, P2=-1, Tr=60
+            V2=1.1, P2=-1.0, Tr=60
         )
 
     @staticmethod
@@ -103,7 +103,7 @@ class VWCurve:
         """Create VW Curve 3A using Category A values from Table 33 (per-unit)"""
         return VWCurve(
             V1=1.09, P1=1.0,
-            V2=1.1, P2=-1, Tr=0.5
+            V2=1.1, P2=-1.0, Tr=0.5
         )
 
     @staticmethod
@@ -119,7 +119,7 @@ class VWCurve:
         """Create VW Curve 3B using Category B values from Table 33 (per-unit)"""
         return VWCurve(
             V1=1.09, P1=1.0,
-            V2=1.1, P2=-1, Tr=0.5
+            V2=1.1, P2=-1.0, Tr=0.5
         )
 
 
