@@ -141,6 +141,7 @@ class IEEE1547:
         self.c_eut.set_vv(Ena=True)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_sap(spu=2.0)
 
     def conn_to_grid(self):
         # vdc to nom

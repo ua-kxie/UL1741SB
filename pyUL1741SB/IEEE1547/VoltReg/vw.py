@@ -252,12 +252,14 @@ class VW(VoltReg):
             'i': vw_crv.V1 * self.c_eut.VN + aV,
             'j': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
             'k': vw_crv.V2 * self.c_eut.VN - aV,
-            'm': self.c_eut.VH - aV,
-            'o': vw_crv.V2 * self.c_eut.VN - aV,
-            'p': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
-            'q': vw_crv.V1 * self.c_eut.VN + aV,
-            'r': vw_crv.V1 * self.c_eut.VN - aV,
-            's': self.c_eut.VL + aV
+            'l': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
+            'm': vw_crv.V1 * self.c_eut.VN + aV,
+            'n': vw_crv.V2 * self.c_eut.VN - aV,
+            'o': self.c_eut.VL + aV,
+            # 'p': (vw_crv.V1 + vw_crv.V2) * self.c_eut.VN / 2.,
+            # 'q': vw_crv.V1 * self.c_eut.VN + aV,
+            # 'r': vw_crv.V1 * self.c_eut.VN - aV,
+            # 's': self.c_eut.VL + aV
         }
         return ret
 

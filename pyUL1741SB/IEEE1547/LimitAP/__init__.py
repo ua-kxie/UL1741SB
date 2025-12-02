@@ -89,8 +89,7 @@ class LAP(IEEE1547):
                     else:
                         ymin_pu = 0
                     ymax_pu = 1
-                    fw_val = dflt_fwchar.y_of_x(
-                        x, ymin_pu, aplim_pu, ymax_pu) * self.c_eut.Prated
+                    fw_val = dflt_fwchar.y_of_x(x, ymin_pu, aplim_pu, ymax_pu) * self.c_eut.Prated
                     return fw_val
 
                 def y_of_vw(x):

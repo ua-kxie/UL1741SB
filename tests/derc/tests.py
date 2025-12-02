@@ -70,7 +70,7 @@ class TestFreqsupp:
     def test_fwo(self, std):
         std.fwo(outdir, final)
 
-    def stest_fwu(self, std):
+    def test_fwu(self, std):
         std.fwu(outdir, final)
 
 

@@ -265,7 +265,7 @@ class FreqSupp(IEEE1547):
             '''
             self.c_env.ac_config(
                 Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-            self.c_eut.set_sap(Ena=True, pu=pwr_pu)  # set setpoint active power
+            self.c_eut.set_sap(spu=pwr_pu)  # set setpoint active power
             self.c_eut.set_fw(Ena=True, crv=crv)
             # wait for AP steady state
             self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
