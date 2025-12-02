@@ -89,13 +89,94 @@ class VVCurve:
 
 
 class VV(VoltReg):
-    def vv(self, outdir, final, **kwargs):
-        self.validator = viz.Validator('vv')
+    def vv_char1(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vv-char1')
         try:
-            self.vv_proc()
+            self.vv_proc(vref_pus=(1.0,), pwr_pus=(1.0, 0.2, 0.66), char_crvs=(1,))
         finally:
             final()
             self.validator.draw_new(outdir)
+
+    def vv_char23(self, outdir, final, **kwargs):
+        self.validator = viz.Validator('vv-char23')
+        try:
+            self.vv_proc(vref_pus=(1.0,), pwr_pus=(1.0,), char_crvs=(2, 3))
+        finally:
+            final()
+            self.validator.draw_new(outdir)
+
+    def vv_pwr_crv_mat(self, vref_pus, pwr_pus, dct_crvs):
+        """"""
+        av = self.mra_scale * self.c_eut.mra.static.V
+        '''
+        ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
+        '''
+        for vref in vref_pus:
+            '''
+            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
+            '''
+            for pwr in pwr_pus:  # 1741SB amendment
+                '''
+                gg) Repeat steps e) through ee) for characteristics 2 and 3.
+                '''
+                for crv_name, vv_crv in dct_crvs.items():
+                    '''
+                    e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
+                    be turned off. Turn off the autonomously adjusting reference voltage.
+                    f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
+                    g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
+                    '''
+                    self.c_eut.set_vv(Ena=True, crv=vv_crv)
+                    dct_vvsteps = self.vv_traverse_steps(vv_crv, self.c_eut.VL, self.c_eut.VH, av)
+                    self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
+                    for stepname, perturbation in dct_vvsteps.items():
+                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}',
+                                     'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
+                        self.vv_step_validate(
+                            dct_label=dct_label,
+                            perturb=perturbation,
+                            olrt=timedelta(seconds=vv_crv.Tr),
+                            y_of_x=lambda x: vv_crv.y_of_x(
+                                x / self.c_eut.VN) * self.c_eut.Srated,
+                        )
+
+    def vv_proc(self, vref_pus=(1.0,), pwr_pus=(1.0, 0.2, 0.66), char_crvs=(1, 2, 3)):
+        """
+        """
+        if self.c_eut.Cat == self.c_eut.Category.A:
+            # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
+            vv_crvs = [
+                ('1A', VVCurve.Crv_1A()),
+                ('2A', VVCurve.Crv_2A(self.c_eut)),
+                ('3A', VVCurve.Crv_3A(self.c_eut)),
+            ]
+        elif self.c_eut.Cat == self.c_eut.Category.B:
+            vv_crvs = [
+                ('1B', VVCurve.Crv_1B()),
+                ('2B', VVCurve.Crv_2B(self.c_eut)),
+                ('3B', VVCurve.Crv_3B(self.c_eut)),
+            ]
+        else:
+            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
+        dct_crvs = {vv_crvs[i][0]: vv_crvs[i][1] for i in char_crvs}
+        '''
+        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
+        b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
+        control functions.
+        c) Set all ac test source parameters to the nominal operating voltage and frequency.
+        d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
+        voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
+        requirements.
+        '''
+        self.conn_to_grid()
+        self.default_cfg()
+        self.c_eut.set_cpf(Ena=False)
+        self.c_eut.set_crp(Ena=False)
+        self.c_eut.set_wv(Ena=False)
+        self.c_eut.set_vv(Ena=False, vrefEna=False)
+        self.c_eut.set_vw(Ena=False)
+        self.c_eut.set_lap(Ena=False, pu=1)
+        self.vv_pwr_crv_mat(vref_pus, pwr_pus, dct_crvs)
 
     def vv_traverse_steps(self, vv_crv: VVCurve, VL, VH, av):
         """
@@ -163,67 +244,6 @@ class VV(VoltReg):
             for step in ['v', 'w', 'y', 'z']:
                 ret.pop(step)
         return ret
-
-    def vv_proc(self):
-        """
-        """
-        VH, VN, VL, Pmin, Prated = self.c_eut.VH, self.c_eut.VN, self.c_eut.VL, self.c_eut.Pmin, self.c_eut.Prated
-        av = self.mra_scale * self.c_eut.mra.static.V
-        if self.c_eut.Cat == self.c_eut.Category.A:
-            # just char1 curve, UL1741 amendment. NP_VA as base. Other curves use NP_Q as base
-            vv_crvs = [('1A', VVCurve.Crv_1A())]
-        elif self.c_eut.Cat == self.c_eut.Category.B:
-            vv_crvs = [('1B', VVCurve.Crv_1B())]
-        else:
-            raise TypeError(f'unknown eut category {self.c_eut.Cat}')
-        '''
-        a) Connect the EUT according to the instructions and specifications provided by the manufacturer.
-        b) Set all voltage trip parameters to the widest range of adjustability. Disable all reactive/active power
-        control functions.
-        c) Set all ac test source parameters to the nominal operating voltage and frequency.
-        d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
-        voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive power
-        requirements.
-        '''
-        self.conn_to_grid()
-        self.default_cfg()
-        self.c_eut.set_cpf(Ena=False)
-        self.c_eut.set_crp(Ena=False)
-        self.c_eut.set_wv(Ena=False)
-        self.c_eut.set_vv(Ena=False, vrefEna=False)
-        self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_lap(Ena=False, pu=1)
-        '''
-        ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
-        '''
-        for vref in [VN]:  # 1741SB amendment
-            '''
-            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
-            '''
-            for pwr in [Prated]:  # 1741SB amendment
-                '''
-                gg) Repeat steps e) through ee) for characteristics 2 and 3.
-                '''
-                for crv_name, vv_crv in vv_crvs:
-                    '''
-                    e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
-                    be turned off. Turn off the autonomously adjusting reference voltage.
-                    f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
-                    g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
-                    '''
-                    self.c_eut.set_vv(Ena=True, crv=vv_crv)
-                    dct_vvsteps = self.vv_traverse_steps(vv_crv, VL, VH, av)
-                    self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
-                    for stepname, perturbation in dct_vvsteps.items():
-                        dct_label = {'proc': 'vv', 'vref': f'{vref:.0f}',
-                                     'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'}
-                        self.vv_step_validate(
-                            dct_label=dct_label,
-                            perturb=perturbation,
-                            olrt=timedelta(seconds=vv_crv.Tr),
-                            y_of_x=lambda x: vv_crv.y_of_x(
-                                x / self.c_eut.VN) * self.c_eut.Srated,
-                        )
 
     def vv_step_validate(self, dct_label: dict, perturb: Callable, olrt: timedelta, y_of_x: Callable[[float], float]):
         """"""

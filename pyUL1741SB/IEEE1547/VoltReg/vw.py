@@ -125,26 +125,26 @@ class VWCurve:
 
 proc = 'vw'
 class VW(VoltReg):
-    def vw_1pu(self, outdir, final, **kwargs):
+    def vw_1pu(self, outdir, final):
         self.validator = viz.Validator('vw-1pu')
         try:
-            self.vw_proc(**kwargs)
+            self.vw_proc(pwr_pus=(1.0,))
             final()
         finally:
             self.validator.draw_new(outdir)
 
-    def vw_pu66(self, outdir, final, **kwargs):
+    def vw_pu66(self, outdir, final):
         self.validator = viz.Validator('vw-pu66')
         try:
-            self.vw_proc(**kwargs)
+            self.vw_proc(pwr_pus=(0.66,))
             final()
         finally:
             self.validator.draw_new(outdir)
 
-    def vw_pu20(self, outdir, final, **kwargs):
+    def vw_pu20(self, outdir, final):
         self.validator = viz.Validator('vw-pu20')
         try:
-            self.vw_proc(**kwargs)
+            self.vw_proc(pwr_pus=(0.2,))
             final()
         finally:
             self.validator.draw_new(outdir)

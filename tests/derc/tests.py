@@ -44,8 +44,11 @@ class TestVoltreg:
     def test_crp(self, std):
         std.crp(outdir, final)
 
-    def test_vv(self, std):
-        std.vv(outdir, final)
+    def test_vv_char1(self, std):
+        std.vv_char1(outdir, final)
+
+    def test_vv_char23(self, std):
+        std.vv_char23(outdir, final)
 
     def test_vv_vref(self, std):
         std.vv_vref(outdir, final)
@@ -54,13 +57,13 @@ class TestVoltreg:
         std.wv(outdir, final)
 
     def test_vw_1pu(self, std):
-        std.vw_1pu(outdir, final, pwr_pus=(1.0,))
+        std.vw_1pu(outdir, final)
 
     def test_vw_p66pu(self, std):
-        std.vw_pu66(outdir, final, pwr_pus=(0.66,))
+        std.vw_pu66(outdir, final)
 
     def test_vw_p20pu(self, std):
-        std.vw_pu20(outdir, final, pwr_pus=(0.2,))
+        std.vw_pu20(outdir, final)
 
 
 class TestFreqsupp:
