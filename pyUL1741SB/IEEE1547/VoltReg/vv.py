@@ -371,7 +371,7 @@ class VV(VoltReg):
         resp.append(self.c_env.meas_single(*meas_args))
         ts = self.c_env.time_now()
         perturb()
-        while not self.c_env.elapsed_since(4 * olrt, ts):
+        while not self.c_env.elapsed_since(1.5 * olrt, ts):
             self.c_env.sleep(t_step)
             meas = self.c_env.meas_single(*meas_args)
             if is_valid(meas.loc[meas.index[0], 'Q']):

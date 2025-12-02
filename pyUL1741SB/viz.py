@@ -40,11 +40,17 @@ class Validator:
 
     def _draw_pqvf(self, fig):
         df_meas = pd.concat(self.meas)
+        dct_trace_template = {
+            'P': "Value: %{y:.0f}",
+            'Q': "Value: %{y:.0f}",
+            'V': "Value: %{y:.1f}",
+            'F': "Value: %{y:.2f}",
+        }
         for trace in ['P', 'Q', 'V', 'F']:
             fig.add_trace(
                 go.Scatter(
                     x=df_meas.index, y=df_meas[trace], name=trace, mode='lines', opacity=.5,
-                    hovertemplate="Value: %{y:.1f}",
+                    hovertemplate=dct_trace_template[trace],
                     yaxis=dct_trace_order[trace]
                 ),
             )
@@ -135,9 +141,9 @@ class Validator:
         pq_heights = [0.35, 0.35, 0.15, 0.15]
         p_heights = [0.55, 0.15, 0.15, 0.15]
         q_heights = [0.15, 0.55, 0.15, 0.15]
-        if self.proc in ['cpf', 'crp', 'wv', 'vv']:
+        if self.proc in ['cpf', 'crp', 'wv', 'vv', 'vv-vref']:
             heights = q_heights
-        elif self.proc in ['lap', 'vw', 'fwo', 'fwu']:
+        elif self.proc in ['lap', 'vw', 'vw-1pu', 'vw-pu66', 'vw-pu20', 'fwo', 'fwu']:
             heights = p_heights
         else:
             heights = pq_heights
