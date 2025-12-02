@@ -283,7 +283,7 @@ class DercEut(Eut):
             else:
                 raise NotImplementedError
 
-    def set_vv(self, Ena: bool, crv=None, vrefEna=None, vrefTr_s=None):
+    def set_vv(self, Ena: bool, crv=None, autoVrefEna=None, vrefTr_s=None):
         self.cfg.vv.ena = 1 if Ena else 0
         if crv is not None:
             self.cfg.vv.crv.pts[0].x = crv.V1
@@ -295,8 +295,9 @@ class DercEut(Eut):
             self.cfg.vv.crv.pts[3].x = crv.V4
             self.cfg.vv.crv.pts[3].y = crv.Q4
             self.cfg.vv.olrt = crv.Tr
-        if vrefEna is not None:
-            self.cfg.vv.AutoVref.ena = 1 if vrefEna else 0
+            self.cfg.vv.vref = crv.VRef
+        if autoVrefEna is not None:
+            self.cfg.vv.AutoVref.ena = 1 if autoVrefEna else 0
         if vrefTr_s is not None:
             self.cfg.vv.AutoVref.olrt = vrefTr_s
 

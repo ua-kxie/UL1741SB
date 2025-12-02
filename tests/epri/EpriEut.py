@@ -98,7 +98,7 @@ class EpriEut(Eut):
             else:
                 raise NotImplementedError
 
-    def set_vv(self, Ena: bool, crv: VVCurve = None, vrefEna=None, vrefTr_s=None):
+    def set_vv(self, Ena: bool, crv: VVCurve = None, autoVrefEna=None, vrefTr_s=None):
         self.der.der_file.QV_MODE_ENABLE = Ena
         if crv is not None:
             self.der.der_file.QV_CURVE_Q1 = crv.Q1
@@ -110,8 +110,9 @@ class EpriEut(Eut):
             self.der.der_file.QV_CURVE_V3 = crv.V3
             self.der.der_file.QV_CURVE_V4 = crv.V4
             self.der.der_file.QV_OLRT = crv.Tr
-        if vrefEna is not None:
-            self.der.der_file.QV_VREF_AUTO_MODE = vrefEna
+            self.der.der_file.QV_VREF = crv.VRef
+        if autoVrefEna is not None:
+            self.der.der_file.QV_VREF_AUTO_MODE = autoVrefEna
         if vrefTr_s is not None:
             self.der.der_file.QV_VREF_TIME = vrefTr_s
 

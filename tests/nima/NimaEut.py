@@ -95,7 +95,7 @@ class NimaEut(Eut):
                 raise NotImplementedError
         nc.set_emc(**emc_kwargs)
 
-    def set_vv(self, Ena: bool, crv: VVCurve = None, vrefEna=None, vrefTr_s=None):
+    def set_vv(self, Ena: bool, crv: VVCurve = None, autoVrefEna=None, vrefTr_s=None):
         emc_kwargs = {'V_VAr_enable': Ena}
         if crv is not None:
             emc_kwargs.update({
@@ -109,8 +109,8 @@ class NimaEut(Eut):
                 'V_VAr_Q4': int(crv.Q4 * 100 * 5 / 2.2),
                 'V_VAr_T': crv.Tr
             })
-        if vrefEna is not None:
-            emc_kwargs['V_VAr_Auto_enable'] = vrefEna
+        if autoVrefEna is not None:
+            emc_kwargs['V_VAr_Auto_enable'] = autoVrefEna
         if vrefTr_s is not None:
             emc_kwargs['V_VAr_Auto_T'] = vrefTr_s
         nc.set_emc(**emc_kwargs)

@@ -350,7 +350,7 @@ class Eut:
     def set_crp(self, **kwargs):
         pass
 
-    def set_vv(self, Ena: bool, crv=None, vrefEna=None, vrefTr_s=None):
+    def set_vv(self, Ena: bool, crv=None, autoVrefEna=None, vrefTr_s=None):
         pass
 
     def set_wv(self, Ena: bool, crv=None):

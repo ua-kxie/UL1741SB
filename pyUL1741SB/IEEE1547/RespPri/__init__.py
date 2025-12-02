@@ -100,7 +100,7 @@ class RespPri(IEEE1547):
         self.c_eut.set_cpf(Ena=False)
         self.c_eut.set_crp(Ena=False)
         self.c_eut.set_wv(Ena=False)
-        self.c_eut.set_vv(Ena=False, vrefEna=False)
+        self.c_eut.set_vv(Ena=False, autoVrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
         self.c_env.ac_config(
