@@ -27,6 +27,7 @@ class VVCurve:
         str(self.__dict__)
 
     def y_of_x(self, x):
+        x = x + 1 - self.VRef
         return np.interp(
             x,
             [self.V1, self.V2, self.V3, self.V4],
@@ -92,7 +93,7 @@ class VV(VoltReg):
     def vv_char1(self, outdir, final, **kwargs):
         self.validator = viz.Validator('vv-char1')
         try:
-            self.vv_proc(vref_pus=(1.0,), pwr_pus=(1.0, 0.2, 0.66), char_crvs=(1,))
+            self.vv_proc(char_crvs=(1,), pwr_pus=(1.0, 0.2, 0.66))
         finally:
             final()
             self.validator.draw_new(outdir)
@@ -100,51 +101,12 @@ class VV(VoltReg):
     def vv_char23(self, outdir, final, **kwargs):
         self.validator = viz.Validator('vv-char23')
         try:
-            self.vv_proc(vref_pus=(1.0,), pwr_pus=(1.0,), char_crvs=(2, 3))
+            self.vv_proc(char_crvs=(2, 3), pwr_pus=(1.0,))
         finally:
             final()
             self.validator.draw_new(outdir)
 
-    def vv_pwr_crv_mat(self, vref_pus, pwr_pus, dct_crvs):
-        """"""
-        av = self.mra_scale * self.c_eut.mra.static.V
-        '''
-        ee) Repeat test steps e) through dd) with VRef set to 1.05 × VN and 0.95 × VN, respectively.
-        '''
-        for vref in vref_pus:
-            '''
-            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
-            '''
-            if vref != 1.0:
-                raise NotImplementedError
-            for pwr in pwr_pus:  # 1741SB amendment
-                '''
-                gg) Repeat steps e) through ee) for characteristics 2 and 3.
-                '''
-                self.c_eut.set_aap(Ena=True, pu=pwr)
-                for crv_name, vv_crv in dct_crvs.items():
-                    '''
-                    e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
-                    be turned off. Turn off the autonomously adjusting reference voltage.
-                    f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
-                    g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
-                    '''
-                    self.c_eut.set_vv(Ena=True, crv=vv_crv)
-                    dct_vvsteps = self.vv_traverse_steps(vv_crv, self.c_eut.VL, self.c_eut.VH, av)
-                    self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
-                    for stepname, vac in dct_vvsteps.items():
-                        dct_label = {
-                            'proc': 'vv', 'vref': f'{vref:.0f}',
-                            'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'
-                        }
-                        self.vv_step_validate(
-                            dct_label=dct_label,
-                            perturb=lambda: self.c_env.ac_config(Vac=vac),
-                            olrt=timedelta(seconds=vv_crv.Tr),
-                            y_of_x=lambda x: vv_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Srated,
-                        )
-
-    def vv_proc(self, vref_pus=(1.0,), pwr_pus=(1.0, 0.2, 0.66), char_crvs=(1, 2, 3)):
+    def vv_proc(self, char_crvs=(1, 2, 3), pwr_pus=(1.0, 0.2, 0.66)):
         """
         """
         if self.c_eut.Cat == self.c_eut.Category.A:
@@ -180,7 +142,39 @@ class VV(VoltReg):
         self.c_eut.set_vv(Ena=False, autoVrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
-        self.vv_pwr_crv_mat(vref_pus, pwr_pus, dct_crvs)
+        self.vv_pwr_crv_mat(dct_crvs, pwr_pus)
+
+    def vv_pwr_crv_mat(self, dct_crvs, pwr_pus):
+        """"""
+        av = self.mra_scale * self.c_eut.mra.static.V
+        '''
+        gg) Repeat steps e) through ee) for characteristics 2 and 3.
+        '''
+        for crv_name, vv_crv in dct_crvs.items():
+            '''
+            ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
+            '''
+            for pwr in pwr_pus:  # 1741SB amendment
+                self.c_eut.set_aap(Ena=True, pu=pwr)
+                '''
+                e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
+                be turned off. Turn off the autonomously adjusting reference voltage.
+                f) Verify volt-var mode is reported as active and that the correct characteristic is reported.
+                g) Once steady state is reached, Begin the adjustment to VH. Step the ac test source voltage av below V3.
+                '''
+                self.c_eut.set_vv(Ena=True, crv=vv_crv)
+                dct_vvsteps = self.vv_traverse_steps(vv_crv, self.c_eut.VL, self.c_eut.VH, av)
+                self.c_env.sleep(timedelta(seconds=vv_crv.Tr * 2))
+                for stepname, vac in dct_vvsteps.items():
+                    dct_label = {
+                        'proc': 'vv', 'pwr': f'{pwr:.0f}', 'crv': f'{crv_name}', 'step': f'{stepname}'
+                    }
+                    self.vv_step_validate(
+                        dct_label=dct_label,
+                        perturb=lambda: self.c_env.ac_config(Vac=vac),
+                        olrt=timedelta(seconds=vv_crv.Tr),
+                        y_of_x=lambda x: vv_crv.y_of_x(x / self.c_eut.VN) * self.c_eut.Srated,
+                    )
 
     def vv_traverse_steps(self, vv_crv: VVCurve, VL, VH, av):
         """
