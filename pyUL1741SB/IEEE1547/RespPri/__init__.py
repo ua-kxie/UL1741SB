@@ -109,7 +109,7 @@ class RespPri(IEEE1547):
         d) Adjust the EUT’s available active power to Prated. For an EUT with an electrical input, set the input
         voltage to Vin_nom.
         '''
-        self.c_eut.set_ap(Ena=True, pu=1)
+        self.c_eut.set_aap(Ena=True, pu=1)
         '''
         e) Set EUT frequency-watt and volt-watt parameters to the default values for the EUT’s category, and
         enable frequency-watt and volt-watt parameters. For volt-watt, set P2 = 0.2Prated. (P2 = 0.0 1741 amendment)

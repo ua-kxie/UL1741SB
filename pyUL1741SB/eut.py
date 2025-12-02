@@ -344,7 +344,7 @@ class Eut:
     def set_lap(self, Ena: bool, pu):
         pass
 
-    def set_ap(self, **kwargs):
+    def set_aap(self, **kwargs):
         pass
 
     def set_crp(self, **kwargs):

@@ -80,7 +80,7 @@ class LAP(IEEE1547):
                 reaches steady state. Return ac test source voltage to nominal.
                 '''
                 # b)
-                self.c_eut.set_ap(Ena=True, pu=1)
+                self.c_eut.set_aap(Ena=True, pu=1)
                 self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
 
                 def y_of_fw(x):

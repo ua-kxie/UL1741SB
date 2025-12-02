@@ -66,7 +66,7 @@ class CRP(VoltReg):
                 f) Verify constant var mode is reported as active and that the reactive power setting is reported as
                 Qmax,inj.
                 '''
-                self.c_eut.set_ap(Ena=True, pu=1)
+                self.c_eut.set_aap(Ena=True, pu=1)
                 self.c_eut.dc_config(Vdc=Vin)
                 self.c_eut.set_crp(Ena=True, pu=Qpu)
                 '''
@@ -78,9 +78,9 @@ class CRP(VoltReg):
                 l) Step the ac test source voltage to (VL + av).
                 '''
                 dct_steps = {
-                    'g': lambda: self.c_eut.set_ap(Ena=True, pu=max(0.2, Pmin / Prated)),
-                    'h': lambda: self.c_eut.set_ap(Ena=True, pu=max(0.05, Pmin / Prated)),
-                    'i': lambda: self.c_eut.set_ap(Ena=True, pu=1),
+                    'g': lambda: self.c_eut.set_aap(Ena=True, pu=max(0.2, Pmin / Prated)),
+                    'h': lambda: self.c_eut.set_aap(Ena=True, pu=max(0.05, Pmin / Prated)),
+                    'i': lambda: self.c_eut.set_aap(Ena=True, pu=1),
                     'j': lambda: self.c_env.ac_config(Vac=VL + av),
                     'k': lambda: self.c_env.ac_config(Vac=VH - av),
                     'l': lambda: self.c_env.ac_config(Vac=VL + av),

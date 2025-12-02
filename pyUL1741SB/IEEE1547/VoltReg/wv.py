@@ -178,7 +178,7 @@ class WV(VoltReg):
                     dct_label = {'proc': 'wv', 'crv': crv_key,
                                  'dir': direction, 'step': k}
                     self.wv_step_validate(
-                        dct_label, lambda: self.c_eut.set_ap(
+                        dct_label, lambda: self.c_eut.set_aap(
                             Ena=True, pu=max(min(step, 1), -1)), olrt,
                         lambda x: wv_crv.y_of_x(x / self.c_eut.Prated) * self.c_eut.Prated)
 

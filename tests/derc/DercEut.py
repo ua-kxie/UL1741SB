@@ -265,7 +265,7 @@ class DercEut(Eut):
         self.cfg.lap.ena = 1 if Ena else 0
         self.cfg.lap.ap = pu
 
-    def set_ap(self, **kwargs):
+    def set_aap(self, **kwargs):
         for k, v in kwargs.items():
             if k == 'pu':
                 self.current_input.ap = v

@@ -97,16 +97,13 @@ class FreqSupp(IEEE1547):
     def fwo_proc(self):
         """"""
         # chars = char1, char2, char1 with Pmin if needed
-        fw_crvs = {
-            self.c_eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII(), FWChar.CatI_CharI()],
-            self.c_eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII(), FWChar.CatII_CharI()],
-            self.c_eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII(), FWChar.CatIII_CharI()],
+        fw_crvs_all = {
+            self.c_eut.AOPCat.I: [FWChar.CatI_CharI(), FWChar.CatI_CharII()],
+            self.c_eut.AOPCat.II: [FWChar.CatII_CharI(), FWChar.CatII_CharII()],
+            self.c_eut.AOPCat.III: [FWChar.CatIII_CharI(), FWChar.CatIII_CharII()],
         }[self.c_eut.aopCat]
-        ap_sgns = [1, 1, -1]
-        fw_crvs = list(zip(['charI', 'charII', 'charI'], fw_crvs, ap_sgns))
-        if not self.c_eut.Prated_prime < 0:
-            # discard second CharI run if eut cannot absorb active power
-            fw_crvs = fw_crvs[:-1]
+        pwr_pus = [1.0, 0.2, 0.66]
+        dct_fw_crvs = dict(zip(['charI', 'charII'], fw_crvs_all))
         '''
         IEEE 1547.1-2020 5.15.3.2:
         "Frequency is ramped at the ROCOF for the category of the self.c_eut."
@@ -123,7 +120,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_lap(Ena=False, pu=1)
+        self.c_eut.set_aap(Ena=False, pu=1)
         '''
         r) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
         programming a negative Pmin.
@@ -131,13 +128,12 @@ class FreqSupp(IEEE1547):
         '''
         q) Repeat steps c) through p) for Characteristic 2.
         '''
-        for crv_key, crv, ap_sgn in fw_crvs:
-            pwrs_pu = ap_sgn * np.array([1.0, 0.2, 0.66])
+        for crv_key, crv in dct_fw_crvs.items():
             olrt = timedelta(seconds=crv.tr)
             '''
             p) Repeat test steps c) through o) with the EUT power set at 20% and 66% of rated power.
             '''
-            for pwr_pu in pwrs_pu:
+            for pwr_pu in pwr_pus:
                 '''
                 c) Set all ac test source parameters to the nominal operating voltage and frequency.
                 d) Adjust the EUT’s active power to Prated.
@@ -149,16 +145,14 @@ class FreqSupp(IEEE1547):
                 g) Once steady state is reached, read and record the EUT’s active power, reactive power, voltage,
                 frequency, and current measurements.
                 '''
-                self.c_env.ac_config(
-                    Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-                self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+                self.c_env.ac_config(Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
+                self.c_eut.set_lap(Ena=True, pu=pwr_pu)
                 self.c_eut.set_fw(Ena=True, crv=crv)
                 # wait for AP steady state
                 self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))
-                def y_of_x(x): return crv.y_of_x(
-                    x, -1, pwr_pu, 1) * self.c_eut.Prated
-                dct_steps = self.fwo_traverse_steps(
-                    crv, af=self.c_eut.mra.static.F)
+                def y_of_x(x):
+                    return crv.y_of_x(x, -1, pwr_pu, 1) * self.c_eut.Prated
+                dct_steps = self.fwo_traverse_steps(crv, af=self.c_eut.mra.static.F)
                 for step_key, step_fcn in dct_steps.items():
                     dct_label = {'proc': 'fwo', 'crv': crv_key,
                                  'pwr_pu': pwr_pu, 'step': step_key}
@@ -250,7 +244,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False, vrefEna=False)
         self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_ap(Ena=True, pu=1)
+        self.c_eut.set_aap(Ena=True, pu=1)
         '''
         o) Repeat steps b) through n) for Characteristic 2.
         p) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
@@ -271,7 +265,7 @@ class FreqSupp(IEEE1547):
             '''
             self.c_env.ac_config(
                 Vac=self.c_eut.VN, freq=self.c_eut.fN, rocof=self.c_eut.rocof())
-            self.c_eut.set_lap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_sap(Ena=True, pu=pwr_pu)  # set setpoint active power
             self.c_eut.set_fw(Ena=True, crv=crv)
             # wait for AP steady state
             self.c_env.sleep(timedelta(seconds=self.c_eut.olrt.lap))

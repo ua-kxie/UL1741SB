@@ -158,7 +158,7 @@ class VW(VoltReg):
             '''
             u) Repeat steps d) through s) for Characteristics 2 and 3.
             '''
-            self.c_eut.set_ap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_aap(Ena=True, pu=pwr_pu)
             for crv_name, vw_crv in vw_crvs:
                 '''
                 v) Test may be repeated for EUTs that can also absorb power using the P’ values in the characteristic definition. 
