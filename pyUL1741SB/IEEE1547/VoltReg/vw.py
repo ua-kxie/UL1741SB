@@ -193,12 +193,12 @@ class VW(VoltReg):
             ]
         elif self.c_eut.Cat == self.c_eut.Category.B:
             vw_crvs = [
-                ('1B_inj', VWCurve.Crv_1A_inj(self.c_eut)),
-                ('2B_inj', VWCurve.Crv_2A_inj(self.c_eut)),
-                ('3B_inj', VWCurve.Crv_3A_inj(self.c_eut)),
-                ('1B_abs', VWCurve.Crv_1A_abs(self.c_eut)),
-                ('2B_abs', VWCurve.Crv_2A_abs(self.c_eut)),
-                ('3B_abs', VWCurve.Crv_3A_abs(self.c_eut))
+                ('1B_inj', VWCurve.Crv_1B_inj(self.c_eut)),
+                ('2B_inj', VWCurve.Crv_2B_inj(self.c_eut)),
+                ('3B_inj', VWCurve.Crv_3B_inj(self.c_eut)),
+                ('1B_abs', VWCurve.Crv_1B_abs(self.c_eut)),
+                ('2B_abs', VWCurve.Crv_2B_abs(self.c_eut)),
+                ('3B_abs', VWCurve.Crv_3B_abs(self.c_eut))
             ]
         else:
             raise TypeError(f'unknown eut category {self.c_eut.Cat}')
