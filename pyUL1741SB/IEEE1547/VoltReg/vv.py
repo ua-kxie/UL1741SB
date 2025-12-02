@@ -155,7 +155,7 @@ class VV(VoltReg):
             ff) Repeat test steps d) through ee) at EUT power set at 20% and 66% of rated power.
             '''
             for pwr in pwr_pus:  # 1741SB amendment
-                self.c_eut.set_aap(Ena=True, pu=pwr)
+                self.c_eut.set_aap(spu=pwr)
                 '''
                 e) Set EUT volt-var parameters to the values specified by Characteristic 1. All other function should
                 be turned off. Turn off the autonomously adjusting reference voltage.

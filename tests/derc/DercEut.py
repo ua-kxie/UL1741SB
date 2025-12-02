@@ -11,22 +11,17 @@ derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\CDerC\test\dll\build\derc.dll')
 class CrvPt(Structure):
     _fields_ = [('x', c_float), ('y', c_float)]
 
-
 class VoltVarCrv(Structure):
     _fields_ = [('pts', CrvPt * 4)]
-
 
 class WattVarCrv(Structure):
     _fields_ = [('pts', CrvPt * 6)]
 
-
 class VoltWattCrv(Structure):
     _fields_ = [('pts', CrvPt * 2)]
 
-
 class TripPt(Structure):
     _fields_ = [('mag', c_float), ('cts', c_float)]
-
 
 class VoltTrips(Structure):
     _fields_ = [
@@ -34,13 +29,11 @@ class VoltTrips(Structure):
         ('uv1', TripPt), ('uv2', TripPt)
     ]
 
-
 class FreqTrips(Structure):
     _fields_ = [
         ('of1', TripPt), ('of2', TripPt),
         ('uf1', TripPt), ('uf2', TripPt)
     ]
-
 
 class ESCfg(Structure):
     _fields_ = [
@@ -48,10 +41,8 @@ class ESCfg(Structure):
         ('of', c_float), ('uf', c_float), ('delay', c_float), ('ramp_time', c_float)
     ]
 
-
 class FreqWattCfg(Structure):
     _fields_ = [('db', c_float), ('k', c_float)]
-
 
 class FWCfg(Structure):
     _fields_ = [
@@ -61,26 +52,20 @@ class FWCfg(Structure):
         ('olrt', c_float)
     ]
 
-
 class VWCfg(Structure):
     _fields_ = [('ena', c_int), ('crv', VoltWattCrv), ('olrt', c_float)]
-
 
 class LAPCfg(Structure):
     _fields_ = [('ena', c_int), ('ap', c_float)]
 
-
 class CPFCfg(Structure):
     _fields_ = [('ena', c_int), ('pf', c_float), ('exct', c_int)]
-
 
 class CRPCfg(Structure):
     _fields_ = [('ena', c_int), ('var', c_float)]
 
-
 class AutoVrefCfg(Structure):
-    _fields_ = [("ena", c_int), ("olrt", c_float)]
-
+    _fields_ = [("ena", c_int), ("vref", c_float), ("olrt", c_float)]
 
 class VVCfg(Structure):
     _fields_ = [
@@ -88,14 +73,11 @@ class VVCfg(Structure):
         ('AutoVref', AutoVrefCfg)
     ]
 
-
 class WVCfg(Structure):
     _fields_ = [('ena', c_int), ('crv', WattVarCrv)]
 
-
 class TripsCfg(Structure):
     _fields_ = [('vt', VoltTrips), ('ft', FreqTrips)]
-
 
 class DerCCfg(Structure):
     _fields_ = [
@@ -105,10 +87,14 @@ class DerCCfg(Structure):
         ('cpf', CPFCfg), ('crp', CRPCfg), ('vv', VVCfg), ('wv', WVCfg)
     ]
 
-
 class DerCInput(Structure):
-    _fields_ = [('v', c_float), ('f', c_float), ('ap', c_float)]
-
+    _fields_ = [
+        ('v', c_float),
+        ('f', c_float),
+        ('aap_inj', c_float),
+        ('aap_abs', c_float),
+        ('sap', c_float),
+    ]
 
 class DerCCmd(Structure):
     _fields_ = [('p', c_float), ('q', c_float), ('poc', c_int)]
@@ -117,8 +103,7 @@ class DerCCmd(Structure):
 class DercEut(Eut):
     def __init__(self, **kwargs):
         # Initialize DLL
-        derc.derc_step.argtypes = [
-            POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
+        derc.derc_step.argtypes = [POINTER(DerCInput), c_float, c_bool, POINTER(DerCCmd)]
         derc.derc_step.restype = c_int
 
         self.cfg = DerCCfg.in_dll(derc, 'derc_cfg')
@@ -193,6 +178,7 @@ class DercEut(Eut):
         self.cfg.vv.crv.pts[3].y = -0.44  # 44% reactive power (absorption)
         self.cfg.vv.olrt = 5.0  # 5 seconds response time
         self.cfg.vv.AutoVref.ena = 0  # DISABLED
+        self.cfg.vv.AutoVref.olrt = 1.00
         self.cfg.vv.AutoVref.olrt = 300.0  # 5 minutes response time
 
         # Watt-Var defaults
@@ -245,7 +231,7 @@ class DercEut(Eut):
         )
 
         self.current_cmd = DerCCmd(p=0, q=0, poc=0)
-        self.current_input = DerCInput(v=1.0, f=60.0, ap=1.0)
+        self.current_input = DerCInput(v=1.0, f=60.0, aap_inj=2.0, aap_abs=-2.0, sap=1.0)
 
     def dc_config(self, **kwargs):
         pass
@@ -265,14 +251,11 @@ class DercEut(Eut):
         self.cfg.lap.ena = 1 if Ena else 0
         self.cfg.lap.ap = pu
 
-    def set_aap(self, **kwargs):
-        for k, v in kwargs.items():
-            if k == 'pu':
-                self.current_input.ap = v
-            elif k == 'Ena':
-                pass
-            else:
-                raise NotImplementedError
+    def set_aap(self, spu):
+        self.current_input.aap_inj = spu
+
+    def set_sap(self, spu):
+        self.current_input.sap = spu
 
     def set_crp(self, **kwargs):
         for k, v in kwargs.items():
@@ -393,12 +376,16 @@ class DercEut(Eut):
 
     def run_step(self, dt=0.1, fault=False):
         for i in range(int(round(dt/1e-3))):
-            derc.derc_step(byref(self.current_input), 1e-3,
-                           fault, byref(self.current_cmd))
+            derc.derc_step(
+                byref(self.current_input),
+                1e-3,
+                fault,
+                byref(self.current_cmd)
+            )
 
     @property
     def p_out_w(self):
-        return self.current_cmd.p * self.Prated
+        return self.current_cmd.p * self.Srated
 
     @property
     def q_out_var(self):

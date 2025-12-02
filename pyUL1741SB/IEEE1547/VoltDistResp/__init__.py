@@ -385,7 +385,7 @@ class VoltDist(IEEE1547):
         PF = 1.0  # 0.9-1.0
         self.c_eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            self.c_eut.set_aap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_aap(spu=pwr_pu)
             for cond in seq:
                 dct_label = {
                     'proc': 'lvrt',
@@ -529,7 +529,7 @@ class VoltDist(IEEE1547):
         PF = 1.0  # 0.9-1.0
         self.c_eut.set_cpf(PF=PF)
         for pwr_pu in [1.0, 0.25]:  # >0.9, 0.25-0.50
-            self.c_eut.set_aap(Ena=True, pu=pwr_pu)
+            self.c_eut.set_aap(spu=pwr_pu)
             for cond in seq:
                 dct_label = {
                     'proc': 'hvrt',

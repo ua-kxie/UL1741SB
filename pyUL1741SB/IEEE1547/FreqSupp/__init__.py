@@ -120,7 +120,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False, autoVrefEna=False)
         self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_aap(Ena=False, pu=1)
+        self.c_eut.set_aap(spu=1.0)
         '''
         r) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by
         programming a negative Pmin.
@@ -244,7 +244,7 @@ class FreqSupp(IEEE1547):
         self.c_eut.set_wv(Ena=False)
         self.c_eut.set_vv(Ena=False, autoVrefEna=False)
         self.c_eut.set_vw(Ena=False)
-        self.c_eut.set_aap(Ena=True, pu=1)
+        self.c_eut.set_aap(spu=1)
         '''
         o) Repeat steps b) through n) for Characteristic 2.
         p) For EUTs that can absorb power, rerun Characteristic 1 allowing the unit to absorb power by

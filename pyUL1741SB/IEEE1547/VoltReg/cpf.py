@@ -65,7 +65,7 @@ class CPF(VoltReg):
         self.c_eut.set_vv(Ena=False, autoVrefEna=False)
         self.c_eut.set_vw(Ena=False)
         self.c_eut.set_lap(Ena=False, pu=1)
-        self.c_eut.set_aap(Ena=False, pu=appu_max)
+        self.c_eut.set_aap(spu=2.0)
         """
         t) For an EUT with an input voltage range, repeat steps d) through p) for [Vin_nom,] Vin_min and Vin_max.		
         """
@@ -94,7 +94,7 @@ class CPF(VoltReg):
                 input voltage to Vin_nom. The EUT may limit active power throughout the test to meet reactive
                 power requirements.
                 '''
-                self.c_eut.set_aap(Ena=True, pu=appu_max)
+                self.c_eut.set_aap(spu=appu_max)
                 '''
                 e) Enable constant power factor mode and set the EUT power factor to [tagetPF].
                 '''
@@ -111,8 +111,8 @@ class CPF(VoltReg):
                 k) Step the ac test source voltage to (VL + av).		
                 '''
                 dct_steps = {
-                    'g': lambda: self.c_eut.set_aap(Ena=True, pu=Pmin / Prated),
-                    'h': lambda: self.c_eut.set_aap(Ena=True, pu=appu_max),
+                    'g': lambda: self.c_eut.set_aap(spu=Pmin / Prated),
+                    'h': lambda: self.c_eut.set_aap(spu=appu_max),
                     'i': lambda: self.c_env.ac_config(Vac=VL + av),
                     'j': lambda: self.c_env.ac_config(Vac=VH - av),
                     'k': lambda: self.c_env.ac_config(Vac=VL + av),

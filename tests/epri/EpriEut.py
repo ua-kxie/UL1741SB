@@ -76,14 +76,8 @@ class EpriEut(Eut):
         self.der.der_file.AP_LIMIT_ENABLE = Ena
         self.der.der_file.AP_LIMIT = pu
 
-    def set_aap(self, **kwargs):
-        for k, v in kwargs.items():
-            if k == 'pu':
-                self.der.update_der_input(p_dem_pu=v)
-            elif k == 'Ena':
-                pass
-            else:
-                raise NotImplementedError
+    def set_aap(self, spu):
+        self.der.update_der_input(p_dem_pu=spu)
 
     def set_crp(self, **kwargs):
         for k, v in kwargs.items():

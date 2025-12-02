@@ -40,8 +40,5 @@ class DercStd(UL1741SB):
 eut = DercEut()
 env = DercEnv(eut)
 std = DercStd(env, eut)
-# std.fwo_proc()
-# std.vv_vref_proc()
-# std.pri_proc()
-# std.lap_proc()
-std.es_ramp_proc()
+
+std.cpf('', lambda: None)

@@ -74,14 +74,8 @@ class NimaEut(Eut):
         nc.set_emc(P_lim_enable=Ena, P_lim_cmd=int(
             pu * 100))  # Convert pu to percentage
 
-    def set_aap(self, **kwargs):
-        for k, v in kwargs.items():
-            if k == 'pu':
-                self.pcmd = 5000 * v
-            elif k == 'Ena':
-                pass
-            else:
-                raise NotImplementedError
+    def set_aap(self, spu):
+        self.pcmd = 5000 * spu
 
     def set_crp(self, **kwargs):
         emc_kwargs = {}

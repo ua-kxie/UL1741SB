@@ -253,7 +253,7 @@ class FreqDist(IEEE1547):
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            self.c_eut.set_aap(Ena=True, pu=1.0)
+            self.c_eut.set_aap(spu=1.0)
             self.c_eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
@@ -363,7 +363,7 @@ class FreqDist(IEEE1547):
             f) Operate EUT at any convenient power level between 90% and 100% of EUT rating and at any
             convenient power factor. Record the output current of the EUT at the nominal frequency condition.
             '''
-            self.c_eut.set_aap(Ena=True, pu=1.0)
+            self.c_eut.set_aap(spu=1.0)
             self.c_eut.set_cpf(Ena=True, PF=1.0)
             '''
             VFO CAPABLE:
