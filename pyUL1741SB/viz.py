@@ -163,7 +163,7 @@ class Validator:
             grid=dict(rows=4, columns=1),
             title=self.proc.upper(),
             plot_bgcolor='rgba(245, 245, 245)',
-            hoversubplots="axis",
+            # hoversubplots="axis",
             hovermode="x",
             yaxis=dict(domain=domains['y1d'], anchor='x'),
             yaxis2=dict(domain=domains['y2d'], anchor='x'),

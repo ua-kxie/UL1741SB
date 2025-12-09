@@ -23,12 +23,7 @@ class CRP(VoltReg):
         """
         self.c_env.log(msg="cpf proc against 1547")
         olrt = timedelta(seconds=self.c_eut.olrt.crp)
-        Qpusets = [
-            1 * self.c_eut.Qrated_inj / self.c_eut.Srated, -
-            1 * self.c_eut.Qrated_abs / self.c_eut.Srated,
-            0.5 * self.c_eut.Qrated_inj / self.c_eut.Srated, -
-            0.5 * self.c_eut.Qrated_abs / self.c_eut.Srated
-        ]
+        Qpusets = [1, -1, 0.5, -0.5]
         Vins = [v for v in [self.c_eut.Vin_nom, self.c_eut.Vin_min,
                             self.c_eut.Vin_max] if v is not None]
         Pmin, Prated, multiphase = self.c_eut.Pmin, self.c_eut.Prated, self.c_eut.multiphase

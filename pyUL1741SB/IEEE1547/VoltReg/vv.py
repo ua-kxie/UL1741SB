@@ -90,7 +90,7 @@ class VVCurve:
 
 
 class VV(VoltReg):
-    def vv_char1(self, outdir, final, **kwargs):
+    def vv_char1(self, outdir, final):
         self.validator = viz.Validator('vv-char1')
         try:
             self.vv_proc(char_crvs=(1,), pwr_pus=(1.0, 0.2, 0.66))
@@ -98,7 +98,7 @@ class VV(VoltReg):
             final()
             self.validator.draw_new(outdir)
 
-    def vv_char23(self, outdir, final, **kwargs):
+    def vv_char23(self, outdir, final):
         self.validator = viz.Validator('vv-char23')
         try:
             self.vv_proc(char_crvs=(2, 3), pwr_pus=(1.0,))
