@@ -3,7 +3,7 @@ from pyUL1741SB import Eut
 from pyUL1741SB.eut import VoltShallTripTable, FreqShallTripTable
 
 # Load DLL
-derc = CDLL(rf'C:\Users\Iraeis\PycharmProjects\CDerC\test\dll\build\derc.dll')
+derc = CDLL(rf'tests/derc/derc.dll')
 
 # Structures matching derc.h
 
@@ -200,7 +200,7 @@ class DercEut(Eut):
         self.Prated = 5000
         self.Srated = 5000
         self.VN = 240
-        olrt = super().Olrt(crp=10, cpf=10, wv=10, lap=1)
+        olrt = super().Olrt(crp=2, cpf=2, wv=2, lap=1)
         super().__init__(
             olrt=olrt,
             Cat=Eut.Category.B,
@@ -218,8 +218,8 @@ class DercEut(Eut):
             VH=self.VN * 1.1,
             Pmin=0,
             Pmin_prime=0,
-            Qrated_abs=5000,
-            Qrated_inj=5000,
+            Qrated_abs=4400,
+            Qrated_inj=4400,
             Comms=[Eut.Comms.SUNS],
             multiphase=False,
             fL=58.8,
@@ -262,7 +262,8 @@ class DercEut(Eut):
             if k == 'Ena':
                 self.cfg.crp.ena = 1 if v else 0
             elif k == 'pu':
-                self.cfg.crp.var = v
+                Qrated = self.Qrated_abs if v < 0 else self.Qrated_inj
+                self.cfg.crp.var = v * Qrated / self.Srated
             else:
                 raise NotImplementedError
 
