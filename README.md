@@ -27,7 +27,7 @@ Automated testing framework for UL1741SB compliance validation of physical and/o
 - **Environment Agnostic**: Can run in SVP (SunSpec Virtual Platform) but doesn't require it
 - **Real & Virtual Device Support**: Test physical or virtual DERs
 - **Reference Implementations**: Includes validated test cases for EPRI openDER models and a custom controller I wrote
-- **Plotly** powered interactive [results](cpf.html) visualization
+- **Plotly** powered interactive ([results](cpf.html): download and open in browser) visualization
 ![VizEx](vizex.png)
 
 ## 🔧 Comparison with Sandia's IEEE 1547 Repository
